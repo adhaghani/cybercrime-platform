@@ -1,22 +1,29 @@
-import { redirect } from "next/navigation";
+import { AppSidebar } from "@/components/dashboard/app-sidebar"
+import { SiteHeader } from "@/components/dashboard/site-header"
+import {
+  SidebarInset,
+  SidebarProvider,
+} from "@/components/ui/sidebar"
 
-import { LogoutButton } from "@/components/auth/logout-button";
-import { createClient } from "@/lib/supabase/server";
-
-export default async function ProtectedPage() {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase.auth.getClaims();
-  if (error || !data?.claims) {
-    redirect("/auth/login");
-  }
-
+export default function Page() {
   return (
-    <div className="flex h-svh w-full items-center justify-center gap-2">
-      <p>
-        Hello <span>{data.claims.email}</span>
-      </p>
-      <LogoutButton />
+    <div className="w-full">
+      <SidebarProvider className="flex flex-col">
+        <SiteHeader />
+        <div className="flex flex-1">
+          <AppSidebar />
+          <SidebarInset>
+            <div className="flex flex-1 flex-col gap-4 p-4">
+              <div className="grid auto-rows-min gap-4 md:grid-cols-3">
+                <div className="bg-muted/50 aspect-video rounded-xl" />
+                <div className="bg-muted/50 aspect-video rounded-xl" />
+                <div className="bg-muted/50 aspect-video rounded-xl" />
+              </div>
+              <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
+            </div>
+          </SidebarInset>
+        </div>
+      </SidebarProvider>
     </div>
-  );
+  )
 }
