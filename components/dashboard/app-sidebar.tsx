@@ -36,7 +36,7 @@ const data = {
   },
   navMain: [
     {
-      title: "Cybercrime Terminal",
+      title: "Crime Terminal",
       url: "#",
       icon: SquareTerminal,
       isActive: true,
@@ -46,7 +46,31 @@ const data = {
           url: "#",
         },
         {
-          title: "View All Report",
+          title: "Crime Statistic",
+          url: "#",
+        },
+        {
+          title: "View All Crime Report",
+          url: "#",
+        },
+        {
+          title: "My Reports",
+          url: "#",
+        },
+      ],
+    },
+        {
+      title: "Facilities Terminal",
+      url: "#",
+      icon: SquareTerminal,
+      isActive: true,
+      items: [
+        {
+          title: "Submit a Report",
+          url: "#",
+        },
+        {
+          title: "View All Facility Reports",
           url: "#",
         },
         {
@@ -62,11 +86,11 @@ const data = {
       items: [
         {
           title: "UiTM Auxiliary Police",
-          url: "#",
+          url: "/dashboard/emergency-services/uitm-auxiliary-police",
         },
         {
           title: "All Emergency Contacts",
-          url: "#",
+          url: "/dashboard/emergency-services/emergency-contacts",
         },
       ],
     },
