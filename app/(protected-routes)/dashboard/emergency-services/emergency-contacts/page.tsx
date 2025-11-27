@@ -127,7 +127,7 @@ export default function EmergencyContactsPage() {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">National Emergency Contacts</h1>
         <p className="text-muted-foreground">
@@ -148,7 +148,7 @@ export default function EmergencyContactsPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 h-auto">
+        <TabsList className="grid grid-cols-2 md:grid-cols-5 h-auto">
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="police">Police</TabsTrigger>
           <TabsTrigger value="fire">Fire</TabsTrigger>

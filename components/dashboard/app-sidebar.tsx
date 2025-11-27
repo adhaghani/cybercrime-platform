@@ -54,7 +54,7 @@ const data = {
           url: "#",
         },
         {
-          title: "My Reports",
+          title: "My Crime Reports",
           url: "#",
         },
       ],
@@ -74,14 +74,14 @@ const data = {
           url: "#",
         },
         {
-          title: "My Reports",
+          title: "My Facility Reports",
           url: "#",
         },
       ],
     },
     {
       title: "Emergency Services",
-      url: "#",
+      url: "/dashboard/emergency-services",
       icon: Bot,
       items: [
         {
@@ -97,17 +97,17 @@ const data = {
   ],
   navSecondary: [
     {
+      title: "My Reports",
+      url: "#",
+      icon: Frame,
+    },
+    {
       title: "Get Support",
       url: "#",
       icon: LifeBuoy,
     },
     {
-      title: "Submit a feedback",
-      url: "#",
-      icon: Send,
-    },
-        {
-      title: "View app documentation",
+      title: "App Tutorial",
       url: "#",
       icon: BookOpen,
     },
