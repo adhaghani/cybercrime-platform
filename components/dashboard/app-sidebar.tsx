@@ -61,21 +61,21 @@ const data = {
     },
         {
       title: "Facilities Terminal",
-      url: "#",
+      url: "/dashboard/facility",
       icon: SquareTerminal,
       isActive: true,
       items: [
         {
           title: "Submit a Report",
-          url: "#",
+          url: "/dashboard/facility/submit-report",
         },
         {
           title: "View All Facility Reports",
-          url: "#",
+          url: "/dashboard/facility/reports",
         },
         {
           title: "My Facility Reports",
-          url: "#",
+          url: "/dashboard/facility/my-reports",
         },
       ],
     },
