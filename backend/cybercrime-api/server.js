@@ -9,20 +9,16 @@ app.use(express.json());
 // Database connection configuration
 const dbConfig = {
     user: 'PDBADMIN',
-    password: 'PDBADMIN',  // ⚠️ CHANGE THIS!
+    password: 'PDBADMIN', 
     connectString: 'localhost:1521/FREEPDB1'
 };
 
-// ============================================
-// TEST ENDPOINT
-// ============================================
+
 app.get('/api/test', (req, res) => {
     res.json({ message: '🚀 Cybercrime API is working!' });
 });
 
-// ============================================
-// ACCOUNT ENDPOINTS
-// ============================================
+
 
 // Get all accounts
 app.get('/api/accounts', async (req, res) => {
@@ -67,9 +63,7 @@ app.get('/api/accounts/:id', async (req, res) => {
     }
 });
 
-// ============================================
-// REPORT ENDPOINTS
-// ============================================
+
 
 // Get all reports
 app.get('/api/reports', async (req, res) => {
@@ -167,9 +161,6 @@ app.post('/api/reports', async (req, res) => {
     }
 });
 
-// ============================================
-// CRIME ENDPOINTS
-// ============================================
 
 // Get all crimes
 app.get('/api/crimes', async (req, res) => {
@@ -209,9 +200,6 @@ app.get('/api/crimes/report/:reportId', async (req, res) => {
     }
 });
 
-// ============================================
-// ANNOUNCEMENT ENDPOINTS
-// ============================================
 
 // Get all announcements
 app.get('/api/announcements', async (req, res) => {
@@ -232,9 +220,6 @@ app.get('/api/announcements', async (req, res) => {
     }
 });
 
-// ============================================
-// EMERGENCY INFO ENDPOINTS
-// ============================================
 
 // Get all emergency contacts
 app.get('/api/emergency', async (req, res) => {
@@ -255,9 +240,6 @@ app.get('/api/emergency', async (req, res) => {
     }
 });
 
-// ============================================
-// STAFF ENDPOINTS
-// ============================================
 
 // Get all staff
 app.get('/api/staff', async (req, res) => {
@@ -280,9 +262,6 @@ app.get('/api/staff', async (req, res) => {
     }
 });
 
-// ============================================
-// USERS (STUDENTS) ENDPOINTS
-// ============================================
 
 // Get all users/students
 app.get('/api/users', async (req, res) => {
@@ -305,9 +284,6 @@ app.get('/api/users', async (req, res) => {
     }
 });
 
-// ============================================
-// DASHBOARD STATISTICS
-// ============================================
 
 // Get dashboard stats
 app.get('/api/dashboard/stats', async (req, res) => {
