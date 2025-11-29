@@ -1,4 +1,7 @@
-import { User } from "@supabase/supabase-js";
+/**
+ * Authentication type definitions
+ * Used throughout the application for user authentication and authorization
+ */
 
 export interface AuthClaims {
   email?: string;
@@ -8,29 +11,32 @@ export interface AuthClaims {
   exp?: number;
   role?: string;
   session_id?: string;
-  [key: string]: any;
-}
-
-export interface AuthUser extends User {
-  email?: string;
   user_metadata?: {
     full_name?: string;
+    username?: string;
     avatar_url?: string;
     [key: string]: any;
   };
-  app_metadata?: {
-    provider?: string;
-    providers?: string[];
-    [key: string]: any;
-  };
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: any;
+}
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  full_name?: string;
+  username?: string;
+  avatar_url?: string;
+  role: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface AuthSession {
   access_token: string;
-  refresh_token: string;
-  expires_in: number;
-  expires_at?: number;
   token_type: string;
+  expires_at?: number;
   user: AuthUser;
 }
 
@@ -40,8 +46,5 @@ export interface AuthContextType {
   claims: AuthClaims | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
-  signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
+  setClaims: (claims: AuthClaims | null) => void;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/lib/context/auth-provider";
-import { createClient } from "@/lib/supabase/client";
+import { getCurrentUser } from "@/lib/api/auth";
 import { useEffect, useState } from "react";
 
 export function ProtectedLayoutContent({
@@ -21,47 +21,26 @@ export function ProtectedLayoutContent({
       }
 
       try {
-        const supabase = createClient();
+        const user = await getCurrentUser();
 
-        // Get current session (fast check)
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-
-        if (sessionError || !session) {
+        if (!user) {
           window.location.href = "/auth/login";
           return;
         }
 
-        // Fetch detailed profile data
-        const { data: profile, error: profileError } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
-          .single();
-
-        if (profileError) {
-          console.error("Error fetching profile:", profileError);
-          // Use basic user data if profile fetch fails
-          setClaims({
-            sub: session.user.id,
-            email: session.user.email || "",
-            role: session.user.user_metadata?.role || "user",
-          });
-        } else {
-          // Set complete user data with profile
-          setClaims({
-            sub: session.user.id,
-            email: session.user.email || "",
-            full_name: profile.full_name || "",
-            username: profile.username || "",
-            avatar_url: profile.avatar_url || "",
-            role: session.user.user_metadata?.role || "user",
-            created_at: profile.created_at,
-            updated_at: profile.updated_at,
-          });
-        }
+        // Set user claims
+        setClaims({
+          sub: user.id,
+          email: user.email,
+          user_metadata: {
+            full_name: user.full_name || "",
+            username: user.username || "",
+            avatar_url: user.avatar_url || "",
+          },
+          role: user.role,
+          created_at: user.created_at,
+          updated_at: user.updated_at,
+        });
       } catch (error) {
         console.error("Error loading user data:", error);
         window.location.href = "/auth/login";

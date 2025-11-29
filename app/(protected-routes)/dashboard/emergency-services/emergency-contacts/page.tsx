@@ -190,7 +190,7 @@ export default function EmergencyContactsPage() {
       
       {filteredContacts.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">
-          No results found for "{searchQuery}" in {activeTab === 'all' ? 'all categories' : activeTab}.
+          No results found for &quot;{searchQuery}&quot; in {activeTab === 'all' ? 'all categories' : activeTab}.
         </div>
       )}
     </div>

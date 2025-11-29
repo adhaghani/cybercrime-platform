@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
+import { login } from "@/lib/api/auth";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -54,56 +54,32 @@ export function LoginForm({
   });
 
   const onSubmit = async (value: z.infer<typeof formSchema>) => {
-    const supabase = createClient();
     setError(null);
     try {
       setIsLoading(true);
 
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { user } = await login({
         email: form.getValues("email"),
         password: form.getValues("password"),
       });
 
-      if (data.user) {
-        console.log("User logged in:", data.user);
+      // Set user claims
+      setClaims({
+        sub: user.id,
+        email: user.email,
+        user_metadata: {
+          full_name: user.full_name || "",
+          username: user.username || "",
+          avatar_url: user.avatar_url || "",
+        },
+        role: user.role,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
+      });
 
-        // Fetch user profile data
-        const { data: profile, error: profileError } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", data.user.id)
-          .single();
-
-        if (profileError) {
-          console.error("Error fetching profile:", profileError);
-          // Set basic claims if profile fetch fails
-          setClaims({
-            sub: data.user.id,
-            email: data.user.email || "",
-            role: data.user.user_metadata?.role || "user",
-          });
-        } else {
-          console.log("Profile data:", profile);
-          // Set complete claims with profile data
-          setClaims({
-            sub: data.user.id,
-            email: data.user.email || "",
-            full_name: profile.full_name || "",
-            username: profile.username || "",
-            avatar_url: profile.avatar_url || "",
-            role: data.user.user_metadata?.role || "user",
-            created_at: profile.created_at,
-            updated_at: profile.updated_at,
-          });
-        }
-
-        if (error) {
-          setError(error.message);
-        }
-        // Get redirect URL from sear chParams or default to dashboard
-        const redirectTo = searchParams.get("redirect") || "/dashboard";
-        router.push(redirectTo);
-      }
+      // Get redirect URL from searchParams or default to dashboard
+      const redirectTo = searchParams.get("redirect") || "/dashboard";
+      router.push(redirectTo);
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {

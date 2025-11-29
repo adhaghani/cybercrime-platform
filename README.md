@@ -1,76 +1,86 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## UiTM Cybercrime Platform
+
+A comprehensive campus crime and facility reporting platform for UiTM with emergency services directory, statistics, and user dashboards.
+
+### Tech Stack
+
+- **Frontend**: Next.js 15.4.6 (App Router), React 19, TypeScript
+- **UI Components**: shadcn/ui (@radix-ui primitives)
+- **Styling**: Tailwind CSS
+- **Backend**: Express.js + Oracle Database
+- **Charts**: Recharts
+- **Validation**: Zod
+- **Forms**: React Hook Form
+
 ## Environment Variables
 
-This project uses Supabase for auth and some server-side features. Create a `.env.local` file (copy from `.env.example`) and fill in the values before running the app. Required variables:
+This project uses an Express.js backend with Oracle Database. Create a `.env.local` file (copy from `.env.example`) and fill in the values before running the app.
 
-- `NEXT_PUBLIC_SUPABASE_URL` — Your Supabase project URL (public).
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Your Supabase anon key (public).
+Required variables:
 
-If you use any server-only Supabase keys (for example a service role key), store them without the `NEXT_PUBLIC_` prefix and never commit them. See `.env.example` for a template.
+- `NEXT_PUBLIC_API_URL` — Your backend API URL (default: http://localhost:3001)
+- `NODE_ENV` — Environment (development/production)
+- `NEXT_PUBLIC_SITE_URL` — Your site URL (for SEO)
+
+Example `.env.local`:
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:3001
+NODE_ENV=development
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
 
 Make sure `.env.local` is in your `.gitignore` (this repo ignores it by default).
 
-## OAuth providers (Google & GitHub)
+## Backend Setup
 
-This template supports social auth via OAuth providers. If you want users to sign in with Google or GitHub you'll need to register OAuth apps in each provider's console and then wire the credentials into your Supabase project.
+The backend API is located in `backend/cybercrime-api/`. It uses Express.js with Oracle Database.
 
-High level steps:
+### Starting the Backend
 
-1. Create OAuth credentials in the provider console (Google / GitHub).
-2. Add the provider Client ID and Client Secret in the Supabase Dashboard (Authentication -> Settings -> External OAuth providers).
-3. Test sign-in locally or on your deployed domain.
+1. Navigate to the backend directory:
+   ```bash
+   cd backend/cybercrime-api
+   ```
 
-Notes on redirect URIs
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-- If you use Supabase Auth (recommended), set the provider's redirect/callback URL to your Supabase project's callback URL:
+3. Ensure Oracle Database is running and configured in `server.js`:
+   ```javascript
+   const dbConfig = {
+     user: 'PDBADMIN',
+     password: 'PDBADMIN',
+     connectString: 'localhost:1521/FREEPDB1'
+   };
+   ```
 
-  `https://<your-supabase-project-ref>.supabase.co/auth/v1/callback`
+4. Start the server:
+   ```bash
+   npm start
+   ```
 
-  You can find your Supabase project ref in the Supabase project settings. Supabase routes the OAuth response back to your app.
+The backend will run on `http://localhost:3001` by default.
 
-- For local testing you can either configure a separate OAuth credential that allows `http://localhost:3000` as an authorized origin, or use the Supabase redirect URL above and test via the routed domain. Provider consoles differ in whether they allow `localhost` in production credentials.
+### Available API Endpoints
 
-Google Cloud Console (create OAuth 2.0 Client ID)
-
-1. Open https://console.cloud.google.com and create/select a project.
-2. Navigate to APIs & Services -> OAuth consent screen and configure the consent screen (choose External or Internal depending on your audience). Add the email and app name, and set any required scopes (email, profile are typical).
-3. Go to APIs & Services -> Credentials -> Create Credentials -> OAuth client ID.
-4. Choose "Web application" and set the Authorized redirect URIs. If you use Supabase Auth, add:
-
-   `https://<your-supabase-project-ref>.supabase.co/auth/v1/callback`
-
-   Optionally add local URLs for development if you plan to run OAuth locally:
-
-   `http://localhost:3000` (or a specific local callback if you handle it in-app)
-
-5. Create the client and note the Client ID and Client Secret.
-
-GitHub (register an OAuth App)
-
-1. Go to https://github.com/settings/developers -> OAuth Apps -> New OAuth App.
-2. Fill the Application name and Homepage URL (e.g. `http://localhost:3000` for dev or your deployed domain).
-3. For Authorization callback URL use the Supabase callback URL if you're routing via Supabase:
-
-   `https://<your-supabase-project-ref>.supabase.co/auth/v1/callback`
-
-4. Register the app and copy the Client ID and Client Secret from the app settings.
-
-Wiring credentials into Supabase
-
-1. Open your Supabase project dashboard.
-2. Go to Authentication -> Providers (or Settings -> External OAuth providers).
-3. Find the provider (Google, GitHub) and paste the Client ID and Client Secret you obtained.
-4. Save changes and test sign-in via the app (Sign in with Google / GitHub). Supabase will handle the OAuth flow and redirect back to your app.
-
-Storing secrets
-
-- Client IDs are public-ish, but Client Secrets must be kept private. Add them to the Supabase provider config in the Dashboard (not to client-side `.env` file). If you do need them locally for a custom provider flow, store them in a local `.env.local` and never commit that file.
-
-Troubleshooting
-
-- If you see redirect URI mismatch errors, verify the callback URL configured in the provider exactly matches what Supabase expects.
-- For local development, create separate OAuth credentials or allow `localhost` origins where the provider console supports it.
+- `GET /api/test` - Health check
+- `GET /api/accounts` - Get all accounts
+- `GET /api/accounts/:id` - Get account by ID
+- `GET /api/reports` - Get all reports
+- `GET /api/reports/:id` - Get report by ID
+- `GET /api/reports/status/:status` - Get reports by status
+- `POST /api/reports` - Create new report
+- `GET /api/crimes` - Get all crimes
+- `GET /api/announcements` - Get all announcements
+- `GET /api/emergency` - Get emergency contacts
+- `GET /api/staff` - Get all staff
+- `GET /api/users` - Get all users/students
+- `GET /api/dashboard/stats` - Get dashboard statistics
 
 ## Getting Started
 

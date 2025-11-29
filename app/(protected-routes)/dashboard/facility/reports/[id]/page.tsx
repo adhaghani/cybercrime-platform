@@ -28,7 +28,7 @@ export default function ReportDetailPage({ params }: { params: Promise<{ id: str
         </div>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-muted-foreground">The report you're looking for doesn't exist.</p>
+            <p className="text-muted-foreground">The report you&apos;re looking for doesn&apos;t exist.</p>
           </CardContent>
         </Card>
       </div>

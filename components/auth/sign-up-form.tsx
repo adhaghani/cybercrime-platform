@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
+import { signUp } from "@/lib/api/auth";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -68,19 +68,15 @@ export function SignUpForm({
   });
 
   const onSubmit = async (value: z.infer<typeof formSchema>) => {
-    const supabase = createClient();
     setError(null);
     try {
       setIsLoading(true);
 
-      const { error } = await supabase.auth.signUp({
+      await signUp({
         email: form.getValues("email"),
         password: form.getValues("password"),
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-        },
       });
-      if (error) throw error;
+      
       router.push("/auth/sign-up-success");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");

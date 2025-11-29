@@ -217,7 +217,7 @@ export default function UitmAuxiliaryPolicePage() {
       
       {filteredStations.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">
-          No results found for "{searchQuery}"
+          No results found for &quot;{searchQuery}&quot;
         </div>
       )}
     </div>
