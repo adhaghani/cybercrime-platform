@@ -67,6 +67,9 @@ export async function login(credentials: LoginCredentials): Promise<AuthResponse
         const mockToken = btoa(JSON.stringify({ 
           userId: mockUser.id, 
           email: mockUser.email,
+          role: mockUser.role,
+          full_name: mockUser.full_name,
+          username: mockUser.username,
           exp: Date.now() + 86400000 // 24 hours
         }));
 
@@ -145,10 +148,10 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
     return {
       id: decoded.userId || '1',
       email: decoded.email || 'user@example.com',
-      full_name: 'John Doe',
-      username: decoded.email?.split('@')[0] || 'user',
+      full_name: decoded.full_name || 'John Doe',
+      username: decoded.username || decoded.email?.split('@')[0] || 'user',
       avatar_url: '',
-      role: 'student',
+      role: decoded.role || 'student',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };

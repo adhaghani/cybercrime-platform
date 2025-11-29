@@ -207,12 +207,12 @@ const getNavMainByRole = (role: string | undefined) => {
     },
     {
       title: "User Management",
-      url: "/dashboard/users",
+      url: "/dashboard/user-management",
       icon: Users,
       items: [
         {
           title: "All Users",
-          url: "/dashboard/users",
+          url: "/dashboard/user-management/all-user",
         },
         {
           title: "Staff Members",
@@ -232,10 +232,6 @@ const getNavMainByRole = (role: string | undefined) => {
         {
           title: "All Emergency Contacts",
           url: "/dashboard/emergency-services/emergency-contacts",
-        },
-        {
-          title: "Manage Contacts",
-          url: "/dashboard/emergency-services/manage-contacts",
         }
       ],
     },
@@ -297,24 +293,24 @@ const getNavMainByRole = (role: string | undefined) => {
     },
     {
       title: "User Management",
-      url: "/dashboard/users",
+      url: "/dashboard/user-management",
       icon: Users,
       items: [
         {
           title: "All Users",
-          url: "/dashboard/users",
+          url: "/dashboard/user-management/all-user",
         },
         {
           title: "Students",
-          url: "/dashboard/users/students",
+          url: "/dashboard/user-management/students",
         },
         {
           title: "Staff Members",
-          url: "/dashboard/users/staff",
+          url: "/dashboard/user-management/staff",
         },
         {
           title: "Administrators",
-          url: "/dashboard/users/admins",
+          url: "/dashboard/user-management/administrator",
         },
       ],
     },
@@ -353,11 +349,7 @@ const getNavMainByRole = (role: string | undefined) => {
         {
           title: "All Emergency Contacts",
           url: "/dashboard/emergency-services/emergency-contacts",
-        },
-        {
-          title: "Manage Contacts",
-          url: "/dashboard/emergency-services/manage-contacts",
-        },
+        }
       ],
     },
   ];
