@@ -5,7 +5,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Phone, MapPin, Search, Siren, Flame, Stethoscope, ShieldAlert } from "lucide-react";
+import { Phone, MapPin, Search, Siren, Flame, Stethoscope, ShieldAlert, Pencil } from "lucide-react";
+import { useHasAnyRole } from "@/hooks/use-user-role";
+import Link from "next/link";
+
+const isAuthorizedForEdit = () => {
+  const hasAnyRole = useHasAnyRole();
+  if(hasAnyRole(['admin', 'superadmin'])) return true;
+
+  return false;
+}
 
 // Mock data - User to populate
 const contacts = [
@@ -173,15 +182,20 @@ export default function EmergencyContactsPage() {
                 <span>{contact.address}</span>
               </div>
               
-              <div className="mt-auto space-y-2 pt-4">
+              <div className="mt-auto flex gap-2 w-full items-center pt-4">
 
                   {contact.phone && (
-                    <Button className="w-full" variant="outline" asChild>
+                    <Button className="" variant="outline" asChild>
                         <a href={`tel:${contact.phone.replace(/\s/g, '')}`}>
                             Office: {contact.phone}
                         </a>
                     </Button>
                   )}
+                  {isAuthorizedForEdit() ? <Button variant={"ghost"} asChild>
+                  <Link href={`/dashboard/emergency-services/uitm-auxiliary-police/${contact.id}}/update`}>
+                 <Pencil size={10} /> 
+                 </Link>
+                </Button> : null}
               </div>
             </CardContent>
           </Card>

@@ -116,11 +116,7 @@ const getNavMainByRole = (role: string | undefined) => {
         {
           title: "My Assigned Reports",
           url: "/dashboard/crime/my-reports",
-        },
-        {
-          title: "Manage Reports",
-          url: "/dashboard/crime/manage-reports",
-        }
+        } 
       ],
     },
     {
@@ -132,10 +128,6 @@ const getNavMainByRole = (role: string | undefined) => {
         {
           title: "All Facility Reports",
           url: "/dashboard/facility/reports",
-        },
-        {
-          title: "Manage Reports",
-          url: "/dashboard/facility/manage-reports",
         }
       ],
     },
@@ -151,10 +143,6 @@ const getNavMainByRole = (role: string | undefined) => {
         {
           title: "All Emergency Contacts",
           url: "/dashboard/emergency-services/emergency-contacts",
-        },
-        {
-          title: "Manage Contacts",
-          url: "/dashboard/emergency-services/manage-contacts",
         }
       ],
     },
@@ -179,9 +167,6 @@ const getNavMainByRole = (role: string | undefined) => {
         {
           title: "Submit Report",
           url: "/dashboard/crime/submit-report",
-        },{
-          title: "Manage Reports",
-          url: "/dashboard/crime/manage-reports",
         }
       ],
     },
@@ -198,10 +183,6 @@ const getNavMainByRole = (role: string | undefined) => {
         {
           title: "Submit Report",
           url: "/dashboard/facility/submit-report",
-        },
-        {
-          title: "Manage Reports",
-          url: "/dashboard/facility/manage-reports",
         }
       ],
     },
@@ -256,14 +237,6 @@ const getNavMainByRole = (role: string | undefined) => {
         {
           title: "Submit Report",
           url: "/dashboard/crime/submit-report",
-        },
-        {
-          title: "My Crime Reports",
-          url: "/dashboard/crime/my-reports",
-        },
-        {
-          title: "Manage Reports",
-          url: "/dashboard/crime/manage-reports",
         }
       ],
     },
@@ -280,14 +253,6 @@ const getNavMainByRole = (role: string | undefined) => {
         {
           title: "Submit Report",
           url: "/dashboard/facility/submit-report",
-        },
-        {
-          title: "My Facility Reports",
-          url: "/dashboard/facility/my-reports",
-        },
-        {
-          title: "Manage Reports",
-          url: "/dashboard/facility/manage-reports",
         }
       ],
     },

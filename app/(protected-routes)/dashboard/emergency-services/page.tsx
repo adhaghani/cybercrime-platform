@@ -4,6 +4,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Shield, Siren, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { useHasAnyRole } from "@/hooks/use-user-role";
+
+const isAuthorizedForAdd = () => {
+  const hasAnyRole = useHasAnyRole();
+  if(hasAnyRole(['admin', 'superadmin', 'staff'])) return true;
+
+  return false;
+}
+
 
 export default function EmergencyServicesPage() {
   return (
@@ -15,7 +24,7 @@ export default function EmergencyServicesPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className={`grid gap-6 ${isAuthorizedForAdd() ? "md:grid-cols-3" : "md:grid-cols-2"} `}>
         <Card className="flex flex-col">
           <CardHeader>
             <div className="mb-2 h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -52,6 +61,25 @@ export default function EmergencyServicesPage() {
             <Button asChild className="w-full group">
               <Link href="/dashboard/emergency-services/uitm-auxiliary-police">
                 View Campus Security
+                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+        <Card className="flex flex-col">
+          <CardHeader>
+            <div className="mb-2 h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Shield className="h-6 w-6 text-primary" />
+            </div>
+            <CardTitle>Add New Emergency Contact</CardTitle>
+            <CardDescription>
+              Add new emergency contact information for national or campus-specific services.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="mt-auto pt-6">
+            <Button asChild className="w-full group">
+              <Link href="/dashboard/emergency-services/add">
+                Add New Emergency Contact
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>

@@ -5,11 +5,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, MapPin, Calendar, Clock, AlertCircle, Wrench, FileText } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Clock, AlertCircle, Wrench, FileText, Pencil } from "lucide-react";
 import Link from "next/link";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
 import { FacilityReport, ReportStatus, SeverityLevel } from "@/lib/types";
 import { format } from "date-fns";
+import { useHasAnyRole } from "@/hooks/use-user-role";
+
+const isAuthorizedForEdit = () => {
+  const hasAnyRole = useHasAnyRole();
+  if(hasAnyRole(['admin', 'superadmin', 'staff'])) return true;
+
+  return false;
+}
 
 export default function ReportDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -167,7 +175,12 @@ export default function ReportDetailPage({ params }: { params: Promise<{ id: str
                 Actions
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="flex items-center gap-2 flex-col">
+                              {isAuthorizedForEdit() ? <Button className="w-full" asChild>
+                  <Link href={`/dashboard/facility/reports/${report.id}/update`}>
+                 <Pencil size={10} /> Update Report
+                 </Link>
+                </Button> : null}
               <Button variant="outline" className="w-full" asChild>
                 <Link href="/dashboard/facility/reports">Back to Reports</Link>
               </Button>

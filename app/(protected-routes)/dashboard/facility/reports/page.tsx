@@ -6,16 +6,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Search, MapPin, Calendar, AlertCircle } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ArrowLeft, Search, MapPin, Calendar, AlertCircle, Pencil, LayoutGrid, Table2 } from "lucide-react";
 import Link from "next/link";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
 import { FacilityReport, ReportStatus, SeverityLevel } from "@/lib/types";
 import { format } from "date-fns";
+import { useHasAnyRole } from "@/hooks/use-user-role";
+
+const isAuthorizedForEdit = () => {
+  const hasAnyRole = useHasAnyRole();
+  if(hasAnyRole(['admin', 'superadmin', 'staff'])) return true;
+
+  return false;
+}
 
 export default function AllReportsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<ReportStatus | "ALL">("ALL");
   const [severityFilter, setSeverityFilter] = useState<SeverityLevel | "ALL">("ALL");
+  const [viewMode, setViewMode] = useState<"card" | "table">("card");
 
   const facilityReports = MOCK_REPORTS.filter((r) => r.type === "FACILITY") as FacilityReport[];
 
@@ -96,9 +106,31 @@ export default function AllReportsPage() {
             <SelectItem value="CRITICAL">Critical</SelectItem>
           </SelectContent>
         </Select>
+
+        {/* View Mode Toggle */}
+        <div className="flex gap-2">
+          <Button
+            variant={viewMode === "card" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setViewMode("card")}
+          >
+            <LayoutGrid className="h-4 w-4 mr-2" />
+            Cards
+          </Button>
+          <Button
+            variant={viewMode === "table" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setViewMode("table")}
+          >
+            <Table2 className="h-4 w-4 mr-2" />
+            Table
+          </Button>
+        </div>
       </div>
 
-      <div className="grid gap-4">
+      {/* Reports Grid/Table */}
+      {viewMode === "card" ? (
+      <div className="grid gap-4 md:grid-cols-2">
         {filteredReports.map((report) => (
           <Card key={report.id} className="hover:bg-accent/50 transition-colors">
             <CardHeader>
@@ -135,16 +167,77 @@ export default function AllReportsPage() {
                 <span className="text-sm font-medium">
                   Type: {report.facilityType}
                 </span>
+                <div className="flex justify-between items-center gap-2">
+                
+                {isAuthorizedForEdit() ? <Button size={"icon"} variant={"ghost"} asChild>
+                  <Link href={`/dashboard/facility/reports/${report.id}/update`}>
+                 <Pencil size={10} /> 
+                 </Link>
+                </Button> : null}
                 <Button variant="outline" size="sm" asChild>
                   <Link href={`/dashboard/facility/reports/${report.id}`}>
                     View Details
                   </Link>
                 </Button>
+
+                </div>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
+      ) : (
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title</TableHead>
+                <TableHead>Location</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Severity</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredReports.map((report) => (
+                <TableRow key={report.id}>
+                  <TableCell className="font-medium">{report.title}</TableCell>
+                  <TableCell>{report.location}</TableCell>
+                  <TableCell>{report.facilityType}</TableCell>
+                  <TableCell>
+                    <Badge className={getStatusColor(report.status)}>
+                      {report.status.replace("_", " ")}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={getSeverityColor(report.severityLevel)}>
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      {report.severityLevel}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end items-center gap-2">
+                      {isAuthorizedForEdit() && (
+                        <Button size="icon" variant="ghost" asChild>
+                          <Link href={`/dashboard/facility/reports/${report.id}/update`}>
+                            <Pencil className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                      )}
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/dashboard/facility/reports/${report.id}`}>
+                          View
+                        </Link>
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
+      )}
 
       {filteredReports.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">
@@ -154,3 +247,4 @@ export default function AllReportsPage() {
     </div>
   );
 }
+

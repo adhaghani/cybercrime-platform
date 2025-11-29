@@ -4,7 +4,16 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Phone, MapPin, Search, Mail, Clock } from "lucide-react";
+import { Pencil, MapPin, Search, Mail, Clock } from "lucide-react";
+import { useHasAnyRole } from "@/hooks/use-user-role";
+import Link from "next/link";
+
+const isAuthorizedForEdit = () => {
+  const hasAnyRole = useHasAnyRole();
+  if(hasAnyRole(['admin', 'superadmin'])) return true;
+
+  return false;
+}
 
 // Mock data structure - User will fill this with accurate data
 const policeStations = [
@@ -181,7 +190,13 @@ export default function UitmAuxiliaryPolicePage() {
         {filteredStations.map((station) => (
           <Card key={station.id} className="flex flex-col">
             <CardHeader>
-              <CardTitle className="text-xl">{station.campus}</CardTitle>
+              <CardTitle className="flex justify-between items-start gap-2 w-full text-lg">{station.campus}
+                {isAuthorizedForEdit() ? <Button variant={"ghost"} asChild>
+                  <Link href={`/dashboard/emergency-services/uitm-auxiliary-police/${station.id}/update`}>
+                 <Pencil size={10} /> 
+                 </Link>
+                </Button> : null}
+              </CardTitle>
               <CardDescription>{station.state}</CardDescription>
             </CardHeader>
             <CardContent className="flex-1 space-y-2">
