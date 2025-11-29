@@ -7,15 +7,10 @@ import {
   Command,
   Frame,
   LifeBuoy,
-  Map,
-  PieChart,
-  Send,
-  Settings2,
   SquareTerminal,
 } from "lucide-react"
-
+import { useAuth } from "@/lib/context/auth-provider"
 import { NavMain } from "@/components/dashboard/nav-main"
-import { NavProjects } from "@/components/dashboard/nav-projects"
 import { NavSecondary } from "@/components/dashboard/nav-secondary"
 import { NavUser } from "@/components/dashboard/nav-user"
 import {
@@ -29,33 +24,28 @@ import {
 } from "@/components/ui/sidebar"
 
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   navMain: [
     {
       title: "Crime Terminal",
-      url: "#",
+      url: "/dashboard/crime",
       icon: SquareTerminal,
       isActive: true,
       items: [
         {
           title: "Submit a Report",
-          url: "#",
+          url: "/dashboard/crime/submit-report",
         },
         {
           title: "Crime Statistic",
-          url: "#",
+          url: "/dashboard/crime/statistics",
         },
         {
           title: "View All Crime Report",
-          url: "#",
+          url: "/dashboard/crime/reports",
         },
         {
           title: "My Crime Reports",
-          url: "#",
+          url: "/dashboard/crime/my-reports",
         },
       ],
     },
@@ -116,6 +106,13 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { claims } = useAuth()
+  const user = {
+    name: claims?.user_metadata?.full_name || "User",
+    email: claims?.email || "",
+    avatar: claims?.user_metadata?.avatar_url || "/default-avatar.png",
+  }
+
   return (
     <Sidebar
       className="top-12 h-[calc(100vh-3rem)] shrink-0" 
@@ -142,7 +139,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
   )

@@ -18,7 +18,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/context/auth-provider";
@@ -112,40 +111,6 @@ export function LoginForm({
     }
   };
 
-  const handleOAuthLogin = async (e: React.FormEvent, provider: "google") => {
-    e.preventDefault();
-    const supabase = createClient();
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const options: Record<
-        string,
-        string | number | boolean | object | null | undefined
-      > = {
-        redirectTo: `${window.location.origin}/auth/oauth?next=/dashboard`,
-      };
-
-      if (provider === "google") {
-        options.queryParams = {
-          access_type: "offline",
-          prompt: "consent",
-        };
-      }
-
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options,
-      });
-
-      if (error) throw error;
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className={cn("flex", className)} {...props}>
       <Card className="w-full max-w-sm border-0">
@@ -204,18 +169,6 @@ export function LoginForm({
               </Button>
             </form>
           </Form>
-          <Separator className="my-3" />
-          <div className="flex gap-2 items-center">
-            <Button
-              variant={"outline"}
-              onClick={(e) => handleOAuthLogin(e, "google")}
-              size={"lg"}
-              disabled={isLoading}
-              className="flex-1"
-            >
-              {isLoading ? "Logging in..." : "Google Login"}
-            </Button>
-          </div>
           <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{" "}
             <Link href="/auth/sign-up" className="underline underline-offset-4">
