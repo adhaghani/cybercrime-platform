@@ -59,7 +59,7 @@ export async function login(credentials: LoginCredentials): Promise<AuthResponse
           full_name: 'John Doe',
           username: credentials.email.split('@')[0],
           avatar_url: '',
-          role: 'student',
+          role: 'superadmin',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
