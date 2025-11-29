@@ -31,7 +31,6 @@ import {
   XAxis, 
   YAxis,
   Cell,
-  ResponsiveContainer
 } from "recharts";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
 import { CrimeReport } from "@/lib/types";
@@ -41,11 +40,11 @@ export default function CrimeStatisticsPage() {
 
   // Category distribution
   const categoryData = [
-    { category: "Theft", count: crimeReports.filter(r => r.crimeCategory === "THEFT").length, fill: "hsl(var(--chart-1))" },
-    { category: "Assault", count: crimeReports.filter(r => r.crimeCategory === "ASSAULT").length, fill: "hsl(var(--chart-2))" },
+    { category: "Theft", count: crimeReports.filter(r => r.crimeCategory === "THEFT").length, fill: "hsl(var(--primary))" },
+    { category: "Assault", count: crimeReports.filter(r => r.crimeCategory === "ASSAULT").length, fill: "hsl(var(--destructive))" },
     { category: "Vandalism", count: crimeReports.filter(r => r.crimeCategory === "VANDALISM").length, fill: "hsl(var(--chart-3))" },
     { category: "Harassment", count: crimeReports.filter(r => r.crimeCategory === "HARASSMENT").length, fill: "hsl(var(--chart-4))" },
-    { category: "Other", count: crimeReports.filter(r => r.crimeCategory === "OTHER").length, fill: "hsl(var(--chart-5))" },
+    { category: "Other", count: crimeReports.filter(r => r.crimeCategory === "OTHER").length, fill: "hsl(var(--muted-foreground))" },
   ];
 
   // Status distribution
@@ -87,16 +86,20 @@ export default function CrimeStatisticsPage() {
   const chartConfig = {
     reports: {
       label: "Reports",
-      color: "hsl(var(--chart-1))",
+      color: "hsl(var(--primary))",
     },
     resolved: {
       label: "Resolved",
       color: "hsl(var(--chart-2))",
     },
+    count: {
+      label: "Count",
+      color: "hsl(var(--primary))",
+    },
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Crime Statistics</h1>
         <p className="text-muted-foreground">
@@ -174,13 +177,8 @@ export default function CrimeStatisticsPage() {
                 <CardTitle>Crime Categories</CardTitle>
                 <CardDescription>Distribution by type</CardDescription>
               </CardHeader>
-              <CardContent>
-                <ChartContainer config={{
-                  count: {
-                    label: "Reports",
-                    color: "hsl(var(--chart-1))",
-                  },
-                }} className="h-[300px]">
+              <CardContent className="flex items-center justify-center">
+                <ChartContainer config={chartConfig} className="h-[300px] w-full">
                   <PieChart>
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Pie
@@ -189,8 +187,9 @@ export default function CrimeStatisticsPage() {
                       nameKey="category"
                       cx="50%"
                       cy="50%"
-                      outerRadius={80}
-                      label
+                      outerRadius={100}
+                      label={(entry) => `${entry.category}: ${entry.count}`}
+                      labelLine={false}
                     >
                       {categoryData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -208,18 +207,20 @@ export default function CrimeStatisticsPage() {
                 <CardDescription>Current status breakdown</CardDescription>
               </CardHeader>
               <CardContent>
-                <ChartContainer config={{
-                  count: {
-                    label: "Reports",
-                    color: "hsl(var(--chart-2))",
-                  },
-                }} className="h-[300px]">
+                <ChartContainer config={chartConfig} className="h-[300px] w-full">
                   <BarChart data={statusData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="status" />
-                    <YAxis />
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis 
+                      dataKey="status" 
+                      className="text-xs"
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    />
+                    <YAxis 
+                      className="text-xs"
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    />
                     <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="count" fill="hsl(var(--chart-2))" radius={[8, 8, 0, 0]} />
+                    <Bar dataKey="count" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
                   </BarChart>
                 </ChartContainer>
               </CardContent>
@@ -260,17 +261,24 @@ export default function CrimeStatisticsPage() {
               <CardDescription>Crime reports and resolution over time</CardDescription>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={chartConfig} className="h-[400px]">
+              <ChartContainer config={chartConfig} className="h-[400px] w-full">
                 <LineChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis 
+                    dataKey="month" 
+                    className="text-xs"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                  />
+                  <YAxis 
+                    className="text-xs"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                  />
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <ChartLegend content={<ChartLegendContent />} />
                   <Line 
                     type="monotone" 
                     dataKey="reports" 
-                    stroke="hsl(var(--chart-1))" 
+                    stroke="hsl(var(--primary))" 
                     strokeWidth={2}
                     name="Reports"
                   />
@@ -342,18 +350,23 @@ export default function CrimeStatisticsPage() {
               <CardDescription>Areas with highest crime reports</CardDescription>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={{
-                count: {
-                  label: "Reports",
-                  color: "hsl(var(--chart-3))",
-                },
-              }} className="h-[400px]">
+              <ChartContainer config={chartConfig} className="h-[400px] w-full">
                 <BarChart data={locationData} layout="horizontal">
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" />
-                  <YAxis dataKey="location" type="category" />
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis 
+                    type="number" 
+                    className="text-xs"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                  />
+                  <YAxis 
+                    dataKey="location" 
+                    type="category" 
+                    className="text-xs"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    width={100}
+                  />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="count" fill="hsl(var(--chart-3))" radius={[0, 8, 8, 0]} />
+                  <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 8, 8, 0]} />
                 </BarChart>
               </ChartContainer>
             </CardContent>

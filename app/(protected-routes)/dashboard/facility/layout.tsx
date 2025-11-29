@@ -13,19 +13,29 @@ import {
   TrendingUp,
   Clock,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Users,
+  Activity
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
 import { FacilityReport } from "@/lib/types";
+import { useHasAnyRole } from "@/hooks/use-user-role";
 
 export default function FacilityLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const hasAnyRole = useHasAnyRole();
+  const isStaffOrAdmin = hasAnyRole(['staff', 'admin', 'superadmin']);
   
   // Get user's facility reports
   const myReports = MOCK_REPORTS.filter(
     (r) => r.type === "FACILITY" && r.submittedBy === "user-1"
+  ) as FacilityReport[];
+
+  // Get all facility reports for staff/admin
+  const allFacilityReports = MOCK_REPORTS.filter(
+    (r) => r.type === "FACILITY"
   ) as FacilityReport[];
 
   const stats = {
@@ -35,12 +45,21 @@ export default function FacilityLayout({ children }: { children: React.ReactNode
     resolved: myReports.filter(r => r.status === "RESOLVED").length,
   };
 
+  // Staff/Admin stats for all reports
+  const allStats = {
+    total: allFacilityReports.length,
+    pending: allFacilityReports.filter(r => r.status === "PENDING").length,
+    inProgress: allFacilityReports.filter(r => r.status === "IN_PROGRESS").length,
+    resolved: allFacilityReports.filter(r => r.status === "RESOLVED").length,
+  };
+
   // Get recent reports (last 3)
   const recentReports = [...myReports]
     .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
     .slice(0, 3);
 
-  const navigationItems = [
+  // Student navigation items
+  const studentNavItems = [
     {
       href: "/dashboard/facility/submit-report",
       icon: PlusCircle,
@@ -60,6 +79,30 @@ export default function FacilityLayout({ children }: { children: React.ReactNode
       variant: "outline" as const,
     },
   ];
+
+  // Staff/Admin navigation items with additional quick actions
+  const staffNavItems = [
+    {
+      href: "/dashboard/facility/reports",
+      icon: ClipboardList,
+      label: "All Reports",
+      variant: "default" as const,
+    },
+    {
+      href: "/dashboard/facility/my-reports",
+      icon: FileText,
+      label: "My Reports",
+      variant: "outline" as const,
+    },
+    {
+      href: "/dashboard/facility/submit-report",
+      icon: PlusCircle,
+      label: "Submit Report",
+      variant: "outline" as const,
+    },
+  ];
+
+  const navigationItems = isStaffOrAdmin ? staffNavItems : studentNavItems;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -105,14 +148,16 @@ export default function FacilityLayout({ children }: { children: React.ReactNode
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
-              Your Statistics
+              {isStaffOrAdmin ? "System Statistics" : "Your Statistics"}
             </CardTitle>
-            <CardDescription>Overview of your reports</CardDescription>
+            <CardDescription>
+              {isStaffOrAdmin ? "Overview of all facility reports" : "Overview of your reports"}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Total Reports</span>
-              <span className="text-2xl font-bold">{stats.total}</span>
+              <span className="text-2xl font-bold">{isStaffOrAdmin ? allStats.total : stats.total}</span>
             </div>
             <Separator />
             <div className="space-y-2">
@@ -122,7 +167,7 @@ export default function FacilityLayout({ children }: { children: React.ReactNode
                   <span>Pending</span>
                 </div>
                 <Badge variant="outline" className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20">
-                  {stats.pending}
+                  {isStaffOrAdmin ? allStats.pending : stats.pending}
                 </Badge>
               </div>
               <div className="flex items-center justify-between text-sm">
@@ -131,7 +176,7 @@ export default function FacilityLayout({ children }: { children: React.ReactNode
                   <span>In Progress</span>
                 </div>
                 <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20">
-                  {stats.inProgress}
+                  {isStaffOrAdmin ? allStats.inProgress : stats.inProgress}
                 </Badge>
               </div>
               <div className="flex items-center justify-between text-sm">
@@ -140,15 +185,51 @@ export default function FacilityLayout({ children }: { children: React.ReactNode
                   <span>Resolved</span>
                 </div>
                 <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
-                  {stats.resolved}
+                  {isStaffOrAdmin ? allStats.resolved : stats.resolved}
                 </Badge>
               </div>
             </div>
           </CardContent>
         </Card>
 
+        {/* Additional Data Card for Staff/Admin */}
+        {isStaffOrAdmin && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <Activity className="h-4 w-4" />
+                Quick Insights
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Active Issues</span>
+                <span className="text-lg font-bold text-yellow-500">
+                  {allStats.pending + allStats.inProgress}
+                </span>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Resolution Rate</span>
+                <span className="text-lg font-bold text-green-500">
+                  {allStats.total > 0 
+                    ? Math.round((allStats.resolved / allStats.total) * 100) 
+                    : 0}%
+                </span>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Needs Attention</span>
+                <span className="text-lg font-bold text-red-500">
+                  {allStats.pending}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Recent Reports */}
-        {recentReports.length > 0 && (
+        {recentReports.length > 0 && !isStaffOrAdmin && (
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold">Recent Reports</CardTitle>

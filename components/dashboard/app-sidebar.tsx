@@ -47,10 +47,6 @@ const getNavMainByRole = (role: string | undefined) => {
           url: "/dashboard/crime/submit-report",
         },
         {
-          title: "Crime Statistics",
-          url: "/dashboard/crime/statistics",
-        },
-        {
           title: "My Crime Reports",
           url: "/dashboard/crime/my-reports",
         },
@@ -143,6 +139,10 @@ const getNavMainByRole = (role: string | undefined) => {
         {
           title: "All Emergency Contacts",
           url: "/dashboard/emergency-services/emergency-contacts",
+        },
+                {
+          title: "Add New Contact",
+          url: "/dashboard/emergency-services/add",
         }
       ],
     },
@@ -186,6 +186,25 @@ const getNavMainByRole = (role: string | undefined) => {
         }
       ],
     },
+        {
+      title: "Emergency Services",
+      url: "/dashboard/emergency-services",
+      icon: Bot,
+      items: [
+        {
+          title: "UiTM Auxiliary Police",
+          url: "/dashboard/emergency-services/uitm-auxiliary-police",
+        },
+        {
+          title: "All Emergency Contacts",
+          url: "/dashboard/emergency-services/emergency-contacts",
+        },
+                {
+          title: "Add New Contact",
+          url: "/dashboard/emergency-services/add",
+        }
+      ],
+    },
     {
       title: "User Management",
       url: "/dashboard/user-management",
@@ -201,21 +220,7 @@ const getNavMainByRole = (role: string | undefined) => {
         },
       ],
     },
-    {
-      title: "Emergency Services",
-      url: "/dashboard/emergency-services",
-      icon: Bot,
-      items: [
-        {
-          title: "UiTM Auxiliary Police",
-          url: "/dashboard/emergency-services/uitm-auxiliary-police",
-        },
-        {
-          title: "All Emergency Contacts",
-          url: "/dashboard/emergency-services/emergency-contacts",
-        }
-      ],
-    },
+
   ];
 
   // Super Admin navigation - complete system access
@@ -279,6 +284,25 @@ const getNavMainByRole = (role: string | undefined) => {
         },
       ],
     },
+        {
+      title: "Emergency Services",
+      url: "/dashboard/emergency-services",
+      icon: Bot,
+      items: [
+        {
+          title: "UiTM Auxiliary Police",
+          url: "/dashboard/emergency-services/uitm-auxiliary-police",
+        },
+        {
+          title: "All Emergency Contacts",
+          url: "/dashboard/emergency-services/emergency-contacts",
+        },
+        {
+          title: "Add New Contact",
+          url: "/dashboard/emergency-services/add",
+        }
+      ],
+    },
     {
       title: "System Administration",
       url: "/dashboard/system",
@@ -302,21 +326,7 @@ const getNavMainByRole = (role: string | undefined) => {
         },
       ],
     },
-    {
-      title: "Emergency Services",
-      url: "/dashboard/emergency-services",
-      icon: Bot,
-      items: [
-        {
-          title: "UiTM Auxiliary Police",
-          url: "/dashboard/emergency-services/uitm-auxiliary-police",
-        },
-        {
-          title: "All Emergency Contacts",
-          url: "/dashboard/emergency-services/emergency-contacts",
-        }
-      ],
-    },
+
   ];
 
   switch (role) {

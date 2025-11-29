@@ -1,9 +1,301 @@
-import React from 'react'
-// Role Protection Layer
-const page = () => {
-  return (
-    <div>page</div>
-  )
-}
+"use client";
 
-export default page
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { 
+  ArrowLeft, Search, Filter, MoreVertical, Mail, Phone, 
+  Briefcase, Building2, Edit, UserX, Shield
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import Link from "next/link";
+import { Staff } from "@/lib/types";
+
+// Extended mock staff data
+const MOCK_STAFF_MEMBERS: Staff[] = [
+  {
+    id: "staff-1",
+    email: "abu.bakar@uitm.edu.my",
+    name: "Officer Abu Bakar bin Sulaiman",
+    contactNumber: "013-9876543",
+    role: "STAFF",
+    staffId: "S12345",
+    department: "Campus Security",
+    position: "Patrol Officer",
+  },
+  {
+    id: "staff-2",
+    email: "siti.nurhaliza@uitm.edu.my",
+    name: "Dr. Siti Nurhaliza binti Mohamed",
+    contactNumber: "012-5556789",
+    role: "STAFF",
+    staffId: "S12346",
+    department: "Computer Science",
+    position: "Senior Lecturer",
+  },
+  {
+    id: "staff-3",
+    email: "ali.imran@uitm.edu.my",
+    name: "Encik Ali Imran bin Rahman",
+    contactNumber: "019-2223456",
+    role: "STAFF",
+    staffId: "S12347",
+    department: "Facilities Management",
+    position: "Maintenance Supervisor",
+  },
+  {
+    id: "staff-4",
+    email: "maria.abdullah@uitm.edu.my",
+    name: "Puan Maria binti Abdullah",
+    contactNumber: "017-8889012",
+    role: "STAFF",
+    staffId: "S12348",
+    department: "Student Affairs",
+    position: "Student Counselor",
+  },
+  {
+    id: "staff-5",
+    email: "kumar.rajan@uitm.edu.my",
+    name: "Dr. Kumar a/l Rajan",
+    contactNumber: "016-4445678",
+    role: "STAFF",
+    staffId: "S12349",
+    department: "Information Technology",
+    position: "Associate Professor",
+  },
+  {
+    id: "staff-6",
+    email: "lim.mei.ling@uitm.edu.my",
+    name: "Ms. Lim Mei Ling",
+    contactNumber: "012-1112345",
+    role: "STAFF",
+    staffId: "S12350",
+    department: "Library Services",
+    position: "Head Librarian",
+  },
+  {
+    id: "staff-7",
+    email: "hassan.mahmud@uitm.edu.my",
+    name: "Encik Hassan bin Mahmud",
+    contactNumber: "019-7778901",
+    role: "STAFF",
+    staffId: "S12351",
+    department: "Campus Security",
+    position: "Security Manager",
+  },
+  {
+    id: "staff-8",
+    email: "noor.azlina@uitm.edu.my",
+    name: "Dr. Noor Azlina binti Ismail",
+    contactNumber: "013-6667890",
+    role: "STAFF",
+    staffId: "S12352",
+    department: "Software Engineering",
+    position: "Lecturer",
+  },
+];
+
+export default function StaffPage() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState("ALL");
+  const [staff] = useState<Staff[]>(MOCK_STAFF_MEMBERS);
+
+  // Get unique departments for filter
+  const departments = Array.from(new Set(staff.map(s => s.department)));
+
+  const filteredStaff = staff.filter((member) => {
+    const matchesSearch = 
+      member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      member.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      member.staffId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      member.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      member.position.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesDepartment = departmentFilter === "ALL" || member.department === departmentFilter;
+
+    return matchesSearch && matchesDepartment;
+  });
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const getDepartmentColor = (department: string) => {
+    const colors: Record<string, string> = {
+      "Campus Security": "bg-red-500/10 text-red-500 hover:bg-red-500/20",
+      "Computer Science": "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
+      "Information Technology": "bg-purple-500/10 text-purple-500 hover:bg-purple-500/20",
+      "Facilities Management": "bg-green-500/10 text-green-500 hover:bg-green-500/20",
+      "Student Affairs": "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20",
+      "Library Services": "bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500/20",
+      "Software Engineering": "bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500/20",
+    };
+    return colors[department] || "bg-gray-500/10 text-gray-500 hover:bg-gray-500/20";
+  };
+
+  const handlePromoteToAdmin = (staffId: string) => {
+    // TODO: API call to promote staff to admin
+    console.log("Promoting staff to admin:", staffId);
+    alert("Promotion functionality will be implemented with backend API");
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" asChild>
+          <Link href="/dashboard/user-management">
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+            <Briefcase className="h-8 w-8 text-green-500" />
+            Staff Members
+          </h1>
+          <p className="text-muted-foreground">
+            Manage staff accounts and department information ({filteredStaff.length} staff members)
+          </p>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by name, email, staff ID, department, or position..."
+            className="pl-8"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+          <SelectTrigger className="w-full md:w-[240px]">
+            <Building2 className="h-4 w-4 mr-2" />
+            <SelectValue placeholder="Department" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Departments</SelectItem>
+            {departments.map((dept) => (
+              <SelectItem key={dept} value={dept}>
+                {dept}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Staff Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Staff List ({filteredStaff.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Staff Member</TableHead>
+                <TableHead>Staff ID</TableHead>
+                <TableHead>Department</TableHead>
+                <TableHead>Position</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredStaff.map((member) => (
+                <TableRow key={member.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarImage src={member.avatarUrl} />
+                        <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium">{member.name}</div>
+                        <div className="text-sm text-muted-foreground flex items-center gap-1">
+                          <Mail className="h-3 w-3" />
+                          {member.email}
+                        </div>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-mono text-sm">
+                    {member.staffId}
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={getDepartmentColor(member.department)}>
+                      {member.department}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="font-medium text-sm">{member.position}</div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1 text-sm">
+                      <Phone className="h-3 w-3" />
+                      {member.contactNumber}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit Profile
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Briefcase className="h-4 w-4 mr-2" />
+                          View Assignments
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => handlePromoteToAdmin(member.id)}>
+                          <Shield className="h-4 w-4 mr-2" />
+                          Promote to Admin
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive">
+                          <UserX className="h-4 w-4 mr-2" />
+                          Suspend Account
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+
+          {filteredStaff.length === 0 && (
+            <div className="text-center py-12 text-muted-foreground">
+              No staff members found matching your filters.
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

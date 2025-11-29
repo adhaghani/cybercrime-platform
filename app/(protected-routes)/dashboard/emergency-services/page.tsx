@@ -66,7 +66,7 @@ export default function EmergencyServicesPage() {
             </Button>
           </CardContent>
         </Card>
-        <Card className="flex flex-col">
+        {isAuthorizedForAdd() &&<Card className="flex flex-col">
           <CardHeader>
             <div className="mb-2 h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
               <Shield className="h-6 w-6 text-primary" />
@@ -84,7 +84,7 @@ export default function EmergencyServicesPage() {
               </Link>
             </Button>
           </CardContent>
-        </Card>
+        </Card>}
       </div>
       
       <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">

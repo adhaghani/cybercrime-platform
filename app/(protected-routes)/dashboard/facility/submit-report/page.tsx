@@ -6,40 +6,60 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Upload } from "lucide-react";
+import { ArrowLeft, Upload, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { FacilityType, SeverityLevel } from "@/lib/types";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+
+const facilityReportSchema = z.object({
+  title: z.string().min(5, "Title must be at least 5 characters").max(200, "Title is too long"),
+  description: z.string().min(20, "Description must be at least 20 characters").max(2000, "Description is too long"),
+  location: z.string().min(5, "Location must be at least 5 characters").max(200, "Location is too long"),
+  facilityType: z.enum(["ELECTRICAL", "PLUMBING", "FURNITURE", "INFRASTRUCTURE", "OTHER"] as const),
+  severityLevel: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"] as const),
+  affectedEquipment: z.string().max(500, "Equipment description is too long").optional().or(z.literal("")),
+});
+
+type FacilityReportFormValues = z.infer<typeof facilityReportSchema>;
 
 export default function SubmitReportPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    location: "",
-    facilityType: "" as FacilityType | "",
-    severityLevel: "" as SeverityLevel | "",
-    affectedEquipment: "",
+
+  const form = useForm<FacilityReportFormValues>({
+    resolver: zodResolver(facilityReportSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      location: "",
+      facilityType: "ELECTRICAL",
+      severityLevel: "MEDIUM",
+      affectedEquipment: "",
+    },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.facilityType || !formData.severityLevel) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
+  const onSubmit = async (data: FacilityReportFormValues) => {
     setIsSubmitting(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    toast.success("Report submitted successfully!");
-    router.push("/dashboard/facility/my-reports");
+
+    try {
+      // TODO: Replace with actual API call
+      console.log("Submitting facility report:", data);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      toast.success("Report submitted successfully!");
+      router.push("/dashboard/facility/my-reports");
+    } catch (error) {
+      console.error("Error submitting facility report:", error);
+      toast.error("Failed to submit report. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -58,122 +78,157 @@ export default function SubmitReportPage() {
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Report Details</CardTitle>
-          <CardDescription>
-            Provide detailed information about the facility issue.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="title">Title *</Label>
-              <Input
-                id="title"
-                placeholder="Brief description of the issue"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                required
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Report Details</CardTitle>
+              <CardDescription>
+                Provide detailed information about the facility issue.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Title *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Brief description of the issue" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-6 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="facilityType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Facility Type *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="ELECTRICAL">Electrical</SelectItem>
+                          <SelectItem value="PLUMBING">Plumbing</SelectItem>
+                          <SelectItem value="FURNITURE">Furniture</SelectItem>
+                          <SelectItem value="INFRASTRUCTURE">Infrastructure</SelectItem>
+                          <SelectItem value="OTHER">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="severityLevel"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Severity Level *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select severity" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="LOW">Low</SelectItem>
+                          <SelectItem value="MEDIUM">Medium</SelectItem>
+                          <SelectItem value="HIGH">High</SelectItem>
+                          <SelectItem value="CRITICAL">Critical</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Location *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Building, floor, room number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description *</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Detailed description of the facility issue..."
+                        rows={5}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="affectedEquipment"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Affected Equipment (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="List any equipment affected by this issue" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <div className="space-y-2">
-                <Label htmlFor="facilityType">Facility Type *</Label>
-                <Select
-                  value={formData.facilityType}
-                  onValueChange={(value) => setFormData({ ...formData, facilityType: value as FacilityType })}
-                  required
-                >
-                  <SelectTrigger id="facilityType">
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ELECTRICAL">Electrical</SelectItem>
-                    <SelectItem value="PLUMBING">Plumbing</SelectItem>
-                    <SelectItem value="FURNITURE">Furniture</SelectItem>
-                    <SelectItem value="INFRASTRUCTURE">Infrastructure</SelectItem>
-                    <SelectItem value="OTHER">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+                <FormLabel htmlFor="attachment">Attachment (Optional)</FormLabel>
+                <div className="flex items-center gap-2">
+                  <Input id="attachment" type="file" accept="image/*" />
+                  <Upload className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <FormDescription>
+                  Upload photos of the issue (max 5MB)
+                </FormDescription>
               </div>
+            </CardContent>
+          </Card>
 
-              <div className="space-y-2">
-                <Label htmlFor="severityLevel">Severity Level *</Label>
-                <Select
-                  value={formData.severityLevel}
-                  onValueChange={(value) => setFormData({ ...formData, severityLevel: value as SeverityLevel })}
-                  required
-                >
-                  <SelectTrigger id="severityLevel">
-                    <SelectValue placeholder="Select severity" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="LOW">Low</SelectItem>
-                    <SelectItem value="MEDIUM">Medium</SelectItem>
-                    <SelectItem value="HIGH">High</SelectItem>
-                    <SelectItem value="CRITICAL">Critical</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="location">Location *</Label>
-              <Input
-                id="location"
-                placeholder="Building, floor, room number"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description *</Label>
-              <Textarea
-                id="description"
-                placeholder="Detailed description of the facility issue..."
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                rows={5}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="affectedEquipment">Affected Equipment (Optional)</Label>
-              <Input
-                id="affectedEquipment"
-                placeholder="List any equipment affected by this issue"
-                value={formData.affectedEquipment}
-                onChange={(e) => setFormData({ ...formData, affectedEquipment: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="attachment">Attachment (Optional)</Label>
-              <div className="flex items-center gap-2">
-                <Input id="attachment" type="file" accept="image/*" />
-                <Upload className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Upload photos of the issue (max 5MB)
-              </p>
-            </div>
-
-            <div className="flex gap-4 pt-4">
-              <Button type="submit" disabled={isSubmitting} className="flex-1">
-                {isSubmitting ? "Submitting..." : "Submit Report"}
-              </Button>
-              <Button type="button" variant="outline" asChild>
-                <Link href="/dashboard/facility">Cancel</Link>
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+          <div className="flex justify-end gap-4">
+            <Button type="button" variant="outline" onClick={() => router.back()}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                "Submit Report"
+              )}
+            </Button>
+          </div>
+        </form>
+      </Form>
     </div>
   );
 }

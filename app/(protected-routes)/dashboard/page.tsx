@@ -14,19 +14,35 @@ import {
   CheckCircle2,
   ArrowRight,
   Activity,
-  MapPin
+  MapPin,
+  Users,
+  BarChart3,
+  Shield,
+  Settings
 } from "lucide-react";
 import Link from "next/link";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
 import { CrimeReport, FacilityReport } from "@/lib/types";
 import { format } from "date-fns";
+import { useHasAnyRole, useUserRole } from "@/hooks/use-user-role";
 
 export default function DashboardPage() {
+  const hasAnyRole = useHasAnyRole();
+  const  role  = useUserRole();
+  const isStudent = role === 'student';
+  const isStaff = hasAnyRole(['staff']);
+  const isAdmin = hasAnyRole(['admin', 'superadmin']);
+  
   const crimeReports = MOCK_REPORTS.filter((r) => r.type === "CRIME") as CrimeReport[];
   const facilityReports = MOCK_REPORTS.filter((r) => r.type === "FACILITY") as FacilityReport[];
   
   const myReports = MOCK_REPORTS.filter((r) => r.submittedBy === "user-1");
   const recentReports = [...myReports]
+    .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
+    .slice(0, 5);
+
+  // All reports for staff/admin
+  const allRecentReports = [...MOCK_REPORTS]
     .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
     .slice(0, 5);
 
@@ -36,6 +52,11 @@ export default function DashboardPage() {
     myReports: myReports.length,
     pendingReports: myReports.filter(r => r.status === "PENDING").length,
     resolvedReports: myReports.filter(r => r.status === "RESOLVED").length,
+    // System-wide stats for staff/admin
+    allPending: MOCK_REPORTS.filter(r => r.status === "PENDING").length,
+    allInProgress: MOCK_REPORTS.filter(r => r.status === "IN_PROGRESS").length,
+    allResolved: MOCK_REPORTS.filter(r => r.status === "RESOLVED").length,
+    totalReports: MOCK_REPORTS.length,
   };
 
   const getStatusColor = (status: string) => {
@@ -52,64 +73,124 @@ export default function DashboardPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
-          Welcome to the Campus Safety & Reporting Platform
+          {isStudent && "Welcome to the Campus Safety & Reporting Platform"}
+          {isStaff && "Staff Dashboard - Monitor and manage campus reports"}
+          {isAdmin && "Administrator Dashboard - System oversight and management"}
         </p>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">My Reports</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.myReports}</div>
-            <p className="text-xs text-muted-foreground">
-              Total submissions
-            </p>
-          </CardContent>
-        </Card>
+      {/* Quick Stats - Different for Students vs Staff/Admin */}
+      {isStudent ? (
+        // Student Stats
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">My Reports</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.myReports}</div>
+              <p className="text-xs text-muted-foreground">
+                Total submissions
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-500">{stats.pendingReports}</div>
-            <p className="text-xs text-muted-foreground">
-              Awaiting review
-            </p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pending</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-yellow-500">{stats.pendingReports}</div>
+              <p className="text-xs text-muted-foreground">
+                Awaiting review
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Resolved</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-500">{stats.resolvedReports}</div>
-            <p className="text-xs text-muted-foreground">
-              Successfully closed
-            </p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Resolved</CardTitle>
+              <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-500">{stats.resolvedReports}</div>
+              <p className="text-xs text-muted-foreground">
+                Successfully closed
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Campus Activity</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalCrime + stats.totalFacility}</div>
-            <p className="text-xs text-muted-foreground">
-              Total campus reports
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Campus Activity</CardTitle>
+              <Activity className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalCrime + stats.totalFacility}</div>
+              <p className="text-xs text-muted-foreground">
+                Total campus reports
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        // Staff/Admin Stats
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Reports</CardTitle>
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalReports}</div>
+              <p className="text-xs text-muted-foreground">
+                All campus reports
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pending</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-yellow-500">{stats.allPending}</div>
+              <p className="text-xs text-muted-foreground">
+                Awaiting action
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">In Progress</CardTitle>
+              <Activity className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-500">{stats.allInProgress}</div>
+              <p className="text-xs text-muted-foreground">
+                Being handled
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Resolved</CardTitle>
+              <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-500">{stats.allResolved}</div>
+              <p className="text-xs text-muted-foreground">
+                {stats.totalReports > 0 ? Math.round((stats.allResolved / stats.totalReports) * 100) : 0}% resolution rate
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Crime Reports Section */}
@@ -218,13 +299,17 @@ export default function DashboardPage() {
       <div className="grid gap-6 md:grid-cols-3">
         <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle>Recent Reports</CardTitle>
-            <CardDescription>Your latest submissions</CardDescription>
+            <CardTitle>
+              {isStudent ? "My Recent Reports" : "Recent System Activity"}
+            </CardTitle>
+            <CardDescription>
+              {isStudent ? "Your latest submissions" : "Latest reports across campus"}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            {recentReports.length > 0 ? (
+            {(isStudent ? recentReports : allRecentReports).length > 0 ? (
               <div className="space-y-4">
-                {recentReports.map((report) => (
+                {(isStudent ? recentReports : allRecentReports).map((report) => (
                   <div key={report.id} className="flex items-start justify-between gap-4 pb-4 border-b last:border-0">
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center gap-2">
@@ -266,37 +351,78 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
+        {/* Quick Actions - Different for Students vs Staff/Admin */}
         <Card>
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Common tasks</CardDescription>
+            <CardDescription>
+              {isStudent ? "Common tasks" : "Management tools"}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
-            <Button asChild variant="outline" className="w-full justify-start">
-              <Link href="/dashboard/crime/submit-report">
-                <ShieldAlert className="h-4 w-4 mr-2" />
-                Report Crime
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="w-full justify-start">
-              <Link href="/dashboard/facility/submit-report">
-                <Wrench className="h-4 w-4 mr-2" />
-                Report Facility Issue
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="w-full justify-start">
-              <Link href="/dashboard/crime/statistics">
-                <TrendingUp className="h-4 w-4 mr-2" />
-                View Statistics
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="w-full justify-start">
-              <Link href="/dashboard/emergency-services">
-                <Phone className="h-4 w-4 mr-2" />
-                Emergency Contacts
-              </Link>
-            </Button>
+            {isStudent ? (
+              <>
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <Link href="/dashboard/crime/submit-report">
+                    <ShieldAlert className="h-4 w-4 mr-2" />
+                    Report Crime
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <Link href="/dashboard/facility/submit-report">
+                    <Wrench className="h-4 w-4 mr-2" />
+                    Report Facility Issue
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <Link href="/dashboard/crime/statistics">
+                    <TrendingUp className="h-4 w-4 mr-2" />
+                    View Statistics
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <Link href="/dashboard/emergency-services">
+                    <Phone className="h-4 w-4 mr-2" />
+                    Emergency Contacts
+                  </Link>
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <Link href="/dashboard/crime/reports">
+                    <ShieldAlert className="h-4 w-4 mr-2" />
+                    All Crime Reports
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <Link href="/dashboard/facility/reports">
+                    <Wrench className="h-4 w-4 mr-2" />
+                    All Facility Reports
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <Link href="/dashboard/crime/statistics">
+                    <TrendingUp className="h-4 w-4 mr-2" />
+                    View Statistics
+                  </Link>
+                </Button>
+                {isAdmin && (
+                  <Button asChild variant="outline" className="w-full justify-start">
+                    <Link href="/dashboard/user-management">
+                      <Users className="h-4 w-4 mr-2" />
+                      User Management
+                    </Link>
+                  </Button>
+                )}
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <Link href="/dashboard/emergency-services">
+                    <Phone className="h-4 w-4 mr-2" />
+                    Emergency Services
+                  </Link>
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>

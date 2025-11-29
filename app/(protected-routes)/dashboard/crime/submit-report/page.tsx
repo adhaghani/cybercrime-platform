@@ -6,47 +6,70 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Upload } from "lucide-react";
+import { ArrowLeft, Upload, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { CrimeCategory } from "@/lib/types";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+
+const crimeReportSchema = z.object({
+  title: z.string().min(5, "Title must be at least 5 characters").max(200, "Title is too long"),
+  description: z.string().min(20, "Description must be at least 20 characters").max(2000, "Description is too long"),
+  location: z.string().min(5, "Location must be at least 5 characters").max(200, "Location is too long"),
+  crimeCategory: z.enum(["THEFT", "ASSAULT", "VANDALISM", "HARASSMENT", "OTHER"] as const),
+  suspectDescription: z.string().max(1000, "Suspect description is too long").optional().or(z.literal("")),
+  victimInvolved: z.string().max(1000, "Victim information is too long").optional().or(z.literal("")),
+  weaponInvolved: z.string().max(500, "Weapon description is too long").optional().or(z.literal("")),
+  injuryLevel: z.enum(["NONE", "MINOR", "MODERATE", "SEVERE"] as const).optional().or(z.literal("")),
+  evidenceDetails: z.string().max(1000, "Evidence details are too long").optional().or(z.literal("")),
+});
+
+type CrimeReportFormValues = z.infer<typeof crimeReportSchema>;
 
 export default function SubmitCrimeReportPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    location: "",
-    crimeCategory: "" as CrimeCategory | "",
-    suspectDescription: "",
-    victimInvolved: "",
-    weaponInvolved: "",
-    injuryLevel: "",
-    evidenceDetails: "",
+
+  const form = useForm<CrimeReportFormValues>({
+    resolver: zodResolver(crimeReportSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      location: "",
+      crimeCategory: "THEFT",
+      suspectDescription: "",
+      victimInvolved: "",
+      weaponInvolved: "",
+      injuryLevel: "",
+      evidenceDetails: "",
+    },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.crimeCategory) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
+  const onSubmit = async (data: CrimeReportFormValues) => {
     setIsSubmitting(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    toast.success("Crime report submitted successfully!");
-    router.push("/dashboard/crime/my-reports");
+
+    try {
+      // TODO: Replace with actual API call
+      console.log("Submitting crime report:", data);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      toast.success("Crime report submitted successfully!");
+      router.push("/dashboard/crime/my-reports");
+    } catch (error) {
+      console.error("Error submitting crime report:", error);
+      toast.error("Failed to submit report. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
           <Link href="/dashboard/crime">
@@ -61,156 +84,213 @@ export default function SubmitCrimeReportPage() {
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Report Details</CardTitle>
-          <CardDescription>
-            Provide detailed information about the crime incident. For emergencies, call 999.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="title">Title *</Label>
-              <Input
-                id="title"
-                placeholder="Brief description of the incident"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                required
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Report Details</CardTitle>
+              <CardDescription>
+                Provide detailed information about the crime incident. For emergencies, call 999.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Title *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Brief description of the incident" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="crimeCategory">Crime Category *</Label>
-              <Select
-                value={formData.crimeCategory}
-                onValueChange={(value) => setFormData({ ...formData, crimeCategory: value as CrimeCategory })}
-                required
-              >
-                <SelectTrigger id="crimeCategory">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="THEFT">Theft</SelectItem>
-                  <SelectItem value="ASSAULT">Assault</SelectItem>
-                  <SelectItem value="VANDALISM">Vandalism</SelectItem>
-                  <SelectItem value="HARASSMENT">Harassment</SelectItem>
-                  <SelectItem value="OTHER">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="location">Location *</Label>
-              <Input
-                id="location"
-                placeholder="Where did the incident occur?"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                required
+              <FormField
+                control={form.control}
+                name="crimeCategory"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Crime Category *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="THEFT">Theft</SelectItem>
+                        <SelectItem value="ASSAULT">Assault</SelectItem>
+                        <SelectItem value="VANDALISM">Vandalism</SelectItem>
+                        <SelectItem value="HARASSMENT">Harassment</SelectItem>
+                        <SelectItem value="OTHER">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Description *</Label>
-              <Textarea
-                id="description"
-                placeholder="Detailed description of what happened..."
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                rows={5}
-                required
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Location *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Where did the incident occur?" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="suspectDescription">Suspect Description (Optional)</Label>
-                <Textarea
-                  id="suspectDescription"
-                  placeholder="Physical appearance, clothing, etc."
-                  value={formData.suspectDescription}
-                  onChange={(e) => setFormData({ ...formData, suspectDescription: e.target.value })}
-                  rows={3}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description *</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Detailed description of what happened..."
+                        rows={5}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid gap-6 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="suspectDescription"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Suspect Description (Optional)</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Physical appearance, clothing, etc."
+                          rows={3}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="victimInvolved"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Victim Information (Optional)</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Who was affected by this incident?"
+                          rows={3}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="victimInvolved">Victim Information (Optional)</Label>
-                <Textarea
-                  id="victimInvolved"
-                  placeholder="Who was affected by this incident?"
-                  value={formData.victimInvolved}
-                  onChange={(e) => setFormData({ ...formData, victimInvolved: e.target.value })}
-                  rows={3}
+              <div className="grid gap-6 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="weaponInvolved"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Weapon Involved (Optional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Description of any weapons used" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="injuryLevel"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Injury Level (Optional)</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select injury level" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="NONE">None</SelectItem>
+                          <SelectItem value="MINOR">Minor</SelectItem>
+                          <SelectItem value="MODERATE">Moderate</SelectItem>
+                          <SelectItem value="SEVERE">Severe</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-            </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="weaponInvolved">Weapon Involved (Optional)</Label>
-                <Input
-                  id="weaponInvolved"
-                  placeholder="Description of any weapons used"
-                  value={formData.weaponInvolved}
-                  onChange={(e) => setFormData({ ...formData, weaponInvolved: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="injuryLevel">Injury Level (Optional)</Label>
-                <Select
-                  value={formData.injuryLevel}
-                  onValueChange={(value) => setFormData({ ...formData, injuryLevel: value })}
-                >
-                  <SelectTrigger id="injuryLevel">
-                    <SelectValue placeholder="Select injury level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="NONE">None</SelectItem>
-                    <SelectItem value="MINOR">Minor</SelectItem>
-                    <SelectItem value="MODERATE">Moderate</SelectItem>
-                    <SelectItem value="SEVERE">Severe</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="evidenceDetails">Evidence Details (Optional)</Label>
-              <Textarea
-                id="evidenceDetails"
-                placeholder="Description of any evidence (photos, videos, witnesses, etc.)"
-                value={formData.evidenceDetails}
-                onChange={(e) => setFormData({ ...formData, evidenceDetails: e.target.value })}
-                rows={3}
+              <FormField
+                control={form.control}
+                name="evidenceDetails"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Evidence Details (Optional)</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Description of any evidence (photos, videos, witnesses, etc.)"
+                        rows={3}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="attachment">Attachment (Optional)</Label>
-              <div className="flex items-center gap-2">
-                <Input id="attachment" type="file" accept="image/*,video/*" />
-                <Upload className="h-4 w-4 text-muted-foreground" />
+              <div className="space-y-2">
+                <FormLabel htmlFor="attachment">Attachment (Optional)</FormLabel>
+                <div className="flex items-center gap-2">
+                  <Input id="attachment" type="file" accept="image/*,video/*" />
+                  <Upload className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <FormDescription>
+                  Upload photos or videos as evidence (max 10MB)
+                </FormDescription>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Upload photos or videos as evidence (max 10MB)
-              </p>
-            </div>
+            </CardContent>
+          </Card>
 
-            <div className="flex gap-4 pt-4">
-              <Button type="submit" disabled={isSubmitting} className="flex-1">
-                {isSubmitting ? "Submitting..." : "Submit Report"}
-              </Button>
-              <Button type="button" variant="outline" asChild>
-                <Link href="/dashboard/crime">Cancel</Link>
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+          <div className="flex justify-end gap-4">
+            <Button type="button" variant="outline" onClick={() => router.back()}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                "Submit Report"
+              )}
+            </Button>
+          </div>
+        </form>
+      </Form>
     </div>
   );
 }
