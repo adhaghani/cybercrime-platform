@@ -18,10 +18,13 @@ import {
   Users,
   BarChart3,
   Shield,
-  Settings
+  Settings,
+  Bell,
+  Pin,
+  Calendar
 } from "lucide-react";
 import Link from "next/link";
-import { MOCK_REPORTS } from "@/lib/api/mock-data";
+import { MOCK_REPORTS, MOCK_ANNOUNCEMENTS } from "@/lib/api/mock-data";
 import { CrimeReport, FacilityReport } from "@/lib/types";
 import { format } from "date-fns";
 import { useHasAnyRole, useUserRole } from "@/hooks/use-user-role";
@@ -46,6 +49,24 @@ export default function DashboardPage() {
     .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
     .slice(0, 5);
 
+  // Filter active announcements (published and within date range)
+  const now = new Date();
+  const activeAnnouncements = MOCK_ANNOUNCEMENTS
+    .filter(a => 
+      a.status === 'PUBLISHED' && 
+      new Date(a.startDate) <= now && 
+      new Date(a.endDate) >= now
+    )
+    .sort((a, b) => {
+      // Pinned announcements first
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      // Then by priority
+      const priorityOrder = { HIGH: 3, MEDIUM: 2, LOW: 1 };
+      return priorityOrder[b.priority] - priorityOrder[a.priority];
+    })
+    .slice(0, 3); // Show top 3 announcements
+
   const stats = {
     totalCrime: crimeReports.length,
     totalFacility: facilityReports.length,
@@ -65,6 +86,24 @@ export default function DashboardPage() {
       case "IN_PROGRESS": return "bg-blue-500/10 text-blue-500 border-blue-500/20";
       case "RESOLVED": return "bg-green-500/10 text-green-500 border-green-500/20";
       case "REJECTED": return "bg-red-500/10 text-red-500 border-red-500/20";
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "HIGH": return "bg-red-500/10 text-red-500 border-red-500/20";
+      case "MEDIUM": return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
+      case "LOW": return "bg-blue-500/10 text-blue-500 border-blue-500/20";
+      default: return "bg-gray-500/10 text-gray-500 border-gray-500/20";
+    }
+  };
+
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case "EMERGENCY": return "bg-red-500/10 text-red-500 border-red-500/20";
+      case "EVENT": return "bg-purple-500/10 text-purple-500 border-purple-500/20";
+      case "GENERAL": return "bg-blue-500/10 text-blue-500 border-blue-500/20";
+      default: return "bg-gray-500/10 text-gray-500 border-gray-500/20";
     }
   };
 
@@ -124,13 +163,13 @@ export default function DashboardPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Campus Activity</CardTitle>
-              <Activity className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Announcements</CardTitle>
+              <Bell className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalCrime + stats.totalFacility}</div>
+              <div className="text-2xl font-bold">{activeAnnouncements.length}</div>
               <p className="text-xs text-muted-foreground">
-                Total campus reports
+                Active notifications
               </p>
             </CardContent>
           </Card>
@@ -190,6 +229,71 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+      )}
+
+      {/* Announcements Section - Visible to All Users */}
+      {activeAnnouncements.length > 0 && (
+        <Card className="border-blue-500/50">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Bell className="h-5 w-5 text-blue-500" />
+                <CardTitle>Campus Announcements</CardTitle>
+              </div>
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/dashboard/announcement">
+                  View All
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+            <CardDescription>Important updates and notifications</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {activeAnnouncements.map((announcement) => (
+                <div
+                  key={announcement.id}
+                  className="flex items-start gap-4 rounded-lg border p-4 hover:bg-accent/50 transition-colors"
+                >
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {announcement.isPinned && <Pin className="h-4 w-4 text-yellow-500" />}
+                      <Link
+                        href={`/dashboard/announcement/${announcement.id}`}
+                        className="font-semibold hover:underline"
+                      >
+                        {announcement.title}
+                      </Link>
+                      <Badge className={getTypeColor(announcement.type)} variant="outline">
+                        {announcement.type}
+                      </Badge>
+                      <Badge className={getPriorityColor(announcement.priority)} variant="outline">
+                        {announcement.priority}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {announcement.message}
+                    </p>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {format(new Date(announcement.startDate), "MMM d")} -{" "}
+                        {format(new Date(announcement.endDate), "MMM d, yyyy")}
+                      </span>
+                      <span>Posted by {announcement.createdByName || "Unknown"}</span>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href={`/dashboard/announcement/${announcement.id}`}>
+                      View
+                    </Link>
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -375,6 +479,12 @@ export default function DashboardPage() {
                   </Link>
                 </Button>
                 <Button asChild variant="outline" className="w-full justify-start">
+                  <Link href="/dashboard/announcement">
+                    <Bell className="h-4 w-4 mr-2" />
+                    View Announcements
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full justify-start">
                   <Link href="/dashboard/crime/statistics">
                     <TrendingUp className="h-4 w-4 mr-2" />
                     View Statistics
@@ -399,6 +509,12 @@ export default function DashboardPage() {
                   <Link href="/dashboard/facility/reports">
                     <Wrench className="h-4 w-4 mr-2" />
                     All Facility Reports
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <Link href="/dashboard/announcement">
+                    <Bell className="h-4 w-4 mr-2" />
+                    Manage Announcements
                   </Link>
                 </Button>
                 <Button asChild variant="outline" className="w-full justify-start">

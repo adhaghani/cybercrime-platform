@@ -146,6 +146,21 @@ const getNavMainByRole = (role: string | undefined) => {
         }
       ],
     },
+    {
+      title: "Announcements",
+      url: "/dashboard/announcement",
+      icon: FileText,
+      items: [
+        {
+          title: "All Announcements",
+          url: "/dashboard/announcement",
+        },
+        {
+          title: "Create Announcement",
+          url: "/dashboard/announcement/new-announcement",
+        },
+      ],
+    },
   ];
 
   // Admin navigation - full access including user management
@@ -217,6 +232,21 @@ const getNavMainByRole = (role: string | undefined) => {
         {
           title: "Staff Members",
           url: "/dashboard/users/staff",
+        },
+      ],
+    },
+    {
+      title: "Announcements",
+      url: "/dashboard/announcement",
+      icon: FileText,
+      items: [
+        {
+          title: "All Announcements",
+          url: "/dashboard/announcement",
+        },
+        {
+          title: "Create Announcement",
+          url: "/dashboard/announcement/new-announcement",
         },
       ],
     },
@@ -301,6 +331,21 @@ const getNavMainByRole = (role: string | undefined) => {
           title: "Add New Contact",
           url: "/dashboard/emergency-services/add",
         }
+      ],
+    },
+    {
+      title: "Announcements",
+      url: "/dashboard/announcement",
+      icon: FileText,
+      items: [
+        {
+          title: "All Announcements",
+          url: "/dashboard/announcement",
+        },
+        {
+          title: "Create Announcement",
+          url: "/dashboard/announcement/new-announcement",
+        },
       ],
     },
     {

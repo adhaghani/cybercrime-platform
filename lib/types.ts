@@ -6,6 +6,10 @@ export type CrimeCategory = 'THEFT' | 'ASSAULT' | 'VANDALISM' | 'HARASSMENT' | '
 export type FacilityType = 'ELECTRICAL' | 'PLUMBING' | 'FURNITURE' | 'INFRASTRUCTURE' | 'OTHER';
 export type SeverityLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
+export type EmergencyServiceType = 'Police' | 'Fire' | 'Medical' | 'Civil Defence';
+export type UiTMCampus = 'Shah Alam' | 'Puncak Alam' | 'Segamat' | 'Perlis' | 'Pulau Pinang' | 'Perak' | 'Pahang' | 'Terengganu' | 'Kelantan' | 'Kedah' | 'Johor' | 'Melaka' | 'Negeri Sembilan' | 'Sabah' | 'Sarawak';
+export type MalaysianState = 'Johor' | 'Kedah' | 'Kelantan' | 'Kuala Lumpur' | 'Labuan' | 'Melaka' | 'Negeri Sembilan' | 'Pahang' | 'Penang' | 'Perak' | 'Perlis' | 'Putrajaya' | 'Sabah' | 'Sarawak' | 'Selangor' | 'Terengganu';
+
 // Base Account Interface
 export interface Account {
   id: string;
@@ -77,4 +81,53 @@ export interface ReportAssignment {
   assignedAt: string;
   actionTaken?: string;
   status: ReportStatus;
+}
+
+// Base Emergency Contact Interface
+export interface EmergencyContact {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+  email?: string;
+  state: MalaysianState;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// UiTM Auxiliary Police Interface
+export interface UiTMAuxiliaryPolice extends EmergencyContact {
+  campus: UiTMCampus;
+  hotline: string;
+  operatingHours: string;
+}
+
+// National Emergency Service Interface
+export interface NationalEmergencyService extends EmergencyContact {
+  type: EmergencyServiceType;
+}
+
+// Union type for all emergency contacts
+export type AnyEmergencyContact = UiTMAuxiliaryPolice | NationalEmergencyService;
+
+export type AnnouncementAudience = 'ALL' | 'STUDENTS' | 'STAFF' | 'ADMIN';
+export type AnnouncementType = 'GENERAL' | 'EMERGENCY' | 'EVENT';
+export type AnnouncementStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+export type AnnouncementPriority = 'LOW' | 'MEDIUM' | 'HIGH';
+
+export interface Announcement {
+  id: string;
+  title: string;
+  message: string;
+  audience: AnnouncementAudience;
+  type: AnnouncementType;
+  status: AnnouncementStatus;
+  priority: AnnouncementPriority;
+  isPinned?: boolean;
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+  createdBy: string; // User ID
+  createdByName?: string;
+  updatedAt?: string;
 }
