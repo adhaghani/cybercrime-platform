@@ -11,10 +11,6 @@ import {
   Shield,
   Users,
   FileText,
-  BarChart3,
-  Settings,
-  Database,
-  Lock,
 } from "lucide-react"
 import { useAuth } from "@/lib/context/auth-provider"
 import { NavMain } from "@/components/dashboard/nav-main"
@@ -36,6 +32,11 @@ import {
 const getNavMainByRole = (role: string | undefined) => {
   // Student/User navigation
   const studentNav = [
+        {
+      title: "Announcements",
+      url: "/dashboard/announcement",
+      icon: FileText,
+    },
     {
       title: "Crime Terminal",
       url: "/dashboard/crime",
@@ -347,30 +348,7 @@ const getNavMainByRole = (role: string | undefined) => {
           url: "/dashboard/announcement/new-announcement",
         },
       ],
-    },
-    {
-      title: "System Administration",
-      url: "/dashboard/system",
-      icon: Settings,
-      items: [
-        {
-          title: "System Settings",
-          url: "/dashboard/system/settings",
-        },
-        {
-          title: "Database Management",
-          url: "/dashboard/system/database",
-        },
-        {
-          title: "Audit Logs",
-          url: "/dashboard/system/audit-logs",
-        },
-        {
-          title: "Permissions",
-          url: "/dashboard/system/permissions",
-        },
-      ],
-    },
+    }
 
   ];
 
@@ -409,24 +387,9 @@ const getNavSecondaryByRole = (role: string | undefined) => {
   if (role === 'superadmin') {
     return [
       {
-        title: "Analytics",
-        url: "#",
-        icon: BarChart3,
-      },
-      {
         title: "System Reports",
-        url: "#",
+        url: "/dashboard/system-report",
         icon: FileText,
-      },
-      {
-        title: "Database Console",
-        url: "#",
-        icon: Database,
-      },
-      {
-        title: "Security",
-        url: "#",
-        icon: Lock,
       },
       ...commonSecondary,
     ];
@@ -436,13 +399,8 @@ const getNavSecondaryByRole = (role: string | undefined) => {
   if (role === 'admin') {
     return [
       {
-        title: "Analytics",
-        url: "#",
-        icon: BarChart3,
-      },
-      {
         title: "System Reports",
-        url: "#",
+        url: "/dashboard/system-report",
         icon: FileText,
       },
       ...commonSecondary,

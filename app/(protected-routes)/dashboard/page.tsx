@@ -17,8 +17,6 @@ import {
   MapPin,
   Users,
   BarChart3,
-  Shield,
-  Settings,
   Bell,
   Pin,
   Calendar
@@ -117,6 +115,52 @@ export default function DashboardPage() {
           {isAdmin && "Administrator Dashboard - System oversight and management"}
         </p>
       </div>
+
+            {/* Announcements Section - Visible to All Users */}
+      {activeAnnouncements.length > 0 && (
+            <div className="space-y-4">
+              {activeAnnouncements.map((announcement) => (
+                <div
+                  key={announcement.id}
+                  className="flex items-start gap-4 rounded-lg border p-4 hover:bg-accent/50 transition-colors"
+                >
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {announcement.isPinned && <Pin className="h-4 w-4 text-yellow-500" />}
+                      <Link
+                        href={`/dashboard/announcement/${announcement.id}`}
+                        className="font-semibold hover:underline"
+                      >
+                        {announcement.title}
+                      </Link>
+                      <Badge className={getTypeColor(announcement.type)} variant="outline">
+                        {announcement.type}
+                      </Badge>
+                      <Badge className={getPriorityColor(announcement.priority)} variant="outline">
+                        {announcement.priority}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {announcement.message}
+                    </p>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {format(new Date(announcement.startDate), "MMM d")} -{" "}
+                        {format(new Date(announcement.endDate), "MMM d, yyyy")}
+                      </span>
+                      <span>Posted by {announcement.createdByName || "Unknown"}</span>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href={`/dashboard/announcement/${announcement.id}`}>
+                      View
+                    </Link>
+                  </Button>
+                </div>
+              ))}
+            </div>
+      )}
 
       {/* Quick Stats - Different for Students vs Staff/Admin */}
       {isStudent ? (
@@ -231,70 +275,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Announcements Section - Visible to All Users */}
-      {activeAnnouncements.length > 0 && (
-        <Card className="border-blue-500/50">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Bell className="h-5 w-5 text-blue-500" />
-                <CardTitle>Campus Announcements</CardTitle>
-              </div>
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/dashboard/announcement">
-                  View All
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-            <CardDescription>Important updates and notifications</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {activeAnnouncements.map((announcement) => (
-                <div
-                  key={announcement.id}
-                  className="flex items-start gap-4 rounded-lg border p-4 hover:bg-accent/50 transition-colors"
-                >
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {announcement.isPinned && <Pin className="h-4 w-4 text-yellow-500" />}
-                      <Link
-                        href={`/dashboard/announcement/${announcement.id}`}
-                        className="font-semibold hover:underline"
-                      >
-                        {announcement.title}
-                      </Link>
-                      <Badge className={getTypeColor(announcement.type)} variant="outline">
-                        {announcement.type}
-                      </Badge>
-                      <Badge className={getPriorityColor(announcement.priority)} variant="outline">
-                        {announcement.priority}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {announcement.message}
-                    </p>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {format(new Date(announcement.startDate), "MMM d")} -{" "}
-                        {format(new Date(announcement.endDate), "MMM d, yyyy")}
-                      </span>
-                      <span>Posted by {announcement.createdByName || "Unknown"}</span>
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href={`/dashboard/announcement/${announcement.id}`}>
-                      View
-                    </Link>
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Crime Reports Section */}

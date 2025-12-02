@@ -90,6 +90,8 @@ export interface EmergencyContact {
   address: string;
   phone: string;
   email?: string;
+  type?: EmergencyServiceType;
+  hotline?: string;
   state: MalaysianState;
   createdAt?: string;
   updatedAt?: string;
@@ -98,14 +100,11 @@ export interface EmergencyContact {
 // UiTM Auxiliary Police Interface
 export interface UiTMAuxiliaryPolice extends EmergencyContact {
   campus: UiTMCampus;
-  hotline: string;
   operatingHours: string;
 }
 
 // National Emergency Service Interface
-export interface NationalEmergencyService extends EmergencyContact {
-  type: EmergencyServiceType;
-}
+export type NationalEmergencyService = EmergencyContact
 
 // Union type for all emergency contacts
 export type AnyEmergencyContact = UiTMAuxiliaryPolice | NationalEmergencyService;
@@ -130,4 +129,20 @@ export interface Announcement {
   createdBy: string; // User ID
   createdByName?: string;
   updatedAt?: string;
+}
+
+export type GeneratedReportCategory = 'CRIME' | 'FACILITY' | 'USER';
+export type GeneratedReportDataType = 'SUMMARY' | 'DETAILED';
+
+export interface GeneratedReport {
+  id: string;
+  generatedBy: string; // Staff ID
+  title: string;
+  summary: string;
+  dateRangeStart: string;
+  dateRangeEnd: string;
+  category: GeneratedReportCategory;
+  dataType: GeneratedReportDataType;
+  data: any;
+  requestedAt: string;
 }
