@@ -107,10 +107,6 @@ const getNavMainByRole = (role: string | undefined) => {
           url: "/dashboard/crime/reports",
         },
         {
-          title: "Crime Statistics",
-          url: "/dashboard/crime/statistics",
-        },
-        {
           title: "My Assigned Reports",
           url: "/dashboard/crime/my-reports",
         } 
@@ -175,10 +171,6 @@ const getNavMainByRole = (role: string | undefined) => {
         {
           title: "All Crime Reports",
           url: "/dashboard/crime/reports",
-        },
-        {
-          title: "Crime Statistics",
-          url: "/dashboard/crime/statistics",
         },
         {
           title: "Submit Report",
@@ -265,14 +257,6 @@ const getNavMainByRole = (role: string | undefined) => {
         {
           title: "All Crime Reports",
           url: "/dashboard/crime/reports",
-        },
-        {
-          title: "Crime Statistics",
-          url: "/dashboard/crime/statistics",
-        },
-        {
-          title: "Submit Report",
-          url: "/dashboard/crime/submit-report",
         }
       ],
     },

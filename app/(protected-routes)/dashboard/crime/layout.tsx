@@ -89,12 +89,6 @@ export default function CrimeLayout({ children }: { children: React.ReactNode })
       variant: "default" as const,
     },
     {
-      href: "/dashboard/crime/my-reports",
-      icon: FileText,
-      label: "My Reports",
-      variant: "outline" as const,
-    },
-    {
       href: "/dashboard/crime/submit-report",
       icon: PlusCircle,
       label: "Submit Report",
