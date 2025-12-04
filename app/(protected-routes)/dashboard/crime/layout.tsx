@@ -26,7 +26,7 @@ import { useHasAnyRole } from "@/hooks/use-user-role";
 export default function CrimeLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const hasAnyRole = useHasAnyRole();
-  const isStaffOrAdmin = hasAnyRole(['staff', 'admin', 'superadmin']);
+  const isStaffOrAdmin = hasAnyRole(['STAFF', 'ADMIN']);
   
   // Get user's crime reports
   const myReports = MOCK_REPORTS.filter(

@@ -30,7 +30,8 @@ import { useHasAnyRole, useUserRole } from "@/hooks/use-user-role";
 import { useState } from "react";
 
 export default function AnnouncementsPage() {
-  const hasManageAccess = useHasAnyRole() && ['staff', 'admin', 'superadmin'].includes(useUserRole() || '');
+  const hasAnyRole = useHasAnyRole();
+  const hasManageAccess = hasAnyRole(['STAFF', 'ADMIN']);
   const [searchQuery, setSearchQuery] = useState("");
 
   // Filter announcements based on search

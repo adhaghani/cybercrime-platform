@@ -40,7 +40,7 @@ export function useHasAnyRole() {
  */
 export function useIsStudent() {
   const role = useUserRole();
-  return role === 'student';
+  return role === 'STUDENT';
 }
 
 /**
@@ -48,7 +48,7 @@ export function useIsStudent() {
  */
 export function useIsStaff() {
   const role = useUserRole();
-  return role === 'staff';
+  return role === 'STAFF';
 }
 
 /**
@@ -56,5 +56,5 @@ export function useIsStaff() {
  */
 export function useIsAdmin() {
   const role = useUserRole();
-  return role === 'admin';
+  return role === 'ADMIN';
 }

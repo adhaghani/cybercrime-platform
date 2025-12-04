@@ -10,7 +10,7 @@ import Link from "next/link";
 
 export default function CrimePage() {
 const hasAnyRole = useHasAnyRole();
-  const isStaff = hasAnyRole(['staff', 'admin', 'superadmin']);
+  const isStaff = hasAnyRole(['STAFF', 'ADMIN']);
 
   return (
     <div className="space-y-6">

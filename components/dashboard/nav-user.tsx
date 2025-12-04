@@ -6,6 +6,7 @@ import {
   ChevronsUpDown,
   Settings,
   LogOut,
+  Monitor,
 } from "lucide-react"
 
 import {
@@ -92,19 +93,19 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <Link href="/account">
+              <Link href="/dashboard/settings/account">
                 <DropdownMenuItem>
                   <BadgeCheck />
                   Account
                 </DropdownMenuItem>
               </Link>
-              <Link href="/notifications">
+              <Link href="/dashboard/settings/display">
                 <DropdownMenuItem>
-                  <Bell />
-                  Notifications
+                  <Monitor />
+                  Display
                 </DropdownMenuItem>
               </Link>
-              <Link href="/settings">
+              <Link href="/dashboard/settings">
                 <DropdownMenuItem>
                   <Settings />
                   Settings

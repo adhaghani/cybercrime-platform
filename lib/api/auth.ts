@@ -4,6 +4,7 @@
  */
 
 import { apiClient } from './client';
+import { Student, Staff } from '@/lib/types';
 
 export interface LoginCredentials {
   email: string;
@@ -18,28 +19,10 @@ export interface SignUpData {
 
 export interface AuthResponse {
   token: string;
-  user: {
-    id: string;
-    email: string;
-    full_name?: string;
-    username?: string;
-    avatar_url?: string;
-    role: string;
-    created_at?: string;
-    updated_at?: string;
-  };
+  user: UserProfile;
 }
 
-export interface UserProfile {
-  id: string;
-  email: string;
-  full_name?: string;
-  username?: string;
-  avatar_url?: string;
-  role: string;
-  created_at?: string;
-  updated_at?: string;
-}
+export type UserProfile = Student | Staff;
 
 /**
  * Login with email and password
@@ -53,23 +36,27 @@ export async function login(credentials: LoginCredentials): Promise<AuthResponse
     setTimeout(() => {
       if (credentials.email && credentials.password) {
         // Mock successful login
-        const mockUser = {
+        const mockUser: Staff = {
           id: '1',
           email: credentials.email,
-          full_name: 'John Doe',
-          username: credentials.email.split('@')[0],
-          avatar_url: '',
-          role: 'superadmin',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          name: 'John Doe',
+          contactNumber: '012-3456789',
+          role: 'ADMIN',
+          staffId: 'S12345',
+          department: 'IT Department',
+          position: 'System Administrator',
+          avatarUrl: '',
         };
 
         const mockToken = btoa(JSON.stringify({ 
           userId: mockUser.id, 
           email: mockUser.email,
           role: mockUser.role,
-          full_name: mockUser.full_name,
-          username: mockUser.username,
+          name: mockUser.name,
+          contactNumber: mockUser.contactNumber,
+          staffId: mockUser.staffId,
+          department: mockUser.department,
+          position: mockUser.position,
           exp: Date.now() + 86400000 // 24 hours
         }));
 
@@ -145,16 +132,34 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
     }
 
     // Mock user data
-    return {
-      id: decoded.userId || '1',
-      email: decoded.email || 'user@example.com',
-      full_name: decoded.full_name || 'John Doe',
-      username: decoded.username || decoded.email?.split('@')[0] || 'user',
-      avatar_url: '',
-      role: decoded.role || 'student',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
+    // In a real app, we would fetch the full profile from the backend
+    // Here we reconstruct it from the token or return a default mock
+    if (decoded.role === 'STUDENT') {
+      return {
+        id: decoded.userId || '1',
+        email: decoded.email || 'student@example.com',
+        name: decoded.name || 'Ahmad Ali',
+        contactNumber: decoded.contactNumber || '012-3456789',
+        role: 'STUDENT',
+        studentId: decoded.studentId || '2023123456',
+        program: decoded.program || 'CS240',
+        semester: decoded.semester || 4,
+        yearOfStudy: decoded.yearOfStudy || 2,
+        avatarUrl: decoded.avatarUrl || '',
+      } as Student;
+    } else {
+      return {
+        id: decoded.userId || '1',
+        email: decoded.email || 'staff@example.com',
+        name: decoded.name || 'Officer Abu',
+        contactNumber: decoded.contactNumber || '013-9876543',
+        role: (decoded.role as any) || 'STAFF',
+        staffId: decoded.staffId || 'S12345',
+        department: decoded.department || 'Security',
+        position: decoded.position || 'Patrol Officer',
+        avatarUrl: decoded.avatarUrl || '',
+      } as Staff;
+    }
   } catch (error) {
     apiClient.clearToken();
     return null;

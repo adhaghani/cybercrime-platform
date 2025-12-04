@@ -1,4 +1,4 @@
-export type Role = 'STUDENT' | 'STAFF' | 'ADMIN';
+export type Role = 'STUDENT' | 'STAFF' | 'ADMIN' | 'SUPERADMIN';
 
 export type ReportStatus = 'PENDING' | 'IN_PROGRESS' | 'RESOLVED' | 'REJECTED';
 
@@ -31,7 +31,7 @@ export interface Student extends Account {
 
 // Staff Interface
 export interface Staff extends Account {
-  role: 'STAFF' | 'ADMIN';
+  role: 'STAFF' | 'ADMIN' | 'SUPERADMIN';
   staffId: string;
   department: string;
   position: string;

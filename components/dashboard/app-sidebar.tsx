@@ -337,14 +337,11 @@ const getNavMainByRole = (role: string | undefined) => {
   ];
 
   switch (role) {
-    case 'superadmin':
+    case 'ADMIN':
       return superAdminNav;
-    case 'admin':
-      return adminNav;
-    case 'staff':
+    case 'STAFF':
       return staffNav;
-    case 'student':
-    case 'user':
+    case 'STUDENT':
     default:
       return studentNav;
   }
@@ -367,20 +364,8 @@ const getNavSecondaryByRole = (role: string | undefined) => {
     },
   ];
 
-  // Super Admin-specific secondary nav
-  if (role === 'superadmin') {
-    return [
-      {
-        title: "System Reports",
-        url: "/dashboard/system-report",
-        icon: FileText,
-      },
-      ...commonSecondary,
-    ];
-  }
-
   // Admin-specific secondary nav
-  if (role === 'admin') {
+  if (role === 'ADMIN') {
     return [
       {
         title: "System Reports",
@@ -392,7 +377,7 @@ const getNavSecondaryByRole = (role: string | undefined) => {
   }
 
   // Staff-specific secondary nav
-  if (role === 'staff') {
+  if (role === 'STAFF') {
     return [
       {
         title: "My Assignments",
@@ -417,9 +402,9 @@ const getNavSecondaryByRole = (role: string | undefined) => {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { claims } = useAuth()
   const user = {
-    name: claims?.user_metadata?.full_name || "User",
+    name: (claims?.user_metadata?.name as string) || "User",
     email: claims?.email || "",
-    avatar: claims?.user_metadata?.avatar_url || "/default-avatar.png",
+    avatar: (claims?.user_metadata?.avatarUrl as string) || "/default-avatar.png",
   }
 
   const navMain = getNavMainByRole(claims?.role);

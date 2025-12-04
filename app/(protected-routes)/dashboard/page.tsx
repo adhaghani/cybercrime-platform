@@ -30,9 +30,9 @@ import { useHasAnyRole, useUserRole } from "@/hooks/use-user-role";
 export default function DashboardPage() {
   const hasAnyRole = useHasAnyRole();
   const  role  = useUserRole();
-  const isStudent = role === 'student';
-  const isStaff = hasAnyRole(['staff']);
-  const isAdmin = hasAnyRole(['admin', 'superadmin']);
+  const isStudent = role === 'STUDENT';
+  const isStaff = hasAnyRole(['STAFF']);
+  const isAdmin = hasAnyRole(['ADMIN', 'SUPERADMIN']);
   
   const crimeReports = MOCK_REPORTS.filter((r) => r.type === "CRIME") as CrimeReport[];
   const facilityReports = MOCK_REPORTS.filter((r) => r.type === "FACILITY") as FacilityReport[];

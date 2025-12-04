@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { Role } from "@/lib/types";
 
 interface Claims {
   email?: string;
@@ -8,12 +9,21 @@ interface Claims {
   aud?: string;
   iat?: number;
   exp?: number;
-  role?: string;
+  role?: Role;
   session_id?: string;
   user_metadata?: {
-    full_name?: string;
-    avatar_url?: string;
-    role?: string;
+    name?: string;
+    contactNumber?: string;
+    avatarUrl?: string;
+    // Student specific
+    studentId?: string;
+    program?: string;
+    semester?: number;
+    yearOfStudy?: number;
+    // Staff specific
+    staffId?: string;
+    department?: string;
+    position?: string;
     [key: string]: string | number | boolean | null | undefined;
   };
   app_metadata?: {

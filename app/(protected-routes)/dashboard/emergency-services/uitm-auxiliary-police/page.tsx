@@ -10,7 +10,7 @@ import Link from "next/link";
 
 const isAuthorizedForEdit = () => {
   const hasAnyRole = useHasAnyRole();
-  if(hasAnyRole(['admin', 'superadmin'])) return true;
+  if(hasAnyRole(['ADMIN', 'SUPERADMIN'])) return true;
 
   return false;
 }
