@@ -15,7 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
-import { CrimeReport, CrimeCategory, ReportStatus } from "@/lib/types";
+import { CrimeReport} from "@/lib/types";
 
 const crimeReportSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters").max(100, "Title is too long"),

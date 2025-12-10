@@ -14,7 +14,7 @@ import { useHasAnyRole } from "@/hooks/use-user-role";
 
 const isAuthorizedForEdit = () => {
   const hasAnyRole = useHasAnyRole();
-  if(hasAnyRole(['admin', 'superadmin', 'staff'])) return true;
+  if(hasAnyRole(['ADMIN', 'SUPERADMIN', 'STAFF'])) return true;
 
   return false;
 }

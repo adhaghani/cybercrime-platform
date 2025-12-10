@@ -31,7 +31,7 @@ import { useState } from "react";
 
 export default function AnnouncementsPage() {
   const hasAnyRole = useHasAnyRole();
-  const hasManageAccess = hasAnyRole(['STAFF', 'ADMIN']);
+  const hasManageAccess = hasAnyRole(['STAFF', 'ADMIN', 'SUPERADMIN']);
   const [searchQuery, setSearchQuery] = useState("");
 
   // Filter announcements based on search

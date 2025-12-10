@@ -41,7 +41,7 @@ export async function login(credentials: LoginCredentials): Promise<AuthResponse
           email: credentials.email,
           name: 'John Doe',
           contactNumber: '012-3456789',
-          role: 'ADMIN',
+          role: 'SUPERADMIN',
           staffId: 'S12345',
           department: 'IT Department',
           position: 'System Administrator',

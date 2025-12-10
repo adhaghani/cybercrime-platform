@@ -35,7 +35,7 @@ import { notFound } from "next/navigation";
 export default function AnnouncementDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const hasAnyRole = useHasAnyRole();
-  const hasManageAccess = hasAnyRole(['STAFF', 'ADMIN']);
+  const hasManageAccess = hasAnyRole(['STAFF', 'ADMIN', 'SUPERADMIN']);
 
   const announcement = MOCK_ANNOUNCEMENTS.find((a) => a.id === params.id);
 
