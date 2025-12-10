@@ -154,6 +154,17 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
+          {announcement.image_src && (
+            <Card className="overflow-hidden">
+               <div className="aspect-video w-full bg-muted relative">
+                  <img 
+                    src={announcement.image_src as string} 
+                    alt={announcement.title}
+                    className="w-full h-full object-cover"
+                  />
+               </div>
+            </Card>
+          )}
           <Card>
             <CardHeader>
               <CardTitle>Announcement Message</CardTitle>

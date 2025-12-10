@@ -118,12 +118,21 @@ export default function DashboardPage() {
 
             {/* Announcements Section - Visible to All Users */}
       {activeAnnouncements.length > 0 && (
-            <div className="space-y-4">
+            <div className="space-y-4 grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
               {activeAnnouncements.map((announcement) => (
                 <div
                   key={announcement.id}
-                  className="flex items-start gap-4 rounded-lg border p-4 hover:bg-accent/50 transition-colors"
+                  className="flex flex-col items-start h-full gap-4 rounded-lg border p-4 hover:bg-accent/50 transition-colors"
                 >
+                  {announcement.image_src && (
+                    <div className="aspect-video w-full bg-muted rounded-md overflow-hidden relative">
+                      <img 
+                        src={announcement.image_src as string} 
+                        alt={announcement.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center gap-2 flex-wrap">
                       {announcement.isPinned && <Pin className="h-4 w-4 text-yellow-500" />}

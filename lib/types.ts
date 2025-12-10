@@ -122,6 +122,7 @@ export interface Announcement {
   type: AnnouncementType;
   status: AnnouncementStatus;
   priority: AnnouncementPriority;
+  image_src?: String;
   isPinned?: boolean;
   startDate: string;
   endDate: string;
