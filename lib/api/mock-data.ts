@@ -1,4 +1,4 @@
-import { AnyReport, ReportAssignment, Student, Staff, Announcement, GeneratedReport } from "@/lib/types";
+import { AnyReport, ReportAssignment, Student, Staff, Announcement, GeneratedReport, UiTMAuxiliaryPolice, NationalEmergencyService } from "@/lib/types";
 
 // Mock Users
 export const MOCK_STUDENTS: Student[] = [
@@ -193,7 +193,7 @@ export const MOCK_ANNOUNCEMENTS: Announcement[] = [
     type: "EVENT",
     status: "PUBLISHED",
     priority: "HIGH",
-    image_src: "https://example.com/images/campus-safety-week.jpg",
+    image_src: "/test.jpg",
     isPinned: true,
     startDate: "2023-11-01T00:00:00Z",
     endDate: "2023-11-07T23:59:59Z",
@@ -444,5 +444,76 @@ export const MOCK_GENERATED_REPORTS: GeneratedReport[] = [
     dataType: "SUMMARY",
     requestedAt: "2023-11-27T08:00:00Z",
     data: null,
+  },
+];
+export const MOCK_NATIONAL_EMERGENCY_SERVICES: NationalEmergencyService[] = [
+  {
+    id: "nes-1",
+    name: "Royal Malaysia Police (PDRM)",
+    address: "Bukit Aman, Kuala Lumpur",
+    phone: "999",
+    type: "Police",
+    hotline: "999",
+    state: "Kuala Lumpur",
+  },
+  {
+    id: "nes-2",
+    name: "Fire and Rescue Department (Bomba)",
+    address: "Putrajaya",
+    phone: "994",
+    type: "Fire",
+    hotline: "994",
+    state: "Putrajaya",
+  },
+  {
+    id: "nes-3",
+    name: "Ministry of Health (Ambulance)",
+    address: "Putrajaya",
+    phone: "999",
+    type: "Medical",
+    hotline: "999",
+    state: "Putrajaya",
+  },
+  {
+    id: "nes-4",
+    name: "Civil Defence Force (APM)",
+    address: "Kuala Lumpur",
+    phone: "999",
+    type: "Civil Defence",
+    hotline: "999",
+    state: "Kuala Lumpur",
+  },
+];
+
+export const MOCK_UITM_AUXILIARY_POLICE: UiTMAuxiliaryPolice[] = [
+  {
+    id: "uitm-ap-1",
+    name: "UiTM Shah Alam Auxiliary Police",
+    address: "UiTM Shah Alam, 40450 Shah Alam, Selangor",
+    phone: "03-5544 2203",
+    campus: "Shah Alam",
+    operatingHours: "24/7",
+    state: "Selangor",
+    hotline: "03-5544 2203",
+  },
+  {
+    id: "uitm-ap-2",
+    name: "UiTM Puncak Alam Auxiliary Police",
+    address: "UiTM Puncak Alam, 42300 Bandar Puncak Alam, Selangor",
+    phone: "03-3258 4000",
+    campus: "Puncak Alam",
+    operatingHours: "24/7",
+    state: "Selangor",
+    hotline: "03-3258 4000",
+  },
+  {
+    id: "uitm-ap-3",
+    name: "UiTM Segamat Auxiliary Police",
+    address: "UiTM Cawangan Johor, Kampus Segamat, KM 12 Jalan Muar, 85000 Segamat, Johor",
+    phone: "07-935 2020",
+    campus: "Segamat",
+    operatingHours: "24/7",
+    state: "Johor",
+    hotline: "07-935 2020",
   },
 ];

@@ -20,6 +20,7 @@ export function Footer() {
             <h3 className="font-semibold mb-4">Platform</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link href="/crime" className="hover:text-primary">Crime Feed</Link></li>
+              <li><Link href="/announcement" className="hover:text-primary">Announcements</Link></li>
               <li><Link href="/dashboard" className="hover:text-primary">Dashboard</Link></li>
               <li><Link href="/auth/login" className="hover:text-primary">Login</Link></li>
               <li><Link href="/auth/sign-up" className="hover:text-primary">Sign Up</Link></li>
@@ -30,9 +31,9 @@ export function Footer() {
             <h3 className="font-semibold mb-4">Resources</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link href="#" className="hover:text-primary">Safety Guidelines</Link></li>
-              <li><Link href="#" className="hover:text-primary">Emergency Contacts</Link></li>
+              <li><Link href="/emergency-contact" className="hover:text-primary">Emergency Contacts</Link></li>
               <li><Link href="#" className="hover:text-primary">Support Services</Link></li>
-              <li><Link href="#" className="hover:text-primary">FAQ</Link></li>
+              <li><Link href="/faq" className="hover:text-primary">FAQ</Link></li>
             </ul>
           </div>
 

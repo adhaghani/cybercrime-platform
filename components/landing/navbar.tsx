@@ -27,6 +27,15 @@ export function Navbar() {
           <Link href="/crime" className="text-sm font-medium hover:text-primary transition-colors">
             Crime Feed
           </Link>
+          <Link href="/announcement" className="text-sm font-medium hover:text-primary transition-colors">
+            Announcements
+          </Link>
+          <Link href="/emergency-contact" className="text-sm font-medium hover:text-primary transition-colors">
+            Emergency
+          </Link>
+          <Link href="/faq" className="text-sm font-medium hover:text-primary transition-colors">
+            FAQ
+          </Link>
           <Link href="/contact" className="text-sm font-medium hover:text-primary transition-colors">
             Contact
           </Link>
@@ -72,6 +81,27 @@ export function Navbar() {
               onClick={() => setIsMenuOpen(false)}
             >
               Crime Feed
+            </Link>
+            <Link
+              href="/announcement"
+              className="text-sm font-medium hover:text-primary transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Announcements
+            </Link>
+            <Link
+              href="/emergency-contact"
+              className="text-sm font-medium hover:text-primary transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Emergency
+            </Link>
+            <Link
+              href="/faq"
+              className="text-sm font-medium hover:text-primary transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              FAQ
             </Link>
             <Link
               href="/contact"
