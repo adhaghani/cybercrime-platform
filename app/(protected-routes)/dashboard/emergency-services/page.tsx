@@ -6,15 +6,14 @@ import { Shield, Siren, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useHasAnyRole } from "@/hooks/use-user-role";
 
-const isAuthorizedForAdd = () => {
-  const hasAnyRole = useHasAnyRole();
-  if(hasAnyRole(['ADMIN', 'SUPERADMIN', 'STAFF'])) return true;
-
-  return false;
-}
 
 
 export default function EmergencyServicesPage() {
+
+  
+  const hasAnyRole = useHasAnyRole();
+  const isAuthorizedForAdd = hasAnyRole(['ADMIN', 'SUPERADMIN', 'STAFF']);
+
   return (
     <div className="space-y-6">
       <div>
@@ -24,7 +23,7 @@ export default function EmergencyServicesPage() {
         </p>
       </div>
 
-      <div className={`grid gap-6 ${isAuthorizedForAdd() ? "md:grid-cols-3" : "md:grid-cols-2"} `}>
+      <div className={`grid gap-6 ${isAuthorizedForAdd ? "md:grid-cols-3" : "md:grid-cols-2"} `}>
         <Card className="flex flex-col">
           <CardHeader>
             <div className="mb-2 h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -66,7 +65,7 @@ export default function EmergencyServicesPage() {
             </Button>
           </CardContent>
         </Card>
-        {isAuthorizedForAdd() &&<Card className="flex flex-col">
+        {isAuthorizedForAdd &&<Card className="flex flex-col">
           <CardHeader>
             <div className="mb-2 h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
               <Shield className="h-6 w-6 text-primary" />

@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   ArrowLeft, Search, MoreVertical, Mail, Phone, 
-  ShieldCheck, Building2, Edit, UserX, Shield, ShieldAlert, Plus
+  ShieldCheck, Edit, UserX, Shield, ShieldAlert, Plus
 } from "lucide-react";
 import {
   DropdownMenu,
