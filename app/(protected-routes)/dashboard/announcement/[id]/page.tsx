@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -28,9 +28,10 @@ import {
 import Link from "next/link";
 import { MOCK_ANNOUNCEMENTS } from "@/lib/api/mock-data";
 import { format } from "date-fns";
-import { useHasAnyRole, useUserRole } from "@/hooks/use-user-role";
+import { useHasAnyRole } from "@/hooks/use-user-role";
 import { useRouter } from "next/navigation";
 import { notFound } from "next/navigation";
+import Image from "next/image";
 
 export default function AnnouncementDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -157,7 +158,9 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
           {announcement.image_src && (
             <Card className="overflow-hidden">
                <div className="aspect-video w-full bg-muted relative">
-                  <img 
+                  <Image 
+                                          width={200}
+                        height={100}
                     src={announcement.image_src as string} 
                     alt={announcement.title}
                     className="w-full h-full object-cover"

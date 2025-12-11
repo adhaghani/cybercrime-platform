@@ -26,8 +26,9 @@ import Link from "next/link";
 import { MOCK_ANNOUNCEMENTS } from "@/lib/api/mock-data";
 import { Announcement } from "@/lib/types";
 import { format } from "date-fns";
-import { useHasAnyRole, useUserRole } from "@/hooks/use-user-role";
+import { useHasAnyRole } from "@/hooks/use-user-role";
 import { useState } from "react";
+import Image from "next/image";
 
 export default function AnnouncementsPage() {
   const hasAnyRole = useHasAnyRole();
@@ -107,6 +108,17 @@ export default function AnnouncementsPage() {
               <TableCell>
                 <div className="flex items-center gap-2">
                   {announcement.isPinned && <Pin className="h-4 w-4 text-yellow-500" />}
+                  {announcement.image_src && (
+                    <div className="h-8 w-8 rounded overflow-hidden border shrink-0">
+                      <Image 
+                        width={200}
+                        height={100}
+                        src={announcement.image_src} 
+                        alt="" 
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  )}
                   <Link
                     href={`/dashboard/announcement/${announcement.id}`}
                     className="font-medium hover:underline"

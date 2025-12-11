@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export type Role = 'STUDENT' | 'STAFF' | 'ADMIN' | 'SUPERADMIN';
 
 export type ReportStatus = 'PENDING' | 'IN_PROGRESS' | 'RESOLVED' | 'REJECTED';
 
-export type CrimeCategory = 'THEFT' | 'ASSAULT' | 'VANDALISM' | 'HARASSMENT' | 'OTHER';
-export type FacilityType = 'ELECTRICAL' | 'PLUMBING' | 'FURNITURE' | 'INFRASTRUCTURE' | 'OTHER';
+export type CrimeCategory = 'SOCIAL MEDIA BULLY' | 'ONLINE THREAT' | 'ONLINE DEFAMATION' | 'HARASSMENT' | 'OTHER';
+// export type FacilityType = 'ELECTRICAL' | 'PLUMBING' | 'FURNITURE' | 'INFRASTRUCTURE' | 'OTHER';
 export type SeverityLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
 export type EmergencyServiceType = 'Police' | 'Fire' | 'Medical' | 'Civil Defence';
@@ -48,7 +49,7 @@ export interface Report {
   submittedAt: string; // ISO Date string
   updatedAt: string; // ISO Date string
   attachmentPath?: string;
-  type: 'CRIME' | 'FACILITY';
+  type: 'CRIME';
 }
 
 // Crime Report Interface
@@ -63,15 +64,15 @@ export interface CrimeReport extends Report {
 }
 
 // Facility Report Interface
-export interface FacilityReport extends Report {
-  type: 'FACILITY';
-  facilityType: FacilityType;
-  severityLevel: SeverityLevel;
-  affectedEquipment?: string;
-}
+// export interface FacilityReport extends Report {
+//   type: 'FACILITY';
+//   facilityType: FacilityType;
+//   severityLevel: SeverityLevel;
+//   affectedEquipment?: string;
+// }
 
 // Union type for use in lists
-export type AnyReport = CrimeReport | FacilityReport;
+export type AnyReport = CrimeReport;
 
 // Report Assignment Interface
 export interface ReportAssignment {
@@ -81,6 +82,7 @@ export interface ReportAssignment {
   assignedAt: string;
   actionTaken?: string;
   status: ReportStatus;
+  additionalFeedback?: string;
 }
 
 // Base Emergency Contact Interface
@@ -122,7 +124,7 @@ export interface Announcement {
   type: AnnouncementType;
   status: AnnouncementStatus;
   priority: AnnouncementPriority;
-  image_src?: String;
+  image_src?: string;
   isPinned?: boolean;
   startDate: string;
   endDate: string;
@@ -144,6 +146,6 @@ export interface GeneratedReport {
   dateRangeEnd: string;
   category: GeneratedReportCategory;
   dataType: GeneratedReportDataType;
-  data: any;
+  data: any ;
   requestedAt: string;
 }

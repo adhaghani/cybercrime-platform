@@ -3,13 +3,13 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
 import { 
   ShieldAlert, 
   Wrench, 
   Phone, 
   TrendingUp, 
   FileText,
-  AlertCircle,
   Clock,
   CheckCircle2,
   ArrowRight,
@@ -19,11 +19,12 @@ import {
   BarChart3,
   Bell,
   Pin,
-  Calendar
+  Calendar,
+  ImageIcon
 } from "lucide-react";
 import Link from "next/link";
 import { MOCK_REPORTS, MOCK_ANNOUNCEMENTS } from "@/lib/api/mock-data";
-import { CrimeReport, FacilityReport } from "@/lib/types";
+import { CrimeReport } from "@/lib/types";
 import { format } from "date-fns";
 import { useHasAnyRole, useUserRole } from "@/hooks/use-user-role";
 
@@ -35,8 +36,7 @@ export default function DashboardPage() {
   const isAdmin = hasAnyRole(['ADMIN', 'SUPERADMIN']);
   
   const crimeReports = MOCK_REPORTS.filter((r) => r.type === "CRIME") as CrimeReport[];
-  const facilityReports = MOCK_REPORTS.filter((r) => r.type === "FACILITY") as FacilityReport[];
-  
+
   const myReports = MOCK_REPORTS.filter((r) => r.submittedBy === "user-1");
   const recentReports = [...myReports]
     .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
@@ -67,7 +67,6 @@ export default function DashboardPage() {
 
   const stats = {
     totalCrime: crimeReports.length,
-    totalFacility: facilityReports.length,
     myReports: myReports.length,
     pendingReports: myReports.filter(r => r.status === "PENDING").length,
     resolvedReports: myReports.filter(r => r.status === "RESOLVED").length,
@@ -124,15 +123,22 @@ export default function DashboardPage() {
                   key={announcement.id}
                   className="flex flex-col items-start h-full gap-4 rounded-lg border p-4 hover:bg-accent/50 transition-colors"
                 >
-                  {announcement.image_src && (
+                  {announcement.image_src ? (
                     <div className="aspect-video w-full bg-muted rounded-md overflow-hidden relative">
-                      <img 
+                      <Image
+                      width={200}
+                      height={100}
                         src={announcement.image_src as string} 
                         alt={announcement.title}
                         className="w-full h-full object-cover"
                       />
                     </div>
-                  )}
+                  ) : (                    <div className="grid place-items-center aspect-video w-full bg-muted rounded-md overflow-hidden relative">
+                    <div className="text-center grid place-items-center space-y-2">
+                    <ImageIcon  className="size-10 text-muted-foreground" />
+                    <h3>No Image Provided</h3>
+                    </div>
+                    </div>)}
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center gap-2 flex-wrap">
                       {announcement.isPinned && <Pin className="h-4 w-4 text-yellow-500" />}
@@ -286,7 +292,7 @@ export default function DashboardPage() {
 
 
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 ">
         {/* Crime Reports Section */}
         <Card className="flex flex-col">
           <CardHeader>
@@ -321,42 +327,6 @@ export default function DashboardPage() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Facility Reports Section */}
-        <Card className="flex flex-col">
-          <CardHeader>
-            <div className="mb-2 h-12 w-12 rounded-lg bg-orange-500/10 flex items-center justify-center">
-              <Wrench className="h-6 w-6 text-orange-500" />
-            </div>
-            <CardTitle>Facility Reports</CardTitle>
-            <CardDescription>
-              Report facility issues and maintenance needs
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col justify-between space-y-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Total Reports</span>
-                <Badge variant="outline">{stats.totalFacility}</Badge>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">My Reports</span>
-                <Badge variant="outline">
-                  {facilityReports.filter(r => r.submittedBy === "user-1").length}
-                </Badge>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button asChild className="flex-1">
-                <Link href="/dashboard/facility/submit-report">Submit</Link>
-              </Button>
-              <Button asChild variant="outline" className="flex-1">
-                <Link href="/dashboard/facility">View All</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Emergency Services Section */}
         <Card className="flex flex-col">
           <CardHeader>
@@ -532,23 +502,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Safety Alert Banner */}
-      <Card className="border-yellow-500/50 bg-yellow-500/5">
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-yellow-500" />
-            <CardTitle className="text-lg">Campus Safety Reminder</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
-          <p>
-            For life-threatening emergencies, always call <strong className="text-foreground">999</strong> immediately. 
-            For campus-specific incidents, contact the UiTM Auxiliary Police. This platform helps track and manage 
-            non-emergency reports to maintain campus safety and security.
-          </p>
-        </CardContent>
-      </Card>
     </div>
   );
 }

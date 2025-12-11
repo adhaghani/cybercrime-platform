@@ -25,6 +25,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import Link from "next/link"
 
 /**
  * Get navigation items based on user role
@@ -57,30 +58,31 @@ const getNavMainByRole = (role: string | undefined) => {
         }
       ],
     },
-    {
-      title: "Facilities Terminal",
-      url: "/dashboard/facility",
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: "Submit a Report",
-          url: "/dashboard/facility/submit-report",
-        },
-        {
-          title: "My Facility Reports",
-          url: "/dashboard/facility/my-reports",
-        },
-        {
-          title: "All Facility Reports",
-          url: "/dashboard/facility/reports",
-        }
-      ],
-    },
+    // {
+    //   title: "Facilities Terminal",
+    //   url: "/dashboard/facility",
+    //   icon: SquareTerminal,
+    //   isActive: true,
+    //   items: [
+    //     {
+    //       title: "Submit a Report",
+    //       url: "/dashboard/facility/submit-report",
+    //     },
+    //     {
+    //       title: "My Facility Reports",
+    //       url: "/dashboard/facility/my-reports",
+    //     },
+    //     {
+    //       title: "All Facility Reports",
+    //       url: "/dashboard/facility/reports",
+    //     }
+    //   ],
+    // },
     {
       title: "Emergency Services",
       url: "/dashboard/emergency-services",
       icon: Bot,
+      isActive: true,
       items: [
         {
           title: "UiTM Auxiliary Police",
@@ -112,22 +114,23 @@ const getNavMainByRole = (role: string | undefined) => {
         } 
       ],
     },
-    {
-      title: "Facility Management",
-      url: "/dashboard/facility",
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: "All Facility Reports",
-          url: "/dashboard/facility/reports",
-        }
-      ],
-    },
+    // {
+    //   title: "Facility Management",
+    //   url: "/dashboard/facility",
+    //   icon: SquareTerminal,
+    //   isActive: true,
+    //   items: [
+    //     {
+    //       title: "All Facility Reports",
+    //       url: "/dashboard/facility/reports",
+    //     }
+    //   ],
+    // },
     {
       title: "Emergency Services",
       url: "/dashboard/emergency-services",
       icon: Bot,
+      isActive: true,
       items: [
         {
           title: "UiTM Auxiliary Police",
@@ -147,6 +150,7 @@ const getNavMainByRole = (role: string | undefined) => {
       title: "Announcements",
       url: "/dashboard/announcement",
       icon: FileText,
+      isActive: true,
       items: [
         {
           title: "All Announcements",
@@ -178,26 +182,27 @@ const getNavMainByRole = (role: string | undefined) => {
         }
       ],
     },
-    {
-      title: "Facility Management",
-      url: "/dashboard/facility",
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: "All Facility Reports",
-          url: "/dashboard/facility/reports",
-        },
-        {
-          title: "Submit Report",
-          url: "/dashboard/facility/submit-report",
-        }
-      ],
-    },
+    // {
+    //   title: "Facility Management",
+    //   url: "/dashboard/facility",
+    //   icon: SquareTerminal,
+    //   isActive: true,
+    //   items: [
+    //     {
+    //       title: "All Facility Reports",
+    //       url: "/dashboard/facility/reports",
+    //     },
+    //     {
+    //       title: "Submit Report",
+    //       url: "/dashboard/facility/submit-report",
+    //     }
+    //   ],
+    // },
         {
       title: "Emergency Services",
       url: "/dashboard/emergency-services",
       icon: Bot,
+      isActive: true,
       items: [
         {
           title: "UiTM Auxiliary Police",
@@ -217,6 +222,7 @@ const getNavMainByRole = (role: string | undefined) => {
       title: "User Management",
       url: "/dashboard/user-management",
       icon: Users,
+      isActive: true,
       items: [
         {
           title: "All Users",
@@ -232,6 +238,7 @@ const getNavMainByRole = (role: string | undefined) => {
       title: "Announcements",
       url: "/dashboard/announcement",
       icon: FileText,
+      isActive: true,
       items: [
         {
           title: "All Announcements",
@@ -260,26 +267,27 @@ const getNavMainByRole = (role: string | undefined) => {
         }
       ],
     },
-    {
-      title: "Facility Management",
-      url: "/dashboard/facility",
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: "All Facility Reports",
-          url: "/dashboard/facility/reports",
-        },
-        {
-          title: "Submit Report",
-          url: "/dashboard/facility/submit-report",
-        }
-      ],
-    },
+    // {
+    //   title: "Facility Management",
+    //   url: "/dashboard/facility",
+    //   icon: SquareTerminal,
+    //   isActive: true,
+    //   items: [
+    //     {
+    //       title: "All Facility Reports",
+    //       url: "/dashboard/facility/reports",
+    //     },
+    //     {
+    //       title: "Submit Report",
+    //       url: "/dashboard/facility/submit-report",
+    //     }
+    //   ],
+    // },
     {
       title: "User Management",
       url: "/dashboard/user-management",
       icon: Users,
+      isActive: true,
       items: [
         {
           title: "All Users",
@@ -337,8 +345,10 @@ const getNavMainByRole = (role: string | undefined) => {
   ];
 
   switch (role) {
-    case 'ADMIN':
+    case 'SUPERADMIN':
       return superAdminNav;
+    case 'ADMIN':
+      return adminNav;
     case 'STAFF':
       return staffNav;
     case 'STUDENT':
@@ -419,14 +429,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="#">
+              <Link href="/dashboard">
                 <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                   <Command className="size-4" />
                 </div>
                 <div className="grid flex-1 items-center text-left text-sm leading-tight">
                   <span className="truncate font-medium">CyberSafe Platform</span>
                 </div>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

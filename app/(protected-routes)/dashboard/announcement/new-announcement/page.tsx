@@ -13,17 +13,31 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Bell, ArrowLeft, Save, Send } from "lucide-react";
+import { Bell, ArrowLeft, Save, Send, X, Upload } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function NewAnnouncementPage() {
   const router = useRouter();
   const [isPinned, setIsPinned] = useState(false);
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setImagePreview(url);
+    }
+  };
+
+  const removeImage = () => {
+    setImagePreview(null);
+  };
 
   const handleSubmit = (e: React.FormEvent, status: 'DRAFT' | 'PUBLISHED') => {
     e.preventDefault();
@@ -85,6 +99,55 @@ export default function NewAnnouncementPage() {
                   <p className="text-xs text-muted-foreground">
                     Provide detailed information about the announcement
                   </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Announcement Image (Optional)</Label>
+                  
+                  {!imagePreview ? (
+                    <div className="flex items-center justify-center w-full">
+                      <label
+                        htmlFor="image-upload"
+                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-accent/50 transition-colors"
+                      >
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground">
+                            <span className="font-semibold">Click to upload</span> or drag and drop
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            SVG, PNG, JPG or GIF (MAX. 800x400px)
+                          </p>
+                        </div>
+                        <Input
+                          id="image-upload"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleImageChange}
+                        />
+                      </label>
+                    </div>
+                  ) : (
+                    <div className="relative w-full aspect-video rounded-lg overflow-hidden border">
+                      <Image
+                                              width={200}
+                        height={100}
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 h-8 w-8 rounded-full"
+                        onClick={removeImage}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
@@ -206,7 +269,7 @@ export default function NewAnnouncementPage() {
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={(e) => handleSubmit(e as any, 'DRAFT')}
+                  onClick={(e) => handleSubmit(e as unknown as React.FormEvent, 'DRAFT')}
                 >
                   <Save className="h-4 w-4 mr-2" />
                   Save as Draft

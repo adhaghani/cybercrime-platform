@@ -14,17 +14,14 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
-  Users,
   Activity
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
 import { CrimeReport } from "@/lib/types";
 import { useHasAnyRole } from "@/hooks/use-user-role";
 
 export default function CrimeLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
   const hasAnyRole = useHasAnyRole();
   const isStaffOrAdmin = hasAnyRole(['STAFF', 'ADMIN', 'SUPERADMIN']);
   

@@ -14,14 +14,10 @@ import { CrimeReport, ReportStatus, CrimeCategory } from "@/lib/types";
 import { format } from "date-fns";
 import { useHasAnyRole } from "@/hooks/use-user-role";
 
-const isAuthorizedForEdit = () => {
-  const hasAnyRole = useHasAnyRole();
-  if(hasAnyRole(['ADMIN', 'SUPERADMIN', 'STAFF'])) return true;
-
-  return false;
-}
-
 export default function AllCrimeReportsPage() {
+  const hasAnyRole = useHasAnyRole();
+  const isAuthorized = hasAnyRole(['ADMIN', 'SUPERADMIN', 'STAFF']);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<ReportStatus | "ALL">("ALL");
   const [categoryFilter, setCategoryFilter] = useState<CrimeCategory | "ALL">("ALL");
@@ -49,9 +45,9 @@ export default function AllCrimeReportsPage() {
 
   const getCategoryColor = (category: CrimeCategory) => {
     switch (category) {
-      case "THEFT": return "bg-orange-500/10 text-orange-500 border-orange-500/20";
-      case "ASSAULT": return "bg-red-500/10 text-red-500 border-red-500/20";
-      case "VANDALISM": return "bg-purple-500/10 text-purple-500 border-purple-500/20";
+      case "SOCIAL MEDIA BULLY": return "bg-orange-500/10 text-orange-500 border-orange-500/20";
+      case "ONLINE THREAT": return "bg-red-500/10 text-red-500 border-red-500/20";
+      case "ONLINE DEFAMATION": return "bg-purple-500/10 text-purple-500 border-purple-500/20";
       case "HARASSMENT": return "bg-pink-500/10 text-pink-500 border-pink-500/20";
       case "OTHER": return "bg-gray-500/10 text-gray-500 border-gray-500/20";
     }
@@ -102,9 +98,9 @@ export default function AllCrimeReportsPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">All Categories</SelectItem>
-            <SelectItem value="THEFT">Theft</SelectItem>
-            <SelectItem value="ASSAULT">Assault</SelectItem>
-            <SelectItem value="VANDALISM">Vandalism</SelectItem>
+            <SelectItem value="SOCIAL MEDIA BULLY">Social Media Bully</SelectItem>
+            <SelectItem value="ONLINE THREAT">Online Threat</SelectItem>
+            <SelectItem value="ONLINE DEFAMATION">Online Defamation</SelectItem>
             <SelectItem value="HARASSMENT">Harassment</SelectItem>
             <SelectItem value="OTHER">Other</SelectItem>
           </SelectContent>
@@ -168,7 +164,7 @@ export default function AllCrimeReportsPage() {
                     Category: {report.crimeCategory}
                   </span>
                   <div className="flex justify-between items-center gap-2">
-                    {isAuthorizedForEdit() ? (
+                    {isAuthorized ? (
                       <Button size={"icon"} variant={"ghost"} asChild>
                         <Link href={`/dashboard/crime/reports/${report.id}/update`}>
                           <Pencil size={10} />
@@ -224,7 +220,7 @@ export default function AllCrimeReportsPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end items-center gap-2">
-                      {isAuthorizedForEdit() ? (
+                      {isAuthorized ? (
                         <Button size="icon" variant="ghost" asChild>
                           <Link href={`/dashboard/crime/reports/${report.id}/update`}>
                             <Pencil className="h-4 w-4" />

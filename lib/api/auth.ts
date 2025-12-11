@@ -153,7 +153,7 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
         email: decoded.email || 'staff@example.com',
         name: decoded.name || 'Officer Abu',
         contactNumber: decoded.contactNumber || '013-9876543',
-        role: (decoded.role as any) || 'STAFF',
+        role: (decoded.role as string) || 'STAFF',
         staffId: decoded.staffId || 'S12345',
         department: decoded.department || 'Security',
         position: decoded.position || 'Patrol Officer',
