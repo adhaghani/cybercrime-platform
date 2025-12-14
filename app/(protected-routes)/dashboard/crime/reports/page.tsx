@@ -7,19 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Search, MapPin, Calendar, AlertTriangle, Pencil, LayoutGrid, Table2 } from "lucide-react";
+import { ArrowLeft, Search, MapPin, Calendar, AlertTriangle, LayoutGrid, Table2 } from "lucide-react";
 import Link from "next/link";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
-import { CrimeReport, ReportStatus, CrimeCategory } from "@/lib/types";
+import { Crime, ReportStatus, CrimeCategory } from "@/lib/types";
 import { format } from "date-fns";
-import { useHasAnyRole } from "@/hooks/use-user-role";
 
-const isAuthorizedForEdit = () => {
-  const hasAnyRole = useHasAnyRole();
-  if(hasAnyRole(['ADMIN', 'SUPERADMIN', 'STAFF'])) return true;
-
-  return false;
-}
 
 export default function AllCrimeReportsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -27,7 +20,7 @@ export default function AllCrimeReportsPage() {
   const [categoryFilter, setCategoryFilter] = useState<CrimeCategory | "ALL">("ALL");
   const [viewMode, setViewMode] = useState<"card" | "table">("card");
 
-  const crimeReports = MOCK_REPORTS.filter((r) => r.type === "CRIME") as CrimeReport[];
+  const crimeReports = MOCK_REPORTS.filter((r) => r.type === "CRIME") as Crime[];
 
   const filteredReports = crimeReports.filter((report) => {
     const matchesSearch =
@@ -132,7 +125,7 @@ export default function AllCrimeReportsPage() {
       {viewMode === "card" ? (
         <div className="grid gap-4 md:grid-cols-2">
           {filteredReports.map((report) => (
-            <Card key={report.id} className="hover:bg-accent/50 transition-colors">
+            <Card key={report.reportId} className="hover:bg-accent/50 transition-colors">
               <CardHeader>
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
@@ -168,15 +161,8 @@ export default function AllCrimeReportsPage() {
                     Category: {report.crimeCategory}
                   </span>
                   <div className="flex justify-between items-center gap-2">
-                    {isAuthorizedForEdit() ? (
-                      <Button size={"icon"} variant={"ghost"} asChild>
-                        <Link href={`/dashboard/crime/reports/${report.id}/update`}>
-                          <Pencil size={10} />
-                        </Link>
-                      </Button>
-                    ) : null}
                     <Button variant="outline" size="sm" asChild>
-                      <Link href={`/dashboard/crime/reports/${report.id}`}>
+                      <Link href={`/dashboard/crime/reports/${report.reportId}`}>
                         View Details
                       </Link>
                     </Button>
@@ -201,7 +187,7 @@ export default function AllCrimeReportsPage() {
             </TableHeader>
             <TableBody>
               {filteredReports.map((report) => (
-                <TableRow key={report.id} className="hover:bg-accent/50">
+                <TableRow key={report.reportId} className="hover:bg-accent/50">
                   <TableCell className="font-medium">{report.title}</TableCell>
                   <TableCell>
                     <span className="flex items-center gap-1 text-sm">
@@ -224,15 +210,8 @@ export default function AllCrimeReportsPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end items-center gap-2">
-                      {isAuthorizedForEdit() ? (
-                        <Button size="icon" variant="ghost" asChild>
-                          <Link href={`/dashboard/crime/reports/${report.id}/update`}>
-                            <Pencil className="h-4 w-4" />
-                          </Link>
-                        </Button>
-                      ) : null}
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={`/dashboard/crime/reports/${report.id}`}>
+                        <Link href={`/dashboard/crime/reports/${report.reportId}`}>
                           View
                         </Link>
                       </Button>

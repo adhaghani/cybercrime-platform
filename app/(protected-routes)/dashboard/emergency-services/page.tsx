@@ -6,15 +6,18 @@ import { Shield, Siren, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useHasAnyRole } from "@/hooks/use-user-role";
 
-const isAuthorizedForAdd = () => {
-  const hasAnyRole = useHasAnyRole();
+
+
+
+export default function EmergencyServicesPage() {
+const hasAnyRole = useHasAnyRole();
+  const isAuthorizedForAdd = () => {
+
   if(hasAnyRole(['ADMIN', 'SUPERADMIN', 'STAFF'])) return true;
 
   return false;
 }
 
-
-export default function EmergencyServicesPage() {
   return (
     <div className="space-y-6">
       <div>

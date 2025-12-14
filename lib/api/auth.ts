@@ -4,7 +4,7 @@
  */
 
 import { apiClient } from './client';
-import { Student, Staff } from '@/lib/types';
+import { Staff, Student } from '@/lib/types';
 
 export interface LoginCredentials {
   email: string;
@@ -36,27 +36,32 @@ export async function login(credentials: LoginCredentials): Promise<AuthResponse
     setTimeout(() => {
       if (credentials.email && credentials.password) {
         // Mock successful login
+        
         const mockUser: Staff = {
-          id: '1',
+          accountId: '1',
           email: credentials.email,
           name: 'John Doe',
           contactNumber: '012-3456789',
-          role: 'SUPERADMIN',
-          staffId: 'S12345',
+          accountType: 'STAFF',
+          role: 'STAFF',
           department: 'IT Department',
           position: 'System Administrator',
-          avatarUrl: '',
+          supervisorId: '5',
+          passwordHash: '',
+          createdAt: '',
+          updatedAt: ''
         };
 
         const mockToken = btoa(JSON.stringify({ 
-          userId: mockUser.id, 
+          accountId: mockUser.accountId,
+          name: mockUser.name,
           email: mockUser.email,
           role: mockUser.role,
-          name: mockUser.name,
+          accountType: mockUser.accountType,
           contactNumber: mockUser.contactNumber,
-          staffId: mockUser.staffId,
           department: mockUser.department,
           position: mockUser.position,
+          supervisorId: mockUser.supervisorId,
           exp: Date.now() + 86400000 // 24 hours
         }));
 
@@ -136,28 +141,32 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
     // Here we reconstruct it from the token or return a default mock
     if (decoded.role === 'STUDENT') {
       return {
-        id: decoded.userId || '1',
-        email: decoded.email || 'student@example.com',
-        name: decoded.name || 'Ahmad Ali',
-        contactNumber: decoded.contactNumber || '012-3456789',
-        role: 'STUDENT',
-        studentId: decoded.studentId || '2023123456',
-        program: decoded.program || 'CS240',
-        semester: decoded.semester || 4,
-        yearOfStudy: decoded.yearOfStudy || 2,
-        avatarUrl: decoded.avatarUrl || '',
+          accountId: decoded.accountId || '1',
+          email: decoded.email || "email@john.com",
+          name: decoded.name || 'John Doe',
+          contactNumber: decoded.contactNumber || '012-3456789',
+          accountType: decoded.accountType || 'STUDENT',
+          program: decoded.program || 'Computer Science',
+          semester: decoded.semester || 4,
+          yearOfStudy: decoded.yearOfStudy || 2,
+          passwordHash: '',
+          createdAt: '',
+          updatedAt: ''
       } as Student;
     } else {
       return {
-        id: decoded.userId || '1',
-        email: decoded.email || 'staff@example.com',
-        name: decoded.name || 'Officer Abu',
-        contactNumber: decoded.contactNumber || '013-9876543',
-        role: (decoded.role as any) || 'STAFF',
-        staffId: decoded.staffId || 'S12345',
-        department: decoded.department || 'Security',
-        position: decoded.position || 'Patrol Officer',
-        avatarUrl: decoded.avatarUrl || '',
+          accountId: decoded.accountId || '1',
+          email: decoded.email || "john@gmail.com",
+          name: decoded.name || 'John Doe',
+          contactNumber: decoded.contactNumber || '012-3456789',
+          accountType: decoded.accountType || 'STAFF',
+          role: decoded.role || 'SUPERADMIN',
+          department: decoded.department || 'IT Department',
+          position: decoded.position || 'System Administrator',
+          supervisorId: decoded.supervisorId || '5',
+          passwordHash: '',
+          createdAt: '',
+          updatedAt: ''
       } as Staff;
     }
   } catch (error) {

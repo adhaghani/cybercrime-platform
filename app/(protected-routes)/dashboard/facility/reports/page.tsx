@@ -7,19 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Search, MapPin, Calendar, AlertCircle, Pencil, LayoutGrid, Table2 } from "lucide-react";
+import { ArrowLeft, Search, MapPin, Calendar, AlertCircle, LayoutGrid, Table2 } from "lucide-react";
 import Link from "next/link";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
-import { FacilityReport, ReportStatus, SeverityLevel } from "@/lib/types";
+import { Facility, ReportStatus, SeverityLevel } from "@/lib/types";
 import { format } from "date-fns";
-import { useHasAnyRole } from "@/hooks/use-user-role";
-
-const isAuthorizedForEdit = () => {
-  const hasAnyRole = useHasAnyRole();
-  if(hasAnyRole(['ADMIN', 'SUPERADMIN', 'STAFF'])) return true;
-
-  return false;
-}
 
 export default function AllReportsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -27,7 +19,7 @@ export default function AllReportsPage() {
   const [severityFilter, setSeverityFilter] = useState<SeverityLevel | "ALL">("ALL");
   const [viewMode, setViewMode] = useState<"card" | "table">("card");
 
-  const facilityReports = MOCK_REPORTS.filter((r) => r.type === "FACILITY") as FacilityReport[];
+  const facilityReports = MOCK_REPORTS.filter((r) => r.type === "FACILITY") as Facility[];
 
   const filteredReports = facilityReports.filter((report) => {
     const matchesSearch =
@@ -132,7 +124,7 @@ export default function AllReportsPage() {
       {viewMode === "card" ? (
       <div className="grid gap-4 md:grid-cols-2">
         {filteredReports.map((report) => (
-          <Card key={report.id} className="hover:bg-accent/50 transition-colors">
+          <Card key={report.reportId} className="hover:bg-accent/50 transition-colors">
             <CardHeader>
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
@@ -169,13 +161,8 @@ export default function AllReportsPage() {
                 </span>
                 <div className="flex justify-between items-center gap-2">
                 
-                {isAuthorizedForEdit() ? <Button size={"icon"} variant={"ghost"} asChild>
-                  <Link href={`/dashboard/facility/reports/${report.id}/update`}>
-                 <Pencil size={10} /> 
-                 </Link>
-                </Button> : null}
                 <Button variant="outline" size="sm" asChild>
-                  <Link href={`/dashboard/facility/reports/${report.id}`}>
+                  <Link href={`/dashboard/facility/reports/${report.reportId}`}>
                     View Details
                   </Link>
                 </Button>
@@ -201,7 +188,7 @@ export default function AllReportsPage() {
             </TableHeader>
             <TableBody>
               {filteredReports.map((report) => (
-                <TableRow key={report.id}>
+                <TableRow key={report.reportId}>
                   <TableCell className="font-medium">{report.title}</TableCell>
                   <TableCell>{report.location}</TableCell>
                   <TableCell>{report.facilityType}</TableCell>
@@ -218,15 +205,8 @@ export default function AllReportsPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end items-center gap-2">
-                      {isAuthorizedForEdit() && (
-                        <Button size="icon" variant="ghost" asChild>
-                          <Link href={`/dashboard/facility/reports/${report.id}/update`}>
-                            <Pencil className="h-4 w-4" />
-                          </Link>
-                        </Button>
-                      )}
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={`/dashboard/facility/reports/${report.id}`}>
+                        <Link href={`/dashboard/facility/reports/${report.reportId}`}>
                           View
                         </Link>
                       </Button>

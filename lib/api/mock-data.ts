@@ -3,35 +3,40 @@ import { AnyReport, ReportAssignment, Student, Staff, Announcement, GeneratedRep
 // Mock Users
 export const MOCK_STUDENTS: Student[] = [
   {
-    id: "user-1",
+    accountId: "user-1",
     email: "student@uitm.edu.my",
     name: "Ahmad Ali",
     contactNumber: "012-3456789",
-    role: "STUDENT",
-    studentId: "2023123456",
+    accountType: "STUDENT",
     program: "CS240",
     semester: 4,
     yearOfStudy: 2,
+    passwordHash: "hashedpassword1",
+    createdAt: "2023-01-15T10:00:00Z",
+    updatedAt: "2023-06-20T12:00:00Z",
   },
 ];
 
 export const MOCK_STAFF: Staff[] = [
   {
-    id: "staff-1",
+    accountId: "staff-1",
     email: "officer@uitm.edu.my",
     name: "Officer Abu",
     contactNumber: "013-9876543",
     role: "STAFF",
-    staffId: "S12345",
+    accountType: "STAFF",
     department: "Security",
     position: "Patrol Officer",
+    passwordHash: "hashedpassword1",
+    createdAt: "2023-01-15T10:00:00Z",
+    updatedAt: "2023-06-20T12:00:00Z",
   },
 ];
 
 // Mock Reports
 export const MOCK_REPORTS: AnyReport[] = [
   {
-    id: "rep-1",
+    reportId: "rep-1",
     type: "CRIME",
     title: "Laptop Theft at Library",
     description: "My laptop was stolen while I went to the restroom.",
@@ -44,7 +49,7 @@ export const MOCK_REPORTS: AnyReport[] = [
     suspectDescription: "Unknown",
   },
   {
-    id: "rep-2",
+    reportId: "rep-2",
     type: "FACILITY",
     title: "Broken Street Light",
     description: "Street light near College Mawar is not working.",
@@ -57,7 +62,7 @@ export const MOCK_REPORTS: AnyReport[] = [
     severityLevel: "MEDIUM",
   },
   {
-    id: "rep-3",
+    reportId: "rep-3",
     type: "FACILITY",
     title: "Leaking Pipe in Restroom",
     description: "Water is continuously leaking from the ceiling pipe in the Level 2 male restroom.",
@@ -70,7 +75,7 @@ export const MOCK_REPORTS: AnyReport[] = [
     severityLevel: "HIGH",
   },
   {
-    id: "rep-4",
+    reportId: "rep-4",
     type: "FACILITY",
     title: "Broken Chair in Classroom",
     description: "Multiple chairs are broken and unusable in the lecture hall.",
@@ -83,7 +88,7 @@ export const MOCK_REPORTS: AnyReport[] = [
     severityLevel: "LOW",
   },
   {
-    id: "rep-5",
+    reportId: "rep-5",
     type: "FACILITY",
     title: "Cracked Pavement Near Main Gate",
     description: "Large crack on the pavement poses a safety hazard to pedestrians.",
@@ -99,11 +104,10 @@ export const MOCK_REPORTS: AnyReport[] = [
 
 export const MOCK_ASSIGNMENTS: ReportAssignment[] = [
   {
-    id: "assign-1",
+    assignmentId: "assign-1",
     reportId: "rep-2",
-    assignedTo: "staff-1",
+    accountId: "staff-1",
     assignedAt: "2023-10-25T09:00:00Z",
-    status: "IN_PROGRESS",
     actionTaken: "Technician notified.",
   },
 ];
@@ -111,99 +115,99 @@ export const MOCK_ASSIGNMENTS: ReportAssignment[] = [
 // Mock Announcements
 export const MOCK_ANNOUNCEMENTS: Announcement[] = [
   {
-    id: "ann-1",
+    announcementId: "ann-1",
     title: "Campus Safety Week 2023",
     message: "Join us for Campus Safety Week from November 1-7. Various activities and workshops on personal safety, crime prevention, and emergency preparedness will be conducted. All students and staff are encouraged to participate.",
     audience: "ALL",
     type: "EVENT",
     status: "PUBLISHED",
     priority: "HIGH",
-    isPinned: true,
+
     startDate: "2023-11-01T00:00:00Z",
     endDate: "2023-11-07T23:59:59Z",
     createdAt: "2023-10-20T10:00:00Z",
     createdBy: "staff-1",
-    createdByName: "Officer Abu",
+   
     updatedAt: "2023-10-20T10:00:00Z",
   },
   {
-    id: "ann-2",
+    announcementId: "ann-2",
     title: "Emergency Maintenance - Block C",
     message: "Emergency maintenance work will be carried out in Block C on October 30, 2023, from 9:00 AM to 5:00 PM. Water and electricity supply will be temporarily interrupted. Please plan accordingly.",
     audience: "ALL",
     type: "EMERGENCY",
     status: "PUBLISHED",
     priority: "HIGH",
-    isPinned: false,
+ 
     startDate: "2025-12-01T00:00:00Z",
     endDate: "2025-12-30T23:59:59Z",
     createdAt: "2023-10-27T14:30:00Z",
     createdBy: "staff-1",
-    createdByName: "Officer Abu",
+    
     updatedAt: "2023-10-27T14:30:00Z",
   },
   {
-    id: "ann-3",
+    announcementId: "ann-3",
     title: "New Crime Reporting Portal",
     message: "We are pleased to announce the launch of our new online crime reporting portal. Students and staff can now submit reports 24/7 through this platform. Visit the Crime Terminal section to get started.",
     audience: "ALL",
     type: "GENERAL",
     status: "PUBLISHED",
     priority: "MEDIUM",
-    isPinned: false,
+    
     startDate: "2025-12-01T00:00:00Z",
     endDate: "2025-12-30T23:59:59Z",
     createdAt: "2023-10-15T09:00:00Z",
     createdBy: "staff-1",
-    createdByName: "Officer Abu",
+    
     updatedAt: "2023-10-15T09:00:00Z",
   },
   {
-    id: "ann-4",
+    announcementId: "ann-4",
     title: "Updated Emergency Contact Numbers",
     message: "Please note that the UiTM Auxiliary Police emergency contact numbers have been updated. The new hotline is 03-5544-2222. Please update your contact lists accordingly.",
     audience: "ALL",
     type: "GENERAL",
     status: "PUBLISHED",
     priority: "MEDIUM",
-    isPinned: false,
+    
     startDate: "2023-10-10T00:00:00Z",
     endDate: "2023-11-30T23:59:59Z",
     createdAt: "2023-10-10T11:00:00Z",
     createdBy: "staff-1",
-    createdByName: "Officer Abu",
+    
     updatedAt: "2023-10-10T11:00:00Z",
   },
   {
-    id: "ann-5",
+    announcementId: "ann-5",
     title: "Staff Training: Report Management",
     message: "Mandatory training session for all staff members on the new report management system. Session will be held on November 5, 2023, at 2:00 PM in Meeting Room A.",
     audience: "STAFF",
     type: "EVENT",
     status: "PUBLISHED",
     priority: "HIGH",
-    isPinned: false,
+    
     startDate: "2023-10-25T00:00:00Z",
     endDate: "2023-11-05T23:59:59Z",
     createdAt: "2023-10-25T08:00:00Z",
     createdBy: "staff-1",
-    createdByName: "Officer Abu",
+    
     updatedAt: "2023-10-25T08:00:00Z",
   },
   {
-    id: "ann-6",
+    announcementId: "ann-6",
     title: "Draft: Upcoming Security Policy Changes",
     message: "This is a draft announcement about upcoming changes to campus security policies. Will be published after review.",
     audience: "ALL",
     type: "GENERAL",
     status: "DRAFT",
     priority: "LOW",
-    isPinned: false,
+    
     startDate: "2023-11-15T00:00:00Z",
     endDate: "2023-12-31T23:59:59Z",
     createdAt: "2023-10-26T15:00:00Z",
     createdBy: "staff-1",
-    createdByName: "Officer Abu",
+    
     updatedAt: "2023-10-26T15:00:00Z",
   },
 ];
@@ -211,16 +215,16 @@ export const MOCK_ANNOUNCEMENTS: Announcement[] = [
 // Mock Generated Reports
 export const MOCK_GENERATED_REPORTS: GeneratedReport[] = [
   {
-    id: "gen-rep-1",
+    generateId: "gen-rep-1",
     generatedBy: "staff-1",
     title: "Monthly Crime Report - October 2023",
     summary: "Comprehensive analysis of crime reports submitted during October 2023. This report includes statistics on crime categories, resolution rates, and location hotspots.",
     dateRangeStart: "2023-10-01T00:00:00Z",
     dateRangeEnd: "2023-10-31T23:59:59Z",
-    category: "CRIME",
-    dataType: "DETAILED",
+    reportCategory: "CRIME",
+    reportDataType: "DETAILED",
     requestedAt: "2023-11-01T09:00:00Z",
-    data: {
+    reportData: {
       totalReports: 15,
       pendingReports: 3,
       resolvedReports: 10,
@@ -254,16 +258,16 @@ export const MOCK_GENERATED_REPORTS: GeneratedReport[] = [
     },
   },
   {
-    id: "gen-rep-2",
+    generateId: "gen-rep-2",
     generatedBy: "staff-1",
     title: "Facility Issues Summary - Q3 2023",
     summary: "Quarterly summary of facility issues reported across campus. Highlights maintenance priorities and recurring problems.",
     dateRangeStart: "2023-07-01T00:00:00Z",
     dateRangeEnd: "2023-09-30T23:59:59Z",
-    category: "FACILITY",
-    dataType: "SUMMARY",
+    reportCategory: "FACILITY",
+    reportDataType: "SUMMARY",
     requestedAt: "2023-10-05T14:30:00Z",
-    data: {
+    reportData: {
       totalReports: 42,
       pendingReports: 5,
       resolvedReports: 35,
@@ -299,16 +303,16 @@ export const MOCK_GENERATED_REPORTS: GeneratedReport[] = [
     },
   },
   {
-    id: "gen-rep-3",
+    generateId: "gen-rep-3",
     generatedBy: "staff-1",
     title: "Campus User Statistics - 2023",
     summary: "Annual overview of user statistics across the campus including students and staff activity.",
     dateRangeStart: "2023-01-01T00:00:00Z",
     dateRangeEnd: "2023-12-31T23:59:59Z",
-    category: "USER",
-    dataType: "DETAILED",
+    reportCategory: "USER",
+    reportDataType: "DETAILED",
     requestedAt: "2023-11-15T10:00:00Z",
-    data: {
+    reportData: {
       totalReports: 156,
       pendingReports: 12,
       resolvedReports: 130,
@@ -357,15 +361,15 @@ export const MOCK_GENERATED_REPORTS: GeneratedReport[] = [
     },
   },
   {
-    id: "gen-rep-4",
+    generateId: "gen-rep-4",
     generatedBy: "staff-1",
     title: "Weekly Crime Report - Nov Week 4",
     summary: "Weekly summary of crime incidents for the last week of November 2023.",
     dateRangeStart: "2023-11-20T00:00:00Z",
     dateRangeEnd: "2023-11-26T23:59:59Z",
-    category: "CRIME",
-    dataType: "SUMMARY",
+    reportCategory: "CRIME",
+    reportDataType: "SUMMARY",
     requestedAt: "2023-11-27T08:00:00Z",
-    data: null,
+    reportData: null,
   },
 ];

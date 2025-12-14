@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Search, MapPin, Calendar, AlertTriangle, PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
-import { CrimeReport, ReportStatus, CrimeCategory } from "@/lib/types";
+import { Crime, ReportStatus, CrimeCategory } from "@/lib/types";
 import { format } from "date-fns";
 
 export default function MyCrimeReportsPage() {
@@ -19,7 +19,7 @@ export default function MyCrimeReportsPage() {
   // Filter reports by current user (user-1) and crime type
   const myReports = MOCK_REPORTS.filter(
     (r) => r.type === "CRIME" && r.submittedBy === "user-1"
-  ) as CrimeReport[];
+  ) as Crime[];
 
   const filteredReports = myReports.filter((report) => {
     const matchesSearch =
@@ -130,7 +130,7 @@ export default function MyCrimeReportsPage() {
 
       <div className="grid gap-4">
         {filteredReports.map((report) => (
-          <Card key={report.id} className="hover:bg-accent/50 transition-colors">
+          <Card key={report.reportId} className="hover:bg-accent/50 transition-colors">
             <CardHeader>
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
@@ -166,7 +166,7 @@ export default function MyCrimeReportsPage() {
                   Category: {report.crimeCategory}
                 </span>
                 <Button variant="outline" size="sm" asChild>
-                  <Link href={`/dashboard/crime/reports/${report.id}`}>
+                  <Link href={`/dashboard/crime/reports/${report.reportId}`}>
                     View Details
                   </Link>
                 </Button>

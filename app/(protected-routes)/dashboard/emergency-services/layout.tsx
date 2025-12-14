@@ -134,12 +134,12 @@ export default function EmergencyServicesLayout({
           <CardContent className="grid gap-3 text-sm">
             <div className="flex flex-col justify-between items-center last:border-0">
               <span>Befrienders (Suicide Helpline)</span>
-              <a href="tel:03-76272929" className="block py-1 font-medium text-primary hover:underline block">03-7627 2929</a>
+              <a href="tel:03-76272929" className=" py-1 font-medium text-primary hover:underline block">03-7627 2929</a>
             </div>
             <Separator className="w-full"/>
             <div className="flex flex-col justify-between items-center last:border-0">
               <span>Talian Kasih</span>
-              <a href="tel:15999" className="block py-1 font-medium text-primary hover:underline block">15999</a>
+              <a href="tel:15999" className=" py-1 font-medium text-primary hover:underline block">15999</a>
             </div>
           </CardContent>
         </Card>)}

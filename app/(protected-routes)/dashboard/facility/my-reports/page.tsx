@@ -123,7 +123,7 @@ export default function MyReportsPage() {
 
       <div className="grid gap-4">
         {filteredReports.map((report) => (
-          <Card key={report.id} className="hover:bg-accent/50 transition-colors">
+          <Card key={report.reportId} className="hover:bg-accent/50 transition-colors">
             <CardHeader>
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
@@ -159,7 +159,7 @@ export default function MyReportsPage() {
                   Type: {report.facilityType}
                 </span>
                 <Button variant="outline" size="sm" asChild>
-                  <Link href={`/dashboard/facility/reports/${report.id}`}>
+                  <Link href={`/dashboard/facility/reports/${report.reportId}`}>
                     View Details
                   </Link>
                 </Button>

@@ -21,12 +21,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, Plus, Search, MoreVertical, Eye, Edit, Trash2, Pin, Archive } from "lucide-react";
+import { Bell, Plus, Search, MoreVertical, Eye, Edit, Trash2, Archive } from "lucide-react";
 import Link from "next/link";
 import { MOCK_ANNOUNCEMENTS } from "@/lib/api/mock-data";
 import { Announcement } from "@/lib/types";
 import { format } from "date-fns";
-import { useHasAnyRole, useUserRole } from "@/hooks/use-user-role";
+import { useHasAnyRole } from "@/hooks/use-user-role";
 import { useState } from "react";
 
 export default function AnnouncementsPage() {
@@ -103,12 +103,11 @@ export default function AnnouncementsPage() {
           </TableRow>
         ) : (
           announcements.map((announcement) => (
-            <TableRow key={announcement.id}>
+            <TableRow key={announcement.announcementId}>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  {announcement.isPinned && <Pin className="h-4 w-4 text-yellow-500" />}
                   <Link
-                    href={`/dashboard/announcement/${announcement.id}`}
+                    href={`/dashboard/announcement/${announcement.announcementId}`}
                     className="font-medium hover:underline"
                   >
                     {announcement.title}
@@ -132,7 +131,7 @@ export default function AnnouncementsPage() {
                 {format(new Date(announcement.startDate), "MMM d")} -{" "}
                 {format(new Date(announcement.endDate), "MMM d, yyyy")}
               </TableCell>
-              <TableCell className="text-sm">{announcement.createdByName || "Unknown"}</TableCell>
+              <TableCell className="text-sm">Staff</TableCell>
               {hasManageAccess && (
                 <TableCell className="text-right">
                   <DropdownMenu>
@@ -145,20 +144,16 @@ export default function AnnouncementsPage() {
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/announcement/${announcement.id}`}>
+                        <Link href={`/dashboard/announcement/${announcement.announcementId}`}>
                           <Eye className="h-4 w-4 mr-2" />
                           View Details
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/announcement/${announcement.id}/update`}>
+                        <Link href={`/dashboard/announcement/${announcement.announcementId}/update`}>
                           <Edit className="h-4 w-4 mr-2" />
                           Edit
                         </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Pin className="h-4 w-4 mr-2" />
-                        {announcement.isPinned ? "Unpin" : "Pin"}
                       </DropdownMenuItem>
                       <DropdownMenuItem>
                         <Archive className="h-4 w-4 mr-2" />
@@ -205,7 +200,7 @@ export default function AnnouncementsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total</CardTitle>
@@ -234,18 +229,6 @@ export default function AnnouncementsPage() {
           <CardContent>
             <div className="text-2xl font-bold text-yellow-500">{draftAnnouncements.length}</div>
             <p className="text-xs text-muted-foreground">Pending publication</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pinned</CardTitle>
-            <Pin className="h-4 w-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {MOCK_ANNOUNCEMENTS.filter((a) => a.isPinned).length}
-            </div>
-            <p className="text-xs text-muted-foreground">Highlighted items</p>
           </CardContent>
         </Card>
       </div>

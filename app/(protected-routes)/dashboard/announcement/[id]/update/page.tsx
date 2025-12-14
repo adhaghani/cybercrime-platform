@@ -12,27 +12,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Bell, ArrowLeft, Save, Send } from "lucide-react";
+import { Bell, ArrowLeft, Save, Send, Image as ImageIcon, X } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { MOCK_ANNOUNCEMENTS } from "@/lib/api/mock-data";
 import { notFound } from "next/navigation";
+import Image from "next/image";
 
 export default function UpdateAnnouncementPage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const announcement = MOCK_ANNOUNCEMENTS.find((a) => a.id === params.id);
+  const announcement = MOCK_ANNOUNCEMENTS.find((a) => a.announcementId === params.id);
 
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [type, setType] = useState("");
   const [priority, setPriority] = useState("");
   const [audience, setAudience] = useState("");
-  const [isPinned, setIsPinned] = useState(false);
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
+  const [photoPreview, setPhotoPreview] = useState<string>("");
 
   useEffect(() => {
     if (announcement) {
@@ -41,11 +41,27 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
       setType(announcement.type);
       setPriority(announcement.priority);
       setAudience(announcement.audience);
-      setIsPinned(announcement.isPinned || false);
       setStartDate(new Date(announcement.startDate));
       setEndDate(new Date(announcement.endDate));
+      setPhotoPreview(announcement.photoPath || "");
     }
   }, [announcement]);
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setPhotoPreview("");
+  };
 
   if (!announcement) {
     notFound();
@@ -151,6 +167,75 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
 
             <Card>
               <CardHeader>
+                <CardTitle>Photo Upload</CardTitle>
+                <CardDescription>
+                  Update or remove the announcement photo
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="photo">Announcement Photo (Optional)</Label>
+                  {photoPreview ? (
+                    <div className="space-y-2">
+                      <div className="relative aspect-video w-full bg-accent rounded-lg overflow-hidden">
+                        <Image 
+                        width={200}
+                        height={100}
+                          src={photoPreview} 
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-2 right-2"
+                          onClick={handleRemovePhoto}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => document.getElementById('photo')?.click()}
+                      >
+                        <ImageIcon className="h-4 w-4 mr-2" />
+                        Change Photo
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center w-full">
+                      <label
+                        htmlFor="photo"
+                        className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed rounded-lg cursor-pointer bg-accent/50 hover:bg-accent transition-colors"
+                      >
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <ImageIcon className="w-10 h-10 mb-3 text-muted-foreground" />
+                          <p className="mb-2 text-sm text-muted-foreground">
+                            <span className="font-semibold">Click to upload</span> or drag and drop
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            PNG, JPG or WEBP (MAX. 5MB)
+                          </p>
+                        </div>
+                        <Input
+                          id="photo"
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handlePhotoChange}
+                        />
+                      </label>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
                 <CardTitle>Date Range</CardTitle>
                 <CardDescription>
                   Update when this announcement should be displayed
@@ -206,20 +291,6 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
                     </SelectContent>
                   </Select>
                 </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="pinned">Pin Announcement</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Display at the top of dashboard
-                    </p>
-                  </div>
-                  <Switch
-                    id="pinned"
-                    checked={isPinned}
-                    onCheckedChange={setIsPinned}
-                  />
-                </div>
               </CardContent>
             </Card>
 
@@ -236,7 +307,7 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={(e) => handleSubmit(e as any, 'DRAFT')}
+                  onClick={(e) => handleSubmit(e as React.FormEvent, 'DRAFT')}
                 >
                   <Save className="h-4 w-4 mr-2" />
                   Save as Draft

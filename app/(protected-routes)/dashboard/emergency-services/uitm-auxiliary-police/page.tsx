@@ -8,12 +8,7 @@ import { Pencil, MapPin, Search, Mail, Clock } from "lucide-react";
 import { useHasAnyRole } from "@/hooks/use-user-role";
 import Link from "next/link";
 
-const isAuthorizedForEdit = () => {
-  const hasAnyRole = useHasAnyRole();
-  if(hasAnyRole(['ADMIN', 'SUPERADMIN'])) return true;
 
-  return false;
-}
 
 // Mock data structure - User will fill this with accurate data
 const policeStations = [
@@ -160,6 +155,14 @@ const policeStations = [
 ];
 
 export default function UitmAuxiliaryPolicePage() {
+const hasAnyRole = useHasAnyRole();
+  const isAuthorizedForEdit = () => {
+  
+  if(hasAnyRole(['ADMIN', 'SUPERADMIN'])) return true;
+
+  return false;
+}
+
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredStations = policeStations.filter((station) =>

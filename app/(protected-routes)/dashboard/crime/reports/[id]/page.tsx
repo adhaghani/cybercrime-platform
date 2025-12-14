@@ -1,27 +1,20 @@
 "use client";
 
 import { use } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, MapPin, Calendar, Clock, AlertTriangle, ShieldAlert, FileText, User, Pencil } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Clock, AlertTriangle, ShieldAlert, FileText } from "lucide-react";
 import Link from "next/link";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
-import { CrimeReport, ReportStatus, CrimeCategory } from "@/lib/types";
+import { Crime, ReportStatus, CrimeCategory } from "@/lib/types";
 import { format } from "date-fns";
-import { useHasAnyRole } from "@/hooks/use-user-role";
 
-const isAuthorizedForEdit = () => {
-  const hasAnyRole = useHasAnyRole();
-  if(hasAnyRole(['ADMIN', 'SUPERADMIN', 'STAFF'])) return true;
-
-  return false;
-}
 
 export default function CrimeReportDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const report = MOCK_REPORTS.find((r) => r.id === id && r.type === "CRIME") as CrimeReport | undefined;
+  const report = MOCK_REPORTS.find((r) => r.reportId === id && r.type === "CRIME") as Crime | undefined;
 
   if (!report) {
     return (
@@ -72,7 +65,7 @@ export default function CrimeReportDetailPage({ params }: { params: Promise<{ id
         </Button>
         <div className="flex-1">
           <h1 className="text-3xl font-bold tracking-tight">{report.title}</h1>
-          <p className="text-muted-foreground">Report ID: {report.id}</p>
+          <p className="text-muted-foreground">Report ID: {report.reportId}</p>
         </div>
         <div className="flex gap-2">
           <Badge className={getStatusColor(report.status)}>
@@ -216,12 +209,7 @@ export default function CrimeReportDetailPage({ params }: { params: Promise<{ id
                 Actions
               </CardTitle>
             </CardHeader>
-                        <CardContent className="flex items-center gap-2 flex-col">
-                              {isAuthorizedForEdit() ? <Button className="w-full" asChild>
-                  <Link href={`/dashboard/facility/reports/${report.id}/update`}>
-                 <Pencil size={10} /> Update Report
-                 </Link>
-                </Button> : null}
+              <CardContent className="flex items-center gap-2 flex-col">
               <Button variant="outline" className="w-full" asChild>
                 <Link href="/dashboard/crime/reports">Back to Reports</Link>
               </Button>

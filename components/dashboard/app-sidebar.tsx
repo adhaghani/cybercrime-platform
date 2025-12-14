@@ -8,7 +8,6 @@ import {
   Frame,
   LifeBuoy,
   SquareTerminal,
-  Shield,
   Users,
   FileText,
 } from "lucide-react"
@@ -96,33 +95,30 @@ const getNavMainByRole = (role: string | undefined) => {
 
   // Staff navigation - can view all reports and manage them
   const staffNav = [
-    {
-      title: "Crime Management",
-      url: "/dashboard/crime",
-      icon: Shield,
+        {
+      title: "Report",
+      url: "/dashboard/reports",
+      icon: FileText,
       isActive: true,
       items: [
         {
-          title: "All Crime Reports",
-          url: "/dashboard/crime/reports",
+          title: "All Reports",
+          url: "/dashboard/reports",
+        },
+        {
+          title: "Crime Reports",
+          url: "/dashboard/reports/crime",
+        },
+        {
+          title: "Facility Reports",
+          url: "/dashboard/reports/facility",
         },
         {
           title: "My Assigned Reports",
-          url: "/dashboard/crime/my-reports",
-        } 
-      ],
-    },
-    {
-      title: "Facility Management",
-      url: "/dashboard/facility",
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: "All Facility Reports",
-          url: "/dashboard/facility/reports",
+          url: "/dashboard/reports/my-assignments",
         }
       ],
+    
     },
     {
       title: "Emergency Services",
@@ -162,37 +158,30 @@ const getNavMainByRole = (role: string | undefined) => {
 
   // Admin navigation - full access including user management
   const adminNav = [
-    {
-      title: "Crime Management",
-      url: "/dashboard/crime",
-      icon: Shield,
+        {
+      title: "Report",
+      url: "/dashboard/reports",
+      icon: FileText,
       isActive: true,
       items: [
         {
-          title: "All Crime Reports",
-          url: "/dashboard/crime/reports",
+          title: "All Reports",
+          url: "/dashboard/reports",
         },
         {
-          title: "Submit Report",
-          url: "/dashboard/crime/submit-report",
-        }
-      ],
-    },
-    {
-      title: "Facility Management",
-      url: "/dashboard/facility",
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: "All Facility Reports",
-          url: "/dashboard/facility/reports",
+          title: "Crime Reports",
+          url: "/dashboard/reports/crime",
         },
         {
-          title: "Submit Report",
-          url: "/dashboard/facility/submit-report",
+          title: "Facility Reports",
+          url: "/dashboard/reports/facility",
+        },
+        {
+          title: "My Assigned Reports",
+          url: "/dashboard/reports/my-assignments",
         }
       ],
+    
     },
         {
       title: "Emergency Services",
@@ -248,33 +237,30 @@ const getNavMainByRole = (role: string | undefined) => {
 
   // Super Admin navigation - complete system access
   const superAdminNav = [
-    {
-      title: "Crime Management",
-      url: "/dashboard/crime",
-      icon: Shield,
+        {
+      title: "Report",
+      url: "/dashboard/reports",
+      icon: FileText,
       isActive: true,
       items: [
         {
-          title: "All Crime Reports",
-          url: "/dashboard/crime/reports",
-        }
-      ],
-    },
-    {
-      title: "Facility Management",
-      url: "/dashboard/facility",
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: "All Facility Reports",
-          url: "/dashboard/facility/reports",
+          title: "All Reports",
+          url: "/dashboard/reports",
         },
         {
-          title: "Submit Report",
-          url: "/dashboard/facility/submit-report",
+          title: "Crime Reports",
+          url: "/dashboard/reports/crime",
+        },
+        {
+          title: "Facility Reports",
+          url: "/dashboard/reports/facility",
+        },
+        {
+          title: "My Assigned Reports",
+          url: "/dashboard/reports/my-assignments",
         }
       ],
+    
     },
     {
       title: "User Management",
@@ -337,8 +323,10 @@ const getNavMainByRole = (role: string | undefined) => {
   ];
 
   switch (role) {
-    case 'ADMIN':
+    case 'SUPERADMIN':
       return superAdminNav;
+    case 'ADMIN':
+      return adminNav;
     case 'STAFF':
       return staffNav;
     case 'STUDENT':

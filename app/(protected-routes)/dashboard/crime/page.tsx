@@ -3,14 +3,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ShieldAlert, FileText, ClipboardList, PlusCircle } from "lucide-react";
-import { useHasAnyRole } from "@/hooks/use-user-role";
+
 import Link from "next/link";
 
 
 
 export default function CrimePage() {
-const hasAnyRole = useHasAnyRole();
-  const isStaff = hasAnyRole(['STAFF', 'ADMIN', "SUPERADMIN"]);
 
   return (
     <div className="space-y-6">
@@ -21,7 +19,7 @@ const hasAnyRole = useHasAnyRole();
         </p>
       </div>
 
-      <div className={`grid gap-6 ${isStaff ? 'md:grid-cols-2' : 'md:grid-cols-2 lg:grid-cols-3 '}`}>
+      <div className={`grid gap-6 md:grid-cols-2 lg:grid-cols-3`}>
         <Card className="flex flex-col">
           <CardHeader>
             <div className="mb-2 h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -39,7 +37,7 @@ const hasAnyRole = useHasAnyRole();
           </CardContent>
         </Card>
 
-        {!isStaff ? <Card className="flex flex-col">
+     <Card className="flex flex-col">
           <CardHeader>
             <div className="mb-2 h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
               <FileText className="h-6 w-6 text-primary" />
@@ -54,7 +52,7 @@ const hasAnyRole = useHasAnyRole();
               <Link href="/dashboard/crime/my-reports">View My Reports</Link>
             </Button>
           </CardContent>
-        </Card> : null}
+        </Card> 
 
         <Card className="flex flex-col">
           <CardHeader>

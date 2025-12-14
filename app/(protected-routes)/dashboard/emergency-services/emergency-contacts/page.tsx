@@ -9,13 +9,6 @@ import { Phone, MapPin, Search, Siren, Flame, Stethoscope, ShieldAlert, Pencil }
 import { useHasAnyRole } from "@/hooks/use-user-role";
 import Link from "next/link";
 
-const isAuthorizedForEdit = () => {
-  const hasAnyRole = useHasAnyRole();
-  if(hasAnyRole(['ADMIN', 'SUPERADMIN', 'STAFF'])) return true;
-
-  return false;
-}
-
 // Mock data - User to populate
 const contacts = [
   {
@@ -113,6 +106,15 @@ const contacts = [
 export default function EmergencyContactsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+const hasAnyRole = useHasAnyRole();
+
+const isAuthorizedForEdit = () => {
+  
+  if(hasAnyRole(['ADMIN', 'SUPERADMIN', 'STAFF'])) return true;
+
+  return false;
+}
+
 
   const filteredContacts = contacts.filter((contact) => {
     const matchesSearch = 
