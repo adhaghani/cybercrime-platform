@@ -116,6 +116,10 @@ const getNavMainByRole = (role: string | undefined) => {
         {
           title: "My Assigned Reports",
           url: "/dashboard/reports/my-assignments",
+        },
+                {
+          title: "Generate System Report",
+          url: "/dashboard/reports/generate-report",
         }
       ],
     
@@ -179,6 +183,10 @@ const getNavMainByRole = (role: string | undefined) => {
         {
           title: "My Assigned Reports",
           url: "/dashboard/reports/my-assignments",
+        },
+                {
+          title: "Generate System Report",
+          url: "/dashboard/reports/generate-report",
         }
       ],
     
@@ -258,6 +266,10 @@ const getNavMainByRole = (role: string | undefined) => {
         {
           title: "My Assigned Reports",
           url: "/dashboard/reports/my-assignments",
+        },
+        {
+          title: "Generate System Report",
+          url: "/dashboard/reports/generate-report",
         }
       ],
     

@@ -37,16 +37,19 @@ export async function login(credentials: LoginCredentials): Promise<AuthResponse
       if (credentials.email && credentials.password) {
         // Mock successful login
         
-        const mockUser: Staff = {
+        const mockUser: Student = {
           accountId: '1',
           email: credentials.email,
           name: 'John Doe',
           contactNumber: '012-3456789',
-          accountType: 'STAFF',
-          role: 'STAFF',
-          department: 'IT Department',
-          position: 'System Administrator',
-          supervisorId: '5',
+          accountType: 'STUDENT',
+          // role: 'SUPERADMIN',
+          // department: 'IT Department',
+          // position: 'System Administrator',
+          // supervisorId: '5',
+          program: 'Computer Science',
+          semester: 4,
+          yearOfStudy: 2,
           passwordHash: '',
           createdAt: '',
           updatedAt: ''
@@ -56,12 +59,15 @@ export async function login(credentials: LoginCredentials): Promise<AuthResponse
           accountId: mockUser.accountId,
           name: mockUser.name,
           email: mockUser.email,
-          role: mockUser.role,
+          // role: mockUser.role,
           accountType: mockUser.accountType,
           contactNumber: mockUser.contactNumber,
-          department: mockUser.department,
-          position: mockUser.position,
-          supervisorId: mockUser.supervisorId,
+          // department: mockUser.department,
+          // position: mockUser.position,
+          // supervisorId: mockUser.supervisorId,
+          program: mockUser.program,
+          semester: mockUser.semester,
+          yearOfStudy: mockUser.yearOfStudy,
           exp: Date.now() + 86400000 // 24 hours
         }));
 

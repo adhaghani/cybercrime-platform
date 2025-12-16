@@ -23,7 +23,7 @@ export type AnnouncementType = 'GENERAL' | 'EMERGENCY' | 'EVENT';
 export type AnnouncementPriority = 'LOW' | 'MEDIUM' | 'HIGH';
 export type AnnouncementStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 
-export type GeneratedReportCategory = 'CRIME' | 'FACILITY' | 'USER';
+export type GeneratedReportCategory = 'CRIME' | 'FACILITY' | 'USER' | "ALL REPORTS";
 export type GeneratedReportDataType = 'SUMMARY' | 'DETAILED';
 
 export type ResolutionType = 'RESOLVED' | 'ESCALATED' | 'DISMISSED' | 'TRANSFERRED';
