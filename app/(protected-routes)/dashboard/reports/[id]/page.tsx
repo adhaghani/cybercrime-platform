@@ -39,8 +39,9 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
-import { Crime, Facility, ReportStatus, ResolutionType } from "@/lib/types";
+import { Crime, Facility, ResolutionType } from "@/lib/types";
 import { format } from "date-fns";
+import StatusBadge from "@/components/ui/statusBadge";
 import { notFound, useSearchParams } from "next/navigation";
 
 export default function ReportDetailsPage({ params }: { params: { id: string } }) {
@@ -64,14 +65,6 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
   const crimeData = isCrimeReport ? (report as Crime) : null;
   const facilityData = !isCrimeReport ? (report as Facility) : null;
 
-  const getStatusColor = (status: ReportStatus) => {
-    switch (status) {
-      case "PENDING": return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
-      case "IN_PROGRESS": return "bg-blue-500/10 text-blue-500 border-blue-500/20";
-      case "RESOLVED": return "bg-green-500/10 text-green-500 border-green-500/20";
-      case "REJECTED": return "bg-red-500/10 text-red-500 border-red-500/20";
-    }
-  };
 
   const handleAssignReport = () => {
     // TODO: Implement API call to assign report
@@ -252,9 +245,7 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{report.title}</h1>
             <div className="flex items-center gap-2 mt-1">
-              <Badge className={getStatusColor(report.status)} variant="outline">
-                {report.status.replace("_", " ")}
-              </Badge>
+              <StatusBadge status={report.status} />
               <Badge variant="outline">
                 {report.type}
               </Badge>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -18,7 +18,7 @@ import {
   ArrowLeft,
   Edit,
   Trash2,
-  Pin,
+
   Archive,
   Calendar,
   User,
@@ -28,7 +28,7 @@ import {
 import Link from "next/link";
 import { MOCK_ANNOUNCEMENTS } from "@/lib/api/mock-data";
 import { format } from "date-fns";
-import { useHasAnyRole, useUserRole } from "@/hooks/use-user-role";
+import { useHasAnyRole } from "@/hooks/use-user-role";
 import { useRouter } from "next/navigation";
 import { notFound } from "next/navigation";
 
@@ -37,7 +37,7 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
   const hasAnyRole = useHasAnyRole();
   const hasManageAccess = hasAnyRole(['STAFF', 'ADMIN', 'SUPERADMIN']);
 
-  const announcement = MOCK_ANNOUNCEMENTS.find((a) => a.id === params.id);
+  const announcement = MOCK_ANNOUNCEMENTS.find((a) => a.announcementId === params.id);
 
   if (!announcement) {
     notFound();
@@ -84,7 +84,7 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
 
   const handleDelete = () => {
     // TODO: Implement API call to delete announcement
-    console.log('Deleting announcement:', announcement.id);
+    console.log('Deleting announcement:', announcement.announcementId);
     router.push('/dashboard/announcement');
   };
 
@@ -106,11 +106,10 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
               <Bell className="h-8 w-8" />
               {announcement.title}
             </h1>
-            {announcement.isPinned && <Pin className="h-5 w-5 text-yellow-500" />}
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <User className="h-4 w-4" />
-            <span>Posted by {announcement.createdByName || "Unknown"}</span>
+            <span>Posted by {announcement.createdBy || "Unknown"}</span>
             <span>•</span>
             <Clock className="h-4 w-4" />
             <span>{format(new Date(announcement.createdAt), "PPP")}</span>
@@ -120,7 +119,7 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
         {hasManageAccess && (
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/dashboard/announcement/${announcement.id}/update`}>
+              <Link href={`/dashboard/announcement/${announcement.announcementId}/update`}>
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
               </Link>
@@ -233,7 +232,7 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
 
               <div className="space-y-2">
                 <div className="text-sm font-medium text-muted-foreground">Created By</div>
-                <div className="text-sm">{announcement.createdByName || "Unknown"}</div>
+                <div className="text-sm">{announcement.createdBy || "Unknown"}</div>
               </div>
 
               {announcement.updatedAt && (
@@ -256,10 +255,6 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button variant="outline" className="w-full justify-start">
-                  <Pin className="h-4 w-4 mr-2" />
-                  {announcement.isPinned ? "Unpin" : "Pin"} Announcement
-                </Button>
                 <Button variant="outline" className="w-full justify-start">
                   <Archive className="h-4 w-4 mr-2" />
                   Archive Announcement

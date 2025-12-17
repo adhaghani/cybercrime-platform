@@ -33,9 +33,10 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
-import { Facility, ReportStatus, SeverityLevel } from "@/lib/types";
+import { Facility } from "@/lib/types";
 import { format } from "date-fns";
-
+import FacilitySeverityBadge from "@/components/ui/facilitySeverityBadge";
+import StatusBadge from "@/components/ui/statusBadge";
 export default function FacilityReportsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -58,23 +59,6 @@ export default function FacilityReportsPage() {
     return matchesSearch && matchesStatus && matchesType && matchesSeverity;
   });
 
-  const getStatusColor = (status: ReportStatus) => {
-    switch (status) {
-      case "PENDING": return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
-      case "IN_PROGRESS": return "bg-blue-500/10 text-blue-500 border-blue-500/20";
-      case "RESOLVED": return "bg-green-500/10 text-green-500 border-green-500/20";
-      case "REJECTED": return "bg-red-500/10 text-red-500 border-red-500/20";
-    }
-  };
-
-  const getSeverityColor = (severity: SeverityLevel) => {
-    switch (severity) {
-      case "LOW": return "bg-blue-500/10 text-blue-500 border-blue-500/20";
-      case "MEDIUM": return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
-      case "HIGH": return "bg-orange-500/10 text-orange-500 border-orange-500/20";
-      case "CRITICAL": return "bg-red-500/10 text-red-500 border-red-500/20";
-    }
-  };
 
   const stats = {
     total: facilityReports.length,
@@ -273,9 +257,7 @@ export default function FacilityReportsPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getSeverityColor(report.severityLevel)} variant="outline">
-                          {report.severityLevel}
-                        </Badge>
+                        <FacilitySeverityBadge severityLevel={report.severityLevel} />
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1 text-sm">
@@ -290,9 +272,7 @@ export default function FacilityReportsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getStatusColor(report.status)} variant="outline">
-                          {report.status.replace("_", " ")}
-                        </Badge>
+                        <StatusBadge status={report.status} />
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">

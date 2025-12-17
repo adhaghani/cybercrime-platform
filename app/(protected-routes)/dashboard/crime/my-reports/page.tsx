@@ -4,13 +4,14 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Search, MapPin, Calendar, AlertTriangle, PlusCircle } from "lucide-react";
+import { ArrowLeft, Search, MapPin, Calendar, PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
-import { Crime, ReportStatus, CrimeCategory } from "@/lib/types";
+import { Crime, ReportStatus } from "@/lib/types";
 import { format } from "date-fns";
+import StatusBadge from "@/components/ui/statusBadge";
+import CrimeCategoryBadge from "@/components/ui/crimeCategoryBadge";
 
 export default function MyCrimeReportsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -29,24 +30,6 @@ export default function MyCrimeReportsPage() {
     return matchesSearch && matchesStatus;
   });
 
-  const getStatusColor = (status: ReportStatus) => {
-    switch (status) {
-      case "PENDING": return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
-      case "IN_PROGRESS": return "bg-blue-500/10 text-blue-500 border-blue-500/20";
-      case "RESOLVED": return "bg-green-500/10 text-green-500 border-green-500/20";
-      case "REJECTED": return "bg-red-500/10 text-red-500 border-red-500/20";
-    }
-  };
-
-  const getCategoryColor = (category: CrimeCategory) => {
-    switch (category) {
-      case "THEFT": return "bg-orange-500/10 text-orange-500 border-orange-500/20";
-      case "ASSAULT": return "bg-red-500/10 text-red-500 border-red-500/20";
-      case "VANDALISM": return "bg-purple-500/10 text-purple-500 border-purple-500/20";
-      case "HARASSMENT": return "bg-pink-500/10 text-pink-500 border-pink-500/20";
-      case "OTHER": return "bg-gray-500/10 text-gray-500 border-gray-500/20";
-    }
-  };
 
   const statusCounts = {
     total: myReports.length,
@@ -69,12 +52,6 @@ export default function MyCrimeReportsPage() {
             Track the status of your submitted reports.
           </p>
         </div>
-        <Button asChild>
-          <Link href="/dashboard/crime/submit-report">
-            <PlusCircle className="h-4 w-4 mr-2" />
-            New Report
-          </Link>
-        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -147,13 +124,8 @@ export default function MyCrimeReportsPage() {
                   </CardDescription>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Badge className={getStatusColor(report.status)}>
-                    {report.status.replace("_", " ")}
-                  </Badge>
-                  <Badge className={getCategoryColor(report.crimeCategory)}>
-                    <AlertTriangle className="h-3 w-3 mr-1" />
-                    {report.crimeCategory}
-                  </Badge>
+                  <StatusBadge status={report.status} />
+                  <CrimeCategoryBadge category={report.crimeCategory} />
                 </div>
               </div>
             </CardHeader>

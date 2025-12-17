@@ -3,15 +3,15 @@
 import { use } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, MapPin, Calendar, Clock, AlertTriangle, ShieldAlert, FileText } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Clock, ShieldAlert, FileText } from "lucide-react";
 import Link from "next/link";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
-import { Crime, ReportStatus, CrimeCategory } from "@/lib/types";
+import { Crime,  } from "@/lib/types";
 import { format } from "date-fns";
-
-
+import StatusBadge from "@/components/ui/statusBadge";
+import CrimeCategoryBadge from "@/components/ui/crimeCategoryBadge";
 export default function CrimeReportDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const report = MOCK_REPORTS.find((r) => r.reportId === id && r.type === "CRIME") as Crime | undefined;
@@ -36,24 +36,6 @@ export default function CrimeReportDetailPage({ params }: { params: Promise<{ id
     );
   }
 
-  const getStatusColor = (status: ReportStatus) => {
-    switch (status) {
-      case "PENDING": return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
-      case "IN_PROGRESS": return "bg-blue-500/10 text-blue-500 border-blue-500/20";
-      case "RESOLVED": return "bg-green-500/10 text-green-500 border-green-500/20";
-      case "REJECTED": return "bg-red-500/10 text-red-500 border-red-500/20";
-    }
-  };
-
-  const getCategoryColor = (category: CrimeCategory) => {
-    switch (category) {
-      case "THEFT": return "bg-orange-500/10 text-orange-500 border-orange-500/20";
-      case "ASSAULT": return "bg-red-500/10 text-red-500 border-red-500/20";
-      case "VANDALISM": return "bg-purple-500/10 text-purple-500 border-purple-500/20";
-      case "HARASSMENT": return "bg-pink-500/10 text-pink-500 border-pink-500/20";
-      case "OTHER": return "bg-gray-500/10 text-gray-500 border-gray-500/20";
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -68,13 +50,8 @@ export default function CrimeReportDetailPage({ params }: { params: Promise<{ id
           <p className="text-muted-foreground">Report ID: {report.reportId}</p>
         </div>
         <div className="flex gap-2">
-          <Badge className={getStatusColor(report.status)}>
-            {report.status.replace("_", " ")}
-          </Badge>
-          <Badge className={getCategoryColor(report.crimeCategory)}>
-            <AlertTriangle className="h-3 w-3 mr-1" />
-            {report.crimeCategory}
-          </Badge>
+          <StatusBadge status={report.status} />
+          <CrimeCategoryBadge category={report.crimeCategory} />
         </div>
       </div>
 
@@ -189,15 +166,11 @@ export default function CrimeReportDetailPage({ params }: { params: Promise<{ id
             <CardContent className="space-y-4">
               <div>
                 <p className="text-sm font-medium mb-1">Current Status</p>
-                <Badge className={getStatusColor(report.status)}>
-                  {report.status.replace("_", " ")}
-                </Badge>
+                <StatusBadge status={report.status} />
               </div>
               <div>
                 <p className="text-sm font-medium mb-1">Category</p>
-                <Badge className={getCategoryColor(report.crimeCategory)}>
-                  {report.crimeCategory}
-                </Badge>
+                <CrimeCategoryBadge category={report.crimeCategory} />
               </div>
             </CardContent>
           </Card>

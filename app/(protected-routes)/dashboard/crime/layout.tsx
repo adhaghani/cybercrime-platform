@@ -16,7 +16,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
-
+import StatusBadge from "@/components/ui/statusBadge";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
 import { Crime } from "@/lib/types";
 
@@ -61,15 +61,6 @@ export default function CrimeLayout({ children }: { children: React.ReactNode })
       variant: "outline" as const,
     },
   ];
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "PENDING": return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
-      case "IN_PROGRESS": return "bg-blue-500/10 text-blue-500 border-blue-500/20";
-      case "RESOLVED": return "bg-green-500/10 text-green-500 border-green-500/20";
-      default: return "bg-gray-500/10 text-gray-500 border-gray-500/20";
-    }
-  };
 
   return (
     <div className="flex flex-col lg:flex-row gap-6">
@@ -165,9 +156,7 @@ export default function CrimeLayout({ children }: { children: React.ReactNode })
                   >
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <p className="text-sm font-medium line-clamp-1">{report.title}</p>
-                      <Badge className={`${getStatusColor(report.status)} text-xs shrink-0`}>
-                        {report.status === "IN_PROGRESS" ? "In Progress" : report.status}
-                      </Badge>
+                      <StatusBadge status={report.status} />
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-1">
                       {report.location}

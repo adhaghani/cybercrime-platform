@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+
 import {
   Table,
   TableBody,
@@ -32,9 +32,10 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
-import { Crime, ReportStatus, CrimeCategory } from "@/lib/types";
+import { Crime,  } from "@/lib/types";
 import { format } from "date-fns";
-
+import StatusBadge from "@/components/ui/statusBadge";
+import CrimeCategoryBadge from "@/components/ui/crimeCategoryBadge";
 export default function CrimeReportsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -55,24 +56,6 @@ export default function CrimeReportsPage() {
     return matchesSearch && matchesStatus && matchesCategory;
   });
 
-  const getStatusColor = (status: ReportStatus) => {
-    switch (status) {
-      case "PENDING": return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
-      case "IN_PROGRESS": return "bg-blue-500/10 text-blue-500 border-blue-500/20";
-      case "RESOLVED": return "bg-green-500/10 text-green-500 border-green-500/20";
-      case "REJECTED": return "bg-red-500/10 text-red-500 border-red-500/20";
-    }
-  };
-
-  const getCategoryColor = (category: CrimeCategory) => {
-    switch (category) {
-      case "THEFT": return "bg-red-500/10 text-red-500 border-red-500/20";
-      case "ASSAULT": return "bg-purple-500/10 text-purple-500 border-purple-500/20";
-      case "VANDALISM": return "bg-orange-500/10 text-orange-500 border-orange-500/20";
-      case "HARASSMENT": return "bg-pink-500/10 text-pink-500 border-pink-500/20";
-      case "OTHER": return "bg-gray-500/10 text-gray-500 border-gray-500/20";
-    }
-  };
 
   const stats = {
     total: crimeReports.length,
@@ -236,9 +219,7 @@ export default function CrimeReportsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getCategoryColor(report.crimeCategory)} variant="outline">
-                          {report.crimeCategory}
-                        </Badge>
+                        <CrimeCategoryBadge category={report.crimeCategory} />
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1 text-sm">
@@ -253,9 +234,7 @@ export default function CrimeReportsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getStatusColor(report.status)} variant="outline">
-                          {report.status.replace("_", " ")}
-                        </Badge>
+                        <StatusBadge status={report.status} />
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">

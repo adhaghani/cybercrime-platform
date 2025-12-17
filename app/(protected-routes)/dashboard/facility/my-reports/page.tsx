@@ -4,14 +4,14 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Search, MapPin, Calendar, AlertCircle, PlusCircle } from "lucide-react";
+import { ArrowLeft, Search, MapPin, Calendar, PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
-import { FacilityReport, ReportStatus, SeverityLevel } from "@/lib/types";
+import { ReportStatus, Facility } from "@/lib/types";
 import { format } from "date-fns";
-
+import FacilitySeverityBadge from "@/components/ui/facilitySeverityBadge";
+import StatusBadge from "@/components/ui/statusBadge";
 export default function MyReportsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<ReportStatus | "ALL">("ALL");
@@ -19,7 +19,7 @@ export default function MyReportsPage() {
   // Filter reports by current user (user-1) and facility type
   const myReports = MOCK_REPORTS.filter(
     (r) => r.type === "FACILITY" && r.submittedBy === "user-1"
-  ) as FacilityReport[];
+  ) as Facility[];
 
   const filteredReports = myReports.filter((report) => {
     const matchesSearch =
@@ -29,23 +29,6 @@ export default function MyReportsPage() {
     return matchesSearch && matchesStatus;
   });
 
-  const getStatusColor = (status: ReportStatus) => {
-    switch (status) {
-      case "PENDING": return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
-      case "IN_PROGRESS": return "bg-blue-500/10 text-blue-500 border-blue-500/20";
-      case "RESOLVED": return "bg-green-500/10 text-green-500 border-green-500/20";
-      case "REJECTED": return "bg-red-500/10 text-red-500 border-red-500/20";
-    }
-  };
-
-  const getSeverityColor = (severity: SeverityLevel) => {
-    switch (severity) {
-      case "LOW": return "bg-gray-500/10 text-gray-500 border-gray-500/20";
-      case "MEDIUM": return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
-      case "HIGH": return "bg-orange-500/10 text-orange-500 border-orange-500/20";
-      case "CRITICAL": return "bg-red-500/10 text-red-500 border-red-500/20";
-    }
-  };
 
   const statusCounts = {
     total: myReports.length,
@@ -140,13 +123,8 @@ export default function MyReportsPage() {
                   </CardDescription>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Badge className={getStatusColor(report.status)}>
-                    {report.status.replace("_", " ")}
-                  </Badge>
-                  <Badge className={getSeverityColor(report.severityLevel)}>
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    {report.severityLevel}
-                  </Badge>
+                  <StatusBadge status={report.status} />
+                  <FacilitySeverityBadge severityLevel={report.severityLevel} />
                 </div>
               </div>
             </CardHeader>

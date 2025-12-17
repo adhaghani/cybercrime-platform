@@ -3,15 +3,15 @@
 import { use } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, MapPin, Calendar, Clock, AlertCircle, Wrench, FileText } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Clock, Wrench, FileText } from "lucide-react";
 import Link from "next/link";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
-import { Facility, ReportStatus, SeverityLevel } from "@/lib/types";
+import { Facility } from "@/lib/types";
 import { format } from "date-fns";
-
-
+import FacilitySeverityBadge from "@/components/ui/facilitySeverityBadge";
+import StatusBadge from "@/components/ui/statusBadge";
 export default function ReportDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const report = MOCK_REPORTS.find((r) => r.reportId === id && r.type === "FACILITY") as Facility | undefined;
@@ -36,23 +36,6 @@ export default function ReportDetailPage({ params }: { params: Promise<{ id: str
     );
   }
 
-  const getStatusColor = (status: ReportStatus) => {
-    switch (status) {
-      case "PENDING": return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
-      case "IN_PROGRESS": return "bg-blue-500/10 text-blue-500 border-blue-500/20";
-      case "RESOLVED": return "bg-green-500/10 text-green-500 border-green-500/20";
-      case "REJECTED": return "bg-red-500/10 text-red-500 border-red-500/20";
-    }
-  };
-
-  const getSeverityColor = (severity: SeverityLevel) => {
-    switch (severity) {
-      case "LOW": return "bg-gray-500/10 text-gray-500 border-gray-500/20";
-      case "MEDIUM": return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
-      case "HIGH": return "bg-orange-500/10 text-orange-500 border-orange-500/20";
-      case "CRITICAL": return "bg-red-500/10 text-red-500 border-red-500/20";
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -67,13 +50,8 @@ export default function ReportDetailPage({ params }: { params: Promise<{ id: str
           <p className="text-muted-foreground">Report ID: {report.reportId}</p>
         </div>
         <div className="flex gap-2">
-          <Badge className={getStatusColor(report.status)}>
-            {report.status.replace("_", " ")}
-          </Badge>
-          <Badge className={getSeverityColor(report.severityLevel)}>
-            <AlertCircle className="h-3 w-3 mr-1" />
-            {report.severityLevel}
-          </Badge>
+          <StatusBadge status={report.status} />
+          <FacilitySeverityBadge severityLevel={report.severityLevel} />
         </div>
       </div>
 
@@ -148,15 +126,11 @@ export default function ReportDetailPage({ params }: { params: Promise<{ id: str
             <CardContent className="space-y-4">
               <div>
                 <p className="text-sm font-medium mb-1">Current Status</p>
-                <Badge className={getStatusColor(report.status)}>
-                  {report.status.replace("_", " ")}
-                </Badge>
+                <StatusBadge status={report.status} />
               </div>
               <div>
                 <p className="text-sm font-medium mb-1">Severity Level</p>
-                <Badge className={getSeverityColor(report.severityLevel)}>
-                  {report.severityLevel}
-                </Badge>
+               <FacilitySeverityBadge severityLevel={report.severityLevel} />
               </div>
             </CardContent>
           </Card>
