@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Search, MapPin, Calendar, LayoutGrid, Table2 } from "lucide-react";
+import { ArrowLeft, Search, MapPin, LayoutGrid, Table2 } from "lucide-react";
 import Link from "next/link";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
 import { Crime, ReportStatus, CrimeCategory } from "@/lib/types";
@@ -22,10 +22,11 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import ReportCard from "@/components/report/reportCard";
 
 
 export default function AllCrimeReportsPage() {
-  const ITEMS_PER_PAGE = 8;
+  const ITEMS_PER_PAGE = 6;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<ReportStatus | "ALL">("ALL");
@@ -150,50 +151,10 @@ export default function AllCrimeReportsPage() {
       {viewMode === "card" ? (
         <div className="grid gap-4 md:grid-cols-2">
           {paginatedReports.map((report) => (
-            <Card key={report.reportId} className="hover:bg-accent/50 transition-colors">
-              <CardHeader>
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <CardTitle className="text-xl">{report.title}</CardTitle>
-                    <CardDescription className="mt-2 flex flex-wrap items-center gap-4 text-sm">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {report.location}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {format(new Date(report.submittedAt), "MMM d, yyyy")}
-                      </span>
-                    </CardDescription>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <StatusBadge status={report.status} />
-                    <CrimeCategoryBadge category={report.crimeCategory} />
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                  {report.description}
-                </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">
-                    Category: {report.crimeCategory}
-                  </span>
-                  <div className="flex justify-between items-center gap-2">
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/dashboard/crime/reports/${report.reportId}`}>
-                        View Details
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <ReportCard key={report.reportId} report={report} />
           ))}
         </div>
       ) : (
-        <Card>
           <Table>
             <TableHeader>
               <TableRow>
@@ -237,7 +198,6 @@ export default function AllCrimeReportsPage() {
               ))}
             </TableBody>
           </Table>
-        </Card>
       )}
 
       {filteredReports.length > 0 && totalPages > 1 && (

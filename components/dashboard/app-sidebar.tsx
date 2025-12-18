@@ -31,11 +31,6 @@ import {
 const getNavMainByRole = (role: string | undefined) => {
   // Student/User navigation
   const studentNav = [
-        {
-      title: "Announcements",
-      url: "/dashboard/announcement",
-      icon: FileText,
-    },
     {
       title: "Crime Terminal",
       url: "/dashboard/crime",
