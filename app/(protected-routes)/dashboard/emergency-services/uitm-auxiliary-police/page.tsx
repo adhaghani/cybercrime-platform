@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Pencil, MapPin, Search, Mail, Clock } from "lucide-react";
 import { useHasAnyRole } from "@/hooks/use-user-role";
 import Link from "next/link";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+
+const ITEMS_PER_PAGE = 9;
 
 
 
@@ -164,11 +167,24 @@ const hasAnyRole = useHasAnyRole();
 }
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const filteredStations = policeStations.filter((station) =>
     station.campus.toLowerCase().includes(searchQuery.toLowerCase()) ||
     station.state.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Pagination
+  const totalPages = Math.ceil(filteredStations.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedStations = filteredStations.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search changes
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
 
   return (
     <div className="space-y-6">
@@ -185,12 +201,12 @@ const hasAnyRole = useHasAnyRole();
           placeholder="Search by campus or state..."
           className="pl-8"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
         />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filteredStations.map((station) => (
+        {paginatedStations.map((station) => (
           <Card key={station.id} className="flex flex-col">
             <CardHeader>
               <CardTitle className="flex justify-between items-start gap-2 w-full text-lg">{station.campus}
@@ -232,6 +248,16 @@ const hasAnyRole = useHasAnyRole();
           </Card>
         ))}
       </div>
+      
+      {totalPages > 1 && filteredStations.length > 0 && (
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          itemsPerPage={ITEMS_PER_PAGE}
+          totalItems={filteredStations.length}
+        />
+      )}
       
       {filteredStations.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">

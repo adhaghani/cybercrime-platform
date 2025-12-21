@@ -36,10 +36,15 @@ import { Crime,  } from "@/lib/types";
 import { format } from "date-fns";
 import StatusBadge from "@/components/ui/statusBadge";
 import CrimeCategoryBadge from "@/components/ui/crimeCategoryBadge";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+
+const ITEMS_PER_PAGE = 10;
+
 export default function CrimeReportsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Filter only crime reports
   const crimeReports = MOCK_REPORTS.filter((r) => r.type === "CRIME") as Crime[];
@@ -56,6 +61,17 @@ export default function CrimeReportsPage() {
     return matchesSearch && matchesStatus && matchesCategory;
   });
 
+  // Pagination
+  const totalPages = Math.ceil(filteredReports.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedReports = filteredReports.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  const handleFilterChange = (callback: () => void) => {
+    callback();
+    setCurrentPage(1);
+  };
 
   const stats = {
     total: crimeReports.length,
@@ -146,12 +162,12 @@ export default function CrimeReportsPage() {
                 <Input
                   placeholder="Search by title, description, or location..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => handleFilterChange(() => setSearchQuery(e.target.value))}
                   className="pl-8"
                 />
               </div>
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select value={statusFilter} onValueChange={(v) => handleFilterChange(() => setStatusFilter(v))}>
               <SelectTrigger className="w-full md:w-[180px]">
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Status" />
@@ -164,7 +180,7 @@ export default function CrimeReportsPage() {
                 <SelectItem value="REJECTED">Rejected</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <Select value={categoryFilter} onValueChange={(v) => handleFilterChange(() => setCategoryFilter(v))}>
               <SelectTrigger className="w-full md:w-[180px]">
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Category" />
@@ -208,7 +224,7 @@ export default function CrimeReportsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredReports.map((report) => (
+                  {paginatedReports.map((report) => (
                     <TableRow key={report.reportId}>
                       <TableCell>
                         <div className="space-y-1">
@@ -256,7 +272,17 @@ export default function CrimeReportsPage() {
                   ))}
                 </TableBody>
               </Table>
+                          {totalPages > 1 && paginatedReports.length > 0 && (
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                itemsPerPage={ITEMS_PER_PAGE}
+                totalItems={filteredReports.length}
+              />
+            )}
             </div>
+
           ) : (
             <div className="text-center py-12 text-muted-foreground">
               <ShieldAlert className="h-12 w-12 mx-auto mb-4 opacity-50" />

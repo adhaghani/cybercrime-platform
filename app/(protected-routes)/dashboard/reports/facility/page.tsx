@@ -37,11 +37,16 @@ import { Facility } from "@/lib/types";
 import { format } from "date-fns";
 import FacilitySeverityBadge from "@/components/ui/facilitySeverityBadge";
 import StatusBadge from "@/components/ui/statusBadge";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+
+const ITEMS_PER_PAGE = 10;
+
 export default function FacilityReportsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [typeFilter, setTypeFilter] = useState<string>("ALL");
   const [severityFilter, setSeverityFilter] = useState<string>("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Filter only facility reports
   const facilityReports = MOCK_REPORTS.filter((r) => r.type === "FACILITY") as Facility[];
@@ -59,6 +64,17 @@ export default function FacilityReportsPage() {
     return matchesSearch && matchesStatus && matchesType && matchesSeverity;
   });
 
+  // Pagination
+  const totalPages = Math.ceil(filteredReports.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedReports = filteredReports.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  const handleFilterChange = (callback: () => void) => {
+    callback();
+    setCurrentPage(1);
+  };
 
   const stats = {
     total: facilityReports.length,
@@ -162,12 +178,12 @@ export default function FacilityReportsPage() {
                   <Input
                     placeholder="Search by title, description, or location..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => handleFilterChange(() => setSearchQuery(e.target.value))}
                     className="pl-8"
                   />
                 </div>
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select value={statusFilter} onValueChange={(v) => handleFilterChange(() => setStatusFilter(v))}>
                 <SelectTrigger className="w-full md:w-[180px]">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Status" />
@@ -182,7 +198,7 @@ export default function FacilityReportsPage() {
               </Select>
             </div>
             <div className="flex flex-col md:flex-row gap-4">
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <Select value={typeFilter} onValueChange={(v) => handleFilterChange(() => setTypeFilter(v))}>
                 <SelectTrigger className="w-full md:w-[200px]">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Facility Type" />
@@ -196,7 +212,7 @@ export default function FacilityReportsPage() {
                   <SelectItem value="OTHER">Other</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={severityFilter} onValueChange={setSeverityFilter}>
+              <Select value={severityFilter} onValueChange={(v) => handleFilterChange(() => setSeverityFilter(v))}>
                 <SelectTrigger className="w-full md:w-[200px]">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Severity" />
@@ -227,6 +243,7 @@ export default function FacilityReportsPage() {
         </CardHeader>
         <CardContent>
           {filteredReports.length > 0 ? (
+            
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
@@ -241,7 +258,7 @@ export default function FacilityReportsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredReports.map((report) => (
+                  {paginatedReports.map((report) => (
                     <TableRow key={report.reportId}>
                       <TableCell>
                         <div className="space-y-1">
@@ -294,14 +311,24 @@ export default function FacilityReportsPage() {
                   ))}
                 </TableBody>
               </Table>
-            </div>
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
+              {totalPages > 1 && paginatedReports.length > 0 ? (
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                itemsPerPage={ITEMS_PER_PAGE}
+                totalItems={filteredReports.length}
+              />): (            <div className="text-center py-12 text-muted-foreground">
               <Wrench className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No facility reports found matching your filters.</p>
               <p className="text-sm mt-2">Try adjusting your search criteria.</p>
+            </div>)}
             </div>
-          )}
+
+        ): (
+          <>No Data</>)
+        }
+        
         </CardContent>
       </Card>
     </div>

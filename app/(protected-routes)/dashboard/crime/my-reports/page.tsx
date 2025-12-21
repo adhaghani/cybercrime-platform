@@ -9,11 +9,16 @@ import { ArrowLeft, Search,PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
 import { Crime, ReportStatus } from "@/lib/types";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 
 import ReportCard from "@/components/report/reportCard";
+
+const ITEMS_PER_PAGE = 6;
+
 export default function MyCrimeReportsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<ReportStatus | "ALL">("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Filter reports by current user (user-1) and crime type
   const myReports = MOCK_REPORTS.filter(
@@ -28,6 +33,17 @@ export default function MyCrimeReportsPage() {
     return matchesSearch && matchesStatus;
   });
 
+  // Pagination
+  const totalPages = Math.ceil(filteredReports.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedReports = filteredReports.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  const handleFilterChange = (callback: () => void) => {
+    callback();
+    setCurrentPage(1);
+  };
 
   const statusCounts = {
     total: myReports.length,
@@ -86,10 +102,10 @@ export default function MyCrimeReportsPage() {
             placeholder="Search by title or location..."
             className="pl-8"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleFilterChange(() => setSearchQuery(e.target.value))}
           />
         </div>
-        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as ReportStatus | "ALL")}>
+        <Select value={statusFilter} onValueChange={(v) => handleFilterChange(() => setStatusFilter(v as ReportStatus | "ALL"))}>
           <SelectTrigger className="w-full md:w-[180px]">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
@@ -104,10 +120,20 @@ export default function MyCrimeReportsPage() {
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
-        {filteredReports.map((report) => (
+        {paginatedReports.map((report) => (
           <ReportCard key={report.reportId} report={report} />
         ))}
       </div>
+
+      {totalPages > 1 && filteredReports.length > 0 && (
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          itemsPerPage={ITEMS_PER_PAGE}
+          totalItems={filteredReports.length}
+        />
+      )}
 
       {filteredReports.length === 0 && (
         <Card>

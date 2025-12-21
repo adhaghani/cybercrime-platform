@@ -1,0 +1,436 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { 
+  ArrowLeft, 
+  Download, 
+  Calendar, 
+  User, 
+  FileText, 
+  MapPin
+} from "lucide-react";
+import Link from "next/link";
+import { format } from "date-fns";
+import { MOCK_GENERATED_REPORTS } from "@/lib/api/mock-data";
+import { GeneratedReport, GeneratedReportCategory, GeneratedReportDataType } from "@/lib/types";
+
+export default function ReportSummaryDetailPage() {
+  const params = useParams();
+  const reportId = params.id as string;
+  const [report, setReport] = useState<GeneratedReport | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate fetching the report
+    const foundReport = MOCK_GENERATED_REPORTS.find((r) => r.generateId === reportId);
+    setReport(foundReport || null);
+    setLoading(false);
+  }, [reportId]);
+
+  const handleDownload = () => {
+    if (!report) return;
+
+    const dataStr = JSON.stringify(report, null, 2);
+    const dataBlob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${report.generateId}-${report.title.replace(/\s+/g, "-").toLowerCase()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadPDF = () => {
+    if (!report) return;
+    
+    // Create a formatted text version for download
+    let content = `${report.title}\n`;
+    content += `${"=".repeat(report.title.length)}\n\n`;
+    content += `Generated: ${format(new Date(report.requestedAt), "PPP")}\n`;
+    content += `Period: ${format(new Date(report.dateRangeStart), "PP")} - ${format(new Date(report.dateRangeEnd), "PP")}\n`;
+    content += `Category: ${report.reportCategory}\n`;
+    content += `Type: ${report.reportDataType}\n\n`;
+    content += `Summary\n${"=".repeat(50)}\n${report.summary}\n\n`;
+    
+    if (report.reportData?.executiveSummary) {
+      content += `Executive Summary\n${"=".repeat(50)}\n${report.reportData.executiveSummary}\n\n`;
+    }
+    
+    if (report.reportData?.detailedAnalysis) {
+      content += `Detailed Analysis\n${"=".repeat(50)}\n${report.reportData.detailedAnalysis}\n\n`;
+    }
+    
+    if (report.reportData?.riskAssessment) {
+      content += `Risk Assessment\n${"=".repeat(50)}\n`;
+      content += `Level: ${report.reportData.riskAssessment.level}\n\n`;
+      if (report.reportData.riskAssessment.factors) {
+        content += `Key Factors:\n`;
+        report.reportData.riskAssessment.factors.forEach((factor: string, i: number) => {
+          content += `${i + 1}. ${factor}\n`;
+        });
+        content += `\n`;
+      }
+    }
+    
+    if (report.reportData?.recommendations) {
+      content += `Recommendations\n${"=".repeat(50)}\n`;
+      report.reportData.recommendations.forEach((rec: string, i: number) => {
+        content += `${i + 1}. ${rec}\n`;
+      });
+      content += `\n`;
+    }
+    
+    if (report.reportData?.conclusion) {
+      content += `Conclusion\n${"=".repeat(50)}\n${report.reportData.conclusion}\n`;
+    }
+    
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${report.generateId}-report.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const getCategoryColor = (category: GeneratedReportCategory) => {
+    switch (category) {
+      case "CRIME":
+        return "bg-red-500/10 text-red-500 border-red-500/20";
+      case "FACILITY":
+        return "bg-orange-500/10 text-orange-500 border-orange-500/20";
+      case "USER":
+        return "bg-blue-500/10 text-blue-500 border-blue-500/20";
+      case "ALL REPORTS":
+        return "bg-purple-500/10 text-purple-500 border-purple-500/20";
+      default:
+        return "bg-gray-500/10 text-gray-500 border-gray-500/20";
+    }
+  };
+
+  const getTypeColor = (type: GeneratedReportDataType) => {
+    return type === "DETAILED"
+      ? "bg-blue-500/10 text-blue-500 border-blue-500/20"
+      : "bg-green-500/10 text-green-500 border-green-500/20";
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Loading report...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!report) {
+    return (
+      <div className="space-y-6">
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/dashboard/reports/all-generated-report">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Reports
+          </Link>
+        </Button>
+        
+        <Card>
+          <CardContent className="py-12">
+            <div className="text-center space-y-4">
+              <FileText className="h-16 w-16 mx-auto text-muted-foreground opacity-50" />
+              <div>
+                <h2 className="text-2xl font-bold">Report Not Found</h2>
+                <p className="text-muted-foreground mt-2">
+                  The report you&apos;re looking for doesn&apos;t exist or has been removed.
+                </p>
+              </div>
+              <Button asChild>
+                <Link href="/dashboard/reports/all-generated-report">
+                  View All Reports
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/dashboard/reports/report-summary">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Link>
+        </Button>
+      </div>
+
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+          <FileText className="h-8 w-8" />
+          Report Summary
+        </h1>
+        <p className="text-muted-foreground">
+          AI-powered analytical report details
+        </p>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Main Content */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Report Header Card */}
+          <Card>
+            <CardHeader>
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className={getCategoryColor(report.reportCategory)}>
+                    {report.reportCategory}
+                  </Badge>
+                  <Badge variant="outline" className={getTypeColor(report.reportDataType)}>
+                    {report.reportDataType}
+                  </Badge>
+                </div>
+                
+                <div>
+                  <CardTitle className="text-2xl">{report.title}</CardTitle>
+                  <CardDescription className="mt-2">
+                    {report.summary}
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+
+          {/* Generated Report Display - Matching generate page style */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Generated Report</CardTitle>
+                  <CardDescription>
+                    AI-powered analysis of {report.reportCategory.toLowerCase()} data
+                  </CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={handleDownload}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Executive Summary */}
+              <div className="space-y-2">
+                <h3 className="font-semibold text-lg">Executive Summary</h3>
+                <p className="text-sm text-muted-foreground">
+                  {report.reportData?.executiveSummary || report.summary}
+                </p>
+              </div>
+
+              {/* Key Statistics */}
+              {report.reportData?.keyStatistics && (
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-lg">Key Statistics</h3>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="rounded-lg border p-4">
+                      <p className="text-sm text-muted-foreground">Total Incidents</p>
+                      <p className="text-2xl font-bold">
+                        {report.reportData.keyStatistics.totalIncidents || 
+                         report.reportData.keyStatistics.totalReports || 0}
+                      </p>
+                    </div>
+                    {report.reportData.keyStatistics.byStatus && (
+                      <>
+                        <div className="rounded-lg border p-4 bg-yellow-50 dark:bg-yellow-950">
+                          <p className="text-sm text-muted-foreground">Pending</p>
+                          <p className="text-2xl font-bold text-yellow-600">
+                            {report.reportData.keyStatistics.byStatus.pending}
+                          </p>
+                        </div>
+                        <div className="rounded-lg border p-4 bg-blue-50 dark:bg-blue-950">
+                          <p className="text-sm text-muted-foreground">In Progress</p>
+                          <p className="text-2xl font-bold text-blue-600">
+                            {report.reportData.keyStatistics.byStatus.inProgress}
+                          </p>
+                        </div>
+                        <div className="rounded-lg border p-4 bg-green-50 dark:bg-green-950">
+                          <p className="text-sm text-muted-foreground">Resolved</p>
+                          <p className="text-2xl font-bold text-green-600">
+                            {report.reportData.keyStatistics.byStatus.resolved}
+                          </p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Detailed Analysis */}
+              {report.reportData?.detailedAnalysis && (
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-lg">Detailed Analysis</h3>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                    {report.reportData.detailedAnalysis}
+                  </p>
+                </div>
+              )}
+
+              {/* Risk Assessment */}
+              {report.reportData?.riskAssessment && (
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-lg">Risk Assessment</h3>
+                  <div className="rounded-lg border p-4">
+                    <p className="text-sm text-muted-foreground mb-2">Risk Level</p>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                        report.reportData.riskAssessment.level === 'CRITICAL' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
+                        report.reportData.riskAssessment.level === 'HIGH' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
+                        report.reportData.riskAssessment.level === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                        'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                      }`}>
+                        {report.reportData.riskAssessment.level}
+                      </span>
+                    </div>
+                    {report.reportData.riskAssessment.factors && (
+                      <div className="mt-4">
+                        <p className="text-sm text-muted-foreground mb-2">Key Factors:</p>
+                        <ul className="list-disc list-inside space-y-1">
+                          {report.reportData.riskAssessment.factors.map((factor: string, index: number) => (
+                            <li key={index} className="text-sm">{factor}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Recommendations */}
+              {report.reportData?.recommendations && (
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-lg">Recommendations</h3>
+                  <ul className="list-decimal list-inside space-y-2">
+                    {report.reportData.recommendations.map((rec: string, index: number) => (
+                      <li key={index} className="text-sm text-muted-foreground">{rec}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Conclusion */}
+              {report.reportData?.conclusion && (
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-lg">Conclusion</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {report.reportData.conclusion}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Report Metadata</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm">
+              <div>
+                <p className="text-muted-foreground mb-1">Generated</p>
+                <p className="font-mono text-xs">{format(new Date(report.requestedAt), "PPp")}</p>
+              </div>
+              <Separator />
+              <div>
+                <p className="text-muted-foreground mb-1">Report ID</p>
+                <p className="font-mono text-xs">{report.generateId}</p>
+              </div>
+              <Separator />
+              <div>
+                <p className="text-muted-foreground mb-1">Period</p>
+                <p className="flex items-center gap-1 text-xs">
+                  <Calendar className="h-3 w-3" />
+                  {format(new Date(report.dateRangeStart), "PP")} - {format(new Date(report.dateRangeEnd), "PP")}
+                </p>
+              </div>
+              <Separator />
+              <div>
+                <p className="text-muted-foreground mb-1">Generated By</p>
+                <p className="flex items-center gap-1 text-xs">
+                  <User className="h-3 w-3" />
+                  Staff Member
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Button variant="outline" size="sm" className="w-full" onClick={handleDownloadPDF}>
+                <Download className="h-4 w-4 mr-2" />
+                Download as TXT
+              </Button>
+              <Button variant="outline" size="sm" className="w-full" onClick={handleDownload}>
+                <Download className="h-4 w-4 mr-2" />
+                Download as JSON
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Top Locations - Sidebar version */}
+          {report.reportData?.topLocations && report.reportData.topLocations.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  Top Locations
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {report.reportData.topLocations.slice(0, 5).map((location: { location: string; count: number }, index: number) => (
+                    <div key={index} className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                          {index + 1}
+                        </div>
+                        <span className="text-xs">{location.location}</span>
+                      </div>
+                      <Badge variant="secondary" className="text-xs">{location.count}</Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-900">
+            <CardHeader>
+              <CardTitle className="text-blue-900 dark:text-blue-100 text-sm">
+                About This Report
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-xs text-blue-800 dark:text-blue-200 space-y-2">
+              <p>This report was generated using AI analysis of campus safety data within the specified date range.</p>
+              <p className="mt-2">
+                The analysis includes incident trends, risk assessments, and actionable recommendations for improving campus safety.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}

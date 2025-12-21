@@ -35,11 +35,15 @@ import { MOCK_REPORTS } from "@/lib/api/mock-data";
 import { ReportType } from "@/lib/types";
 import { format } from "date-fns";
 import StatusBadge from "@/components/ui/statusBadge";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+
+const ITEMS_PER_PAGE = 10;
 
 export default function MyAssignmentsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [typeFilter, setTypeFilter] = useState<string>("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
 
   // TODO: Filter reports assigned to current staff member
   // For now, showing all reports as mock data
@@ -56,6 +60,18 @@ export default function MyAssignmentsPage() {
 
     return matchesSearch && matchesStatus && matchesType;
   });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredReports.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedReports = filteredReports.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  const handleFilterChange = (callback: () => void) => {
+    callback();
+    setCurrentPage(1);
+  };
 
 
   const getTypeColor = (type: ReportType) => {
@@ -154,12 +170,12 @@ export default function MyAssignmentsPage() {
                 <Input
                   placeholder="Search by title, description, or location..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => handleFilterChange(() => setSearchQuery(e.target.value))}
                   className="pl-8"
                 />
               </div>
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select value={statusFilter} onValueChange={(v) => handleFilterChange(() => setStatusFilter(v))}>
               <SelectTrigger className="w-full md:w-[180px]">
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Status" />
@@ -172,7 +188,7 @@ export default function MyAssignmentsPage() {
                 <SelectItem value="REJECTED">Rejected</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <Select value={typeFilter} onValueChange={(v) => handleFilterChange(() => setTypeFilter(v))}>
               <SelectTrigger className="w-full md:w-[180px]">
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Type" />
@@ -213,7 +229,7 @@ export default function MyAssignmentsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredReports.map((report) => (
+                  {paginatedReports.map((report) =>   (
                     <TableRow key={report.reportId}>
                       <TableCell>
                         <div className="space-y-1">
@@ -255,6 +271,15 @@ export default function MyAssignmentsPage() {
                   ))}
                 </TableBody>
               </Table>
+                          {totalPages > 1 && paginatedReports.length > 0 && (
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                itemsPerPage={ITEMS_PER_PAGE}
+                totalItems={filteredReports.length}
+              />
+            )}
             </div>
           ) : (
             <div className="text-center py-12 text-muted-foreground">

@@ -113,8 +113,12 @@ const getNavMainByRole = (role: string | undefined) => {
           url: "/dashboard/reports/my-assignments",
         },
                 {
+          title: "Report Summary",
+          url: "/dashboard/reports/report-summary",
+        },
+        {
           title: "Generate System Report",
-          url: "/dashboard/reports/generate-report",
+          url: "/dashboard/reports/report-summary/generate",
         }
       ],
     
@@ -180,8 +184,12 @@ const getNavMainByRole = (role: string | undefined) => {
           url: "/dashboard/reports/my-assignments",
         },
                 {
+          title: "Report Summary",
+          url: "/dashboard/reports/report-summary",
+        },
+        {
           title: "Generate System Report",
-          url: "/dashboard/reports/generate-report",
+          url: "/dashboard/reports/report-summary/generate",
         }
       ],
     
@@ -262,9 +270,13 @@ const getNavMainByRole = (role: string | undefined) => {
           title: "My Assigned Reports",
           url: "/dashboard/reports/my-assignments",
         },
+                {
+          title: "Report Summary",
+          url: "/dashboard/reports/report-summary",
+        },
         {
           title: "Generate System Report",
-          url: "/dashboard/reports/generate-report",
+          url: "/dashboard/reports/report-summary/generate",
         }
       ],
     

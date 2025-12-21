@@ -28,11 +28,17 @@ import { Announcement } from "@/lib/types";
 import { format } from "date-fns";
 import { useHasAnyRole } from "@/hooks/use-user-role";
 import { useState } from "react";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+
+const ITEMS_PER_PAGE = 10;
 
 export default function AnnouncementsPage() {
   const hasAnyRole = useHasAnyRole();
   const hasManageAccess = hasAnyRole(['STAFF', 'ADMIN', 'SUPERADMIN']);
   const [searchQuery, setSearchQuery] = useState("");
+  const [publishedPage, setPublishedPage] = useState(1);
+  const [draftPage, setDraftPage] = useState(1);
+  const [archivedPage, setArchivedPage] = useState(1);
 
   // Filter announcements based on search
   const filteredAnnouncements = (announcements: Announcement[]) => {
@@ -43,6 +49,14 @@ export default function AnnouncementsPage() {
         ann.title.toLowerCase().includes(query) ||
         ann.message.toLowerCase().includes(query)
     );
+  };
+
+  // Reset pagination when search changes
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setPublishedPage(1);
+    setDraftPage(1);
+    setArchivedPage(1);
   };
 
   const publishedAnnouncements = filteredAnnouncements(
@@ -81,8 +95,24 @@ export default function AnnouncementsPage() {
     }
   };
 
-  const AnnouncementTable = ({ announcements }: { announcements: Announcement[] }) => (
-    <Table>
+  const AnnouncementTable = ({ 
+    announcements, 
+    currentPage, 
+    onPageChange 
+  }: { 
+    announcements: Announcement[]; 
+    currentPage: number;
+    onPageChange: (page: number) => void;
+  }) => {
+    // Pagination
+    const totalPages = Math.ceil(announcements.length / ITEMS_PER_PAGE);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const paginatedAnnouncements = announcements.slice(startIndex, endIndex);
+
+    return (
+      <div className="space-y-4">
+        <Table>
       <TableHeader>
         <TableRow>
           <TableHead>Title</TableHead>
@@ -95,14 +125,14 @@ export default function AnnouncementsPage() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {announcements.length === 0 ? (
+        {paginatedAnnouncements.length === 0 ? (
           <TableRow>
             <TableCell colSpan={hasManageAccess ? 7 : 6} className="text-center text-muted-foreground">
               No announcements found
             </TableCell>
           </TableRow>
         ) : (
-          announcements.map((announcement) => (
+          paginatedAnnouncements.map((announcement) => (
             <TableRow key={announcement.announcementId}>
               <TableCell>
                 <div className="flex items-center gap-2">
@@ -173,7 +203,18 @@ export default function AnnouncementsPage() {
         )}
       </TableBody>
     </Table>
+    {totalPages > 1 && paginatedAnnouncements.length > 0 && (
+      <PaginationControls
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+        itemsPerPage={ITEMS_PER_PAGE}
+        totalItems={announcements.length}
+      />
+    )}
+    </div>
   );
+  };
 
   return (
     <div className="space-y-6">
@@ -246,7 +287,7 @@ export default function AnnouncementsPage() {
               <Input
                 placeholder="Search announcements..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-10"
               />
             </div>
@@ -268,16 +309,28 @@ export default function AnnouncementsPage() {
             </TabsList>
 
             <TabsContent value="published" className="mt-4">
-              <AnnouncementTable announcements={publishedAnnouncements} />
+              <AnnouncementTable 
+                announcements={publishedAnnouncements}
+                currentPage={publishedPage}
+                onPageChange={setPublishedPage}
+              />
             </TabsContent>
 
             {hasManageAccess && (
               <>
                 <TabsContent value="drafts" className="mt-4">
-                  <AnnouncementTable announcements={draftAnnouncements} />
+                  <AnnouncementTable 
+                    announcements={draftAnnouncements}
+                    currentPage={draftPage}
+                    onPageChange={setDraftPage}
+                  />
                 </TabsContent>
                 <TabsContent value="archived" className="mt-4">
-                  <AnnouncementTable announcements={archivedAnnouncements} />
+                  <AnnouncementTable 
+                    announcements={archivedAnnouncements}
+                    currentPage={archivedPage}
+                    onPageChange={setArchivedPage}
+                  />
                 </TabsContent>
               </>
             )}

@@ -8,6 +8,9 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Phone, MapPin, Search, Siren, Flame, Stethoscope, ShieldAlert, Pencil } from "lucide-react";
 import { useHasAnyRole } from "@/hooks/use-user-role";
 import Link from "next/link";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+
+const ITEMS_PER_PAGE = 9;
 
 // Mock data - User to populate
 const contacts = [
@@ -106,6 +109,7 @@ const contacts = [
 export default function EmergencyContactsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
 const hasAnyRole = useHasAnyRole();
 
 const isAuthorizedForEdit = () => {
@@ -126,6 +130,18 @@ const isAuthorizedForEdit = () => {
 
     return matchesSearch && matchesType;
   });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredContacts.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedContacts = filteredContacts.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  const handleFilterChange = (callback: () => void) => {
+    callback();
+    setCurrentPage(1);
+  };
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -153,12 +169,12 @@ const isAuthorizedForEdit = () => {
             placeholder="Search by name, state, or address..."
             className="pl-8"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleFilterChange(() => setSearchQuery(e.target.value))}
           />
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={(v) => handleFilterChange(() => setActiveTab(v))} className="w-full">
         <TabsList className="grid grid-cols-2 md:grid-cols-5 h-auto">
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="police">Police</TabsTrigger>
@@ -169,7 +185,7 @@ const isAuthorizedForEdit = () => {
       </Tabs>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filteredContacts.map((contact) => (
+        {paginatedContacts.map((contact) => (
           <Card key={contact.id} className="flex flex-col">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -203,6 +219,16 @@ const isAuthorizedForEdit = () => {
           </Card>
         ))}
       </div>
+      
+      {totalPages > 1 && filteredContacts.length > 0 && (
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          itemsPerPage={ITEMS_PER_PAGE}
+          totalItems={filteredContacts.length}
+        />
+      )}
       
       {filteredContacts.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">
