@@ -39,6 +39,25 @@ export class AIService {
   }
 
   /**
+   * Strip markdown code blocks from AI response
+   * Handles cases where AI wraps JSON in ```json ... ``` or ``` ... ```
+   */
+  private stripMarkdownCodeBlocks(content: string): string {
+    // Remove markdown code blocks: ```json ... ``` or ``` ... ```
+    let cleaned = content.trim();
+    
+    // Check if starts with markdown code block
+    if (cleaned.startsWith('```')) {
+      // Remove opening ```json or ```
+      cleaned = cleaned.replace(/^```(?:json)?\n?/, '');
+      // Remove closing ```
+      cleaned = cleaned.replace(/\n?```$/, '');
+    }
+    
+    return cleaned.trim();
+  }
+
+  /**
    * Generate report data using AI
    */
   async generateReportData(request: AIGenerateRequest): Promise<AIGenerateResponse> {
@@ -66,8 +85,11 @@ export class AIService {
       const data = await response.json();
       console.log('AI service response received');
 
+      // Strip markdown code blocks if present
+      const cleanedContent = this.stripMarkdownCodeBlocks(data.content || '');
+
       return {
-        content: data.content || '',
+        content: cleanedContent,
         usage: data.usage || {
           promptTokens: 0,
           completionTokens: 0,
@@ -122,7 +144,13 @@ ANALYSIS REQUIREMENTS:
 5. Recommendations - Actionable suggestions for improvement
 6. Conclusion - Final summary and outlook
 
-IMPORTANT: Return ONLY valid JSON in this exact format:
+CRITICAL INSTRUCTIONS:
+- Return ONLY raw JSON, no markdown formatting
+- Do NOT wrap your response in code blocks (no \`\`\`json or \`\`\`)
+- Do NOT add any text before or after the JSON
+- Start directly with { and end with }
+
+RETURN THIS EXACT JSON FORMAT:
 {
   "executiveSummary": "string",
   "keyStatistics": {

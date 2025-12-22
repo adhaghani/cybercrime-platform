@@ -24,8 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { 
-  FileText, 
-  ArrowLeft,
+  FileText,
   Calendar,
   MapPin,
   User,
@@ -36,26 +35,33 @@ import {
   ShieldAlert,
   Wrench
 } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
-import { Crime, Facility, ResolutionType } from "@/lib/types";
+import { Crime, Facility, ResolutionType, ReportAssignment } from "@/lib/types";
 import { format } from "date-fns";
 import StatusBadge from "@/components/ui/statusBadge";
 import { notFound, useSearchParams } from "next/navigation";
+import { useAuth } from "@/lib/context/auth-provider";
 
 export default function ReportDetailsPage({ params }: { params: { id: string } }) {
   const searchParams = useSearchParams();
   const showAssignDialog = searchParams.get("action") === "assign";
+  const { claims } = useAuth();
   
   const report = MOCK_REPORTS.find((r) => r.reportId === params.id);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(showAssignDialog);
   const [isResolveDialogOpen, setIsResolveDialogOpen] = useState(false);
+  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState("");
-  const [assignmentNotes, setAssignmentNotes] = useState("");
+  const [updateActionTaken, setUpdateActionTaken] = useState("");
+  const [updateFeedback, setUpdateFeedback] = useState("");
   const [resolutionType, setResolutionType] = useState<ResolutionType>("RESOLVED");
   const [resolutionSummary, setResolutionSummary] = useState("");
   const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
+  
+  // Get current user info for auto-fill
+  const currentUserName = claims?.user_metadata?.name || "Current User";
+  const currentUserId = claims?.sub || "user-1";
 
   if (!report) {
     notFound();
@@ -68,10 +74,24 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
 
   const handleAssignReport = () => {
     // TODO: Implement API call to assign report
-    console.log("Assigning report to:", selectedStaff, "Notes:", assignmentNotes);
+    console.log("Assigning report to:", selectedStaff);
     setIsAssignDialogOpen(false);
     setSelectedStaff("");
-    setAssignmentNotes("");
+  };
+
+  const handleUpdateReport = () => {
+    // TODO: Implement API call to update assignment
+    const updateData: Partial<ReportAssignment> = {
+      reportId: params.id,
+      accountId: currentUserId,
+      actionTaken: updateActionTaken,
+      additionalFeedback: updateFeedback,
+    };
+    
+    console.log("Updating report:", updateData);
+    setIsUpdateDialogOpen(false);
+    setUpdateActionTaken("");
+    setUpdateFeedback("");
   };
 
   const handleResolveReport = () => {
@@ -98,14 +118,6 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
     <div className="space-y-6 mx-auto w-full max-w-7xl">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/dashboard/reports">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Reports
-            </Link>
-          </Button>
-        </div>
         <div className="flex gap-2">
           {report.status !== "RESOLVED" && (
             <>
@@ -136,16 +148,6 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
                           <SelectItem value="staff-3">Ahmad Ali (Security Lead)</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="notes">Assignment Notes</Label>
-                      <Textarea
-                        id="notes"
-                        placeholder="Add any specific instructions or notes..."
-                        value={assignmentNotes}
-                        onChange={(e) => setAssignmentNotes(e.target.value)}
-                        rows={4}
-                      />
                     </div>
                   </div>
                   <DialogFooter>
@@ -224,11 +226,62 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-              <Button asChild>
-                <Link href={`/dashboard/reports/${report.reportId}/update`}>
-                Update Assignment
-                </Link>
-              </Button>
+              
+              <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Update Assignment
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Update Assignment</DialogTitle>
+                    <DialogDescription>
+                      Update the progress and provide feedback on this report
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label>Assigned Staff Member</Label>
+                      <Input
+                        value={currentUserName}
+                        disabled
+                        className="bg-muted"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="action-taken">Action Taken *</Label>
+                      <Textarea
+                        id="action-taken"
+                        placeholder="Describe the actions you have taken on this report..."
+                        value={updateActionTaken}
+                        onChange={(e) => setUpdateActionTaken(e.target.value)}
+                        rows={4}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="additional-feedback">Additional Feedback</Label>
+                      <Textarea
+                        id="additional-feedback"
+                        placeholder="Add any additional notes or feedback..."
+                        value={updateFeedback}
+                        onChange={(e) => setUpdateFeedback(e.target.value)}
+                        rows={4}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsUpdateDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleUpdateReport} disabled={!updateActionTaken.trim()}>
+                      Update Assignment
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </>
           )}
         </div>

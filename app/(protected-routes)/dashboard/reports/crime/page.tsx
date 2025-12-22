@@ -27,7 +27,6 @@ import {
   UserPlus,
   Calendar,
   MapPin,
-  ArrowLeft
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -82,15 +81,6 @@ export default function CrimeReportsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/dashboard/reports">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to All Reports
-          </Link>
-        </Button>
-      </div>
 
       <div>
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">

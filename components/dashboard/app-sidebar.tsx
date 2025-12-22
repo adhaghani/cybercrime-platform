@@ -10,6 +10,7 @@ import {
   SquareTerminal,
   Users,
   FileText,
+  Stars,
 } from "lucide-react"
 import { useAuth } from "@/lib/context/auth-provider"
 import { NavMain } from "@/components/dashboard/nav-main"
@@ -93,14 +94,11 @@ const getNavMainByRole = (role: string | undefined) => {
   const staffNav = [
         {
       title: "Report",
-      url: "/dashboard/reports",
+      url: "#",
       icon: FileText,
       isActive: true,
       items: [
-        {
-          title: "All Reports",
-          url: "/dashboard/reports",
-        },
+
         {
           title: "Crime Reports",
           url: "/dashboard/reports/crime",
@@ -113,16 +111,22 @@ const getNavMainByRole = (role: string | undefined) => {
           title: "My Assigned Reports",
           url: "/dashboard/reports/my-assignments",
         },
-                {
-          title: "Report Summary",
+      ],
+    },
+    {
+      title: "AI Report Summary",
+      url: "/dashboard/reports/report-summary",
+      icon: Stars,
+      items: [
+        {
+          title: "View Past Reports",
           url: "/dashboard/reports/report-summary",
         },
         {
-          title: "Generate System Report",
+          title: "Generate AI Report",
           url: "/dashboard/reports/report-summary/generate",
         }
-      ],
-    
+      ]
     },
     {
       title: "Emergency Services",
@@ -164,14 +168,11 @@ const getNavMainByRole = (role: string | undefined) => {
   const adminNav = [
         {
       title: "Report",
-      url: "/dashboard/reports",
+      url: "#",
       icon: FileText,
       isActive: true,
       items: [
-        {
-          title: "All Reports",
-          url: "/dashboard/reports",
-        },
+
         {
           title: "Crime Reports",
           url: "/dashboard/reports/crime",
@@ -184,16 +185,22 @@ const getNavMainByRole = (role: string | undefined) => {
           title: "My Assigned Reports",
           url: "/dashboard/reports/my-assignments",
         },
-                {
-          title: "Report Summary",
+      ],
+    },
+    {
+      title: "AI Report Summary",
+      url: "/dashboard/reports/report-summary",
+      icon: Stars,
+      items: [
+        {
+          title: "View Past Reports",
           url: "/dashboard/reports/report-summary",
         },
         {
-          title: "Generate System Report",
+          title: "Generate AI Report",
           url: "/dashboard/reports/report-summary/generate",
         }
-      ],
-    
+      ]
     },
         {
       title: "Emergency Services",
@@ -251,14 +258,11 @@ const getNavMainByRole = (role: string | undefined) => {
   const superAdminNav = [
         {
       title: "Report",
-      url: "/dashboard/reports",
+      url: "#",
       icon: FileText,
       isActive: true,
       items: [
-        {
-          title: "All Reports",
-          url: "/dashboard/reports",
-        },
+
         {
           title: "Crime Reports",
           url: "/dashboard/reports/crime",
@@ -271,16 +275,22 @@ const getNavMainByRole = (role: string | undefined) => {
           title: "My Assigned Reports",
           url: "/dashboard/reports/my-assignments",
         },
-                {
-          title: "Report Summary",
+      ],
+    },
+    {
+      title: "AI Report Summary",
+      url: "/dashboard/reports/report-summary",
+      icon: Stars,
+      items: [
+        {
+          title: "View Past Reports",
           url: "/dashboard/reports/report-summary",
         },
         {
-          title: "Generate System Report",
+          title: "Generate AI Report",
           url: "/dashboard/reports/report-summary/generate",
         }
-      ],
-    
+      ]
     },
     {
       title: "User Management",

@@ -37,16 +37,21 @@ export async function login(credentials: LoginCredentials): Promise<AuthResponse
       if (credentials.email && credentials.password) {
         // Mock successful login
         
-        const mockUser: Student = {
+        const mockUser: Staff = {
           accountId: '1',
           email: credentials.email,
           name: 'John Doe',
           contactNumber: '012-3456789',
-          accountType: 'STUDENT',
-          studentId: '2023123456',
-          program: 'Computer Science',
-          semester: 4,
-          yearOfStudy: 2,
+          accountType: 'STAFF',
+          staffId: 'S12345',
+          role: 'SUPERADMIN',
+          department: 'IT Department',
+          position: 'System Administrator',
+          // supervisorId: undefined,
+          // studentId: '2023123456',
+          // program: 'Computer Science',
+          // semester: 4,
+          // yearOfStudy: 2,
           passwordHash: '',
           createdAt: '',
           updatedAt: ''
@@ -58,10 +63,15 @@ export async function login(credentials: LoginCredentials): Promise<AuthResponse
           email: mockUser.email,
           accountType: mockUser.accountType,
           contactNumber: mockUser.contactNumber,
-          studentId: mockUser.studentId,
-          program: mockUser.program,
-          semester: mockUser.semester,
-          yearOfStudy: mockUser.yearOfStudy,
+          // studentId: mockUser.studentId,
+          // program: mockUser.program,
+          // semester: mockUser.semester,
+          // yearOfStudy: mockUser.yearOfStudy,
+          staffId: mockUser.staffId,
+          role: mockUser.role,
+          department: mockUser.department,
+          position: mockUser.position,
+          supervisorId: mockUser.supervisorId,
           exp: Date.now() + 86400000 // 24 hours
         }));
 
