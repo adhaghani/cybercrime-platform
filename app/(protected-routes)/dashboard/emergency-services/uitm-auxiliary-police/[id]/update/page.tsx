@@ -101,7 +101,7 @@ export default function UpdateUitmPolicePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-6xl mx-auto w-full">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
           <Link href="/dashboard/emergency-services/uitm-auxiliary-police">

@@ -210,7 +210,7 @@ const isAuthorizedForEdit = () => {
                     </Button>
                   )}
                   {isAuthorizedForEdit() ? <Button variant={"ghost"} asChild>
-                  <Link href={`/dashboard/emergency-services/uitm-auxiliary-police/${contact.id}}/update`}>
+                  <Link href={`/dashboard/emergency-services/emergency-contacts/${contact.id}/update`}>
                  <Pencil size={10} /> 
                  </Link>
                 </Button> : null}
