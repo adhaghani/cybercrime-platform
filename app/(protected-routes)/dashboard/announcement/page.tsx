@@ -3,6 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { getPriorityColor, getAnnouncementTypeColor } from "@/lib/utils/badge-helpers";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -69,32 +70,6 @@ export default function AnnouncementsPage() {
     MOCK_ANNOUNCEMENTS.filter((a) => a.status === "ARCHIVED")
   );
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "HIGH":
-        return "bg-red-500/10 text-red-500 border-red-500/20";
-      case "MEDIUM":
-        return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
-      case "LOW":
-        return "bg-blue-500/10 text-blue-500 border-blue-500/20";
-      default:
-        return "bg-gray-500/10 text-gray-500 border-gray-500/20";
-    }
-  };
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case "EMERGENCY":
-        return "bg-red-500/10 text-red-500 border-red-500/20";
-      case "EVENT":
-        return "bg-purple-500/10 text-purple-500 border-purple-500/20";
-      case "GENERAL":
-        return "bg-blue-500/10 text-blue-500 border-blue-500/20";
-      default:
-        return "bg-gray-500/10 text-gray-500 border-gray-500/20";
-    }
-  };
-
   const AnnouncementTable = ({ 
     announcements, 
     currentPage, 
@@ -145,7 +120,7 @@ export default function AnnouncementsPage() {
                 </div>
               </TableCell>
               <TableCell>
-                <Badge className={getTypeColor(announcement.type)} variant="outline">
+                <Badge className={getAnnouncementTypeColor(announcement.type)} variant="outline">
                   {announcement.type}
                 </Badge>
               </TableCell>

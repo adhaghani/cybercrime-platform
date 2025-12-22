@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { getInitials, getDepartmentColor } from "@/lib/utils/badge-helpers";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -174,28 +175,6 @@ export default function StaffPage() {
   const handleFilterChange = (callback: () => void) => {
     callback();
     setCurrentPage(1);
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const getDepartmentColor = (department: string) => {
-    const colors: Record<string, string> = {
-      "Campus Security": "bg-red-500/10 text-red-500 hover:bg-red-500/20",
-      "Computer Science": "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
-      "Information Technology": "bg-purple-500/10 text-purple-500 hover:bg-purple-500/20",
-      "Facilities Management": "bg-green-500/10 text-green-500 hover:bg-green-500/20",
-      "Student Affairs": "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20",
-      "Library Services": "bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500/20",
-      "Software Engineering": "bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500/20",
-    };
-    return colors[department] || "bg-gray-500/10 text-gray-500 hover:bg-gray-500/20";
   };
 
   const handlePromoteToAdmin = (staffId: string) => {

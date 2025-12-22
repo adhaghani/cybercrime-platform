@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { getCategoryColor, getGeneratedReportTypeColor } from "@/lib/utils/badge-helpers";
 import { 
   ArrowLeft, 
   Download, 
@@ -17,7 +18,7 @@ import {
 import Link from "next/link";
 import { format } from "date-fns";
 import { MOCK_GENERATED_REPORTS } from "@/lib/api/mock-data";
-import { GeneratedReport, GeneratedReportCategory, GeneratedReportDataType } from "@/lib/types";
+import { GeneratedReport } from "@/lib/types";
 
 export default function ReportSummaryDetailPage() {
   const params = useParams();
@@ -98,27 +99,6 @@ export default function ReportSummaryDetailPage() {
     URL.revokeObjectURL(url);
   };
 
-  const getCategoryColor = (category: GeneratedReportCategory) => {
-    switch (category) {
-      case "CRIME":
-        return "bg-red-500/10 text-red-500 border-red-500/20";
-      case "FACILITY":
-        return "bg-orange-500/10 text-orange-500 border-orange-500/20";
-      case "USER":
-        return "bg-blue-500/10 text-blue-500 border-blue-500/20";
-      case "ALL REPORTS":
-        return "bg-purple-500/10 text-purple-500 border-purple-500/20";
-      default:
-        return "bg-gray-500/10 text-gray-500 border-gray-500/20";
-    }
-  };
-
-  const getTypeColor = (type: GeneratedReportDataType) => {
-    return type === "DETAILED"
-      ? "bg-blue-500/10 text-blue-500 border-blue-500/20"
-      : "bg-green-500/10 text-green-500 border-green-500/20";
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -195,7 +175,7 @@ export default function ReportSummaryDetailPage() {
                   <Badge variant="outline" className={getCategoryColor(report.reportCategory)}>
                     {report.reportCategory}
                   </Badge>
-                  <Badge variant="outline" className={getTypeColor(report.reportDataType)}>
+                  <Badge variant="outline" className={getGeneratedReportTypeColor(report.reportDataType)}>
                     {report.reportDataType}
                   </Badge>
                 </div>

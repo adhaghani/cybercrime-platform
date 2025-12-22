@@ -3,13 +3,15 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { getInitials, getDepartmentColor } from "@/lib/utils/badge-helpers";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 import { 
   ArrowLeft, Search, MoreVertical, Mail, Phone, 
-  ShieldCheck, Building2, Edit, UserX, Shield, ShieldAlert, Plus
+  ShieldCheck,  Edit, UserX, Shield, ShieldAlert, Plus
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -22,63 +24,86 @@ import {
 import Link from "next/link";
 import { Staff } from "@/lib/types";
 
+const ITEMS_PER_PAGE = 10;
+
 // Mock administrator data - these are staff with ADMIN role
 const MOCK_ADMINISTRATORS: Staff[] = [
   {
-    id: "admin-1",
+    accountId: "admin-1",
     email: "rahman.admin@uitm.edu.my",
+    passwordHash: "",
+    accountType: "STAFF",
     name: "Encik Rahman Ibrahim",
     contactNumber: "019-3334567",
     role: "ADMIN",
     staffId: "A10001",
     department: "System Administration",
     position: "System Administrator",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: "admin-2",
+    accountId: "admin-2",
     email: "fatimah.admin@uitm.edu.my",
+    passwordHash: "",
+    accountType: "STAFF",
     name: "Puan Fatimah Zahra binti Hassan",
     contactNumber: "012-8887654",
     role: "ADMIN",
     staffId: "A10002",
     department: "Campus Security",
     position: "Security Administrator",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: "admin-3",
+    accountId: "admin-3",
     email: "wong.admin@uitm.edu.my",
+    passwordHash: "",
+    accountType: "STAFF",
     name: "Mr. Wong Chen Wei",
     contactNumber: "013-5554321",
     role: "ADMIN",
     staffId: "A10003",
     department: "IT Services",
     position: "IT Administrator",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: "admin-4",
+    accountId: "admin-4",
     email: "azman.admin@uitm.edu.my",
+    passwordHash: "",
+    accountType: "STAFF",
     name: "Encik Azman bin Yusof",
     contactNumber: "017-2221098",
     role: "ADMIN",
     staffId: "A10004",
     department: "Facilities Management",
     position: "Facilities Administrator",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: "admin-5",
+    accountId: "admin-5",
     email: "priya.admin@uitm.edu.my",
+    passwordHash: "",
+    accountType: "STAFF",
     name: "Dr. Priya Devi a/p Subramaniam",
     contactNumber: "016-9998765",
     role: "ADMIN",
     staffId: "A10005",
     department: "Academic Affairs",
     position: "Academic Administrator",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
 ];
 
 export default function AdministratorPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [administrators] = useState<Staff[]>(MOCK_ADMINISTRATORS);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const filteredAdministrators = administrators.filter((admin) => {
     const matchesSearch = 
@@ -91,24 +116,16 @@ export default function AdministratorPage() {
     return matchesSearch;
   });
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
+  // Pagination
+  const totalPages = Math.ceil(filteredAdministrators.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedAdministrators = filteredAdministrators.slice(startIndex, endIndex);
 
-  const getDepartmentColor = (department: string) => {
-    const colors: Record<string, string> = {
-      "System Administration": "bg-purple-500/10 text-purple-500 hover:bg-purple-500/20",
-      "Campus Security": "bg-red-500/10 text-red-500 hover:bg-red-500/20",
-      "IT Services": "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
-      "Facilities Management": "bg-green-500/10 text-green-500 hover:bg-green-500/20",
-      "Academic Affairs": "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20",
-    };
-    return colors[department] || "bg-gray-500/10 text-gray-500 hover:bg-gray-500/20";
+  // Reset to page 1 when search changes
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
   };
 
   const handleRevokeAdmin = (adminId: string) => {
@@ -173,7 +190,7 @@ export default function AdministratorPage() {
           placeholder="Search administrators by name, email, staff ID, department, or position..."
           className="pl-8"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
         />
       </div>
 
@@ -195,8 +212,8 @@ export default function AdministratorPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredAdministrators.map((admin) => (
-                <TableRow key={admin.id}>
+              {paginatedAdministrators.map((admin) => (
+                <TableRow key={admin.accountId}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
@@ -255,13 +272,13 @@ export default function AdministratorPage() {
                           <Shield className="h-4 w-4 mr-2" />
                           View Permissions
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleResetPassword(admin.id)}>
+                        <DropdownMenuItem onClick={() => handleResetPassword(admin.accountId)}>
                           <ShieldCheck className="h-4 w-4 mr-2" />
                           Reset Password
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem 
-                          onClick={() => handleRevokeAdmin(admin.id)}
+                          onClick={() => handleRevokeAdmin(admin.accountId)}
                           className="text-destructive"
                         >
                           <UserX className="h-4 w-4 mr-2" />
@@ -275,13 +292,22 @@ export default function AdministratorPage() {
             </TableBody>
           </Table>
 
-          {filteredAdministrators.length === 0 && (
+          {paginatedAdministrators.length === 0 && (
             <div className="text-center py-12 text-muted-foreground">
               No administrators found matching your search.
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Pagination Controls */}
+      {filteredAdministrators.length > 0 && (
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { getReportTypeColor } from "@/lib/utils/badge-helpers";
 import {
   Table,
   TableBody,
@@ -31,7 +32,6 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
-import { ReportType } from "@/lib/types";
 import { format } from "date-fns";
 import StatusBadge from "@/components/ui/statusBadge";
 import { PaginationControls } from "@/components/ui/pagination-controls";
@@ -72,12 +72,6 @@ export default function MyAssignmentsPage() {
     setCurrentPage(1);
   };
 
-
-  const getTypeColor = (type: ReportType) => {
-    return type === "CRIME" 
-      ? "bg-red-500/10 text-red-500 border-red-500/20"
-      : "bg-orange-500/10 text-orange-500 border-orange-500/20";
-  };
 
   const stats = {
     total: assignedReports.length,
@@ -237,7 +231,7 @@ export default function MyAssignmentsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getTypeColor(report.type)} variant="outline">
+                        <Badge className={getReportTypeColor(report.type)} variant="outline">
                           {report.type}
                         </Badge>
                       </TableCell>

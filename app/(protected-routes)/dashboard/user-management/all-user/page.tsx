@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { getInitials, getRoleBadgeColor } from "@/lib/utils/badge-helpers";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -146,29 +147,6 @@ export default function AllUsersPage() {
     setCurrentPage(1);
   };
 
-  const getRoleBadgeColor = (user: Student | Staff) => {
-    const role = "role" in user ? user.role : user.accountType;
-    switch (role) {
-      case "STUDENT":
-        return "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20";
-      case "STAFF":
-        return "bg-green-500/10 text-green-500 hover:bg-green-500/20";
-      case "ADMIN":
-        return "bg-purple-500/10 text-purple-500 hover:bg-purple-500/20";
-      default:
-        return "";
-    }
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
   const handleDeactivate = (userId: string) => {
     // TODO: API call to deactivate user
     console.log("Deactivating user:", userId);
@@ -272,7 +250,7 @@ export default function AllUsersPage() {
                     {"studentId" in user ? user.studentId : user.staffId}
                   </TableCell>
                   <TableCell>
-                    <Badge className={getRoleBadgeColor(user)}>
+                    <Badge className={getRoleBadgeColor("role" in user ? user.role : user.accountType)}>
                       {"role" in user ? user.role : user.accountType}
                     </Badge>
                   </TableCell>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { getInitials, getYearBadgeColor } from "@/lib/utils/badge-helpers";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -149,30 +150,6 @@ export default function StudentsPage() {
   const handleFilterChange = (callback: () => void) => {
     callback();
     setCurrentPage(1);
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const getYearBadgeColor = (year: number) => {
-    switch (year) {
-      case 1:
-        return "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20";
-      case 2:
-        return "bg-green-500/10 text-green-500 hover:bg-green-500/20";
-      case 3:
-        return "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20";
-      case 4:
-        return "bg-purple-500/10 text-purple-500 hover:bg-purple-500/20";
-      default:
-        return "";
-    }
   };
 
   return (

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getCategoryColor, getGeneratedReportTypeColor } from "@/lib/utils/badge-helpers";
 import {
   Select,
   SelectContent,
@@ -57,27 +58,6 @@ export default function AllGeneratedReportsPage() {
   const handleFilterChange = (callback: () => void) => {
     callback();
     setCurrentPage(1);
-  };
-
-  const getCategoryColor = (category: GeneratedReportCategory) => {
-    switch (category) {
-      case "CRIME":
-        return "bg-red-500/10 text-red-500 border-red-500/20";
-      case "FACILITY":
-        return "bg-orange-500/10 text-orange-500 border-orange-500/20";
-      case "USER":
-        return "bg-blue-500/10 text-blue-500 border-blue-500/20";
-      case "ALL REPORTS":
-        return "bg-purple-500/10 text-purple-500 border-purple-500/20";
-      default:
-        return "bg-gray-500/10 text-gray-500 border-gray-500/20";
-    }
-  };
-
-  const getTypeColor = (type: GeneratedReportDataType) => {
-    return type === "DETAILED"
-      ? "bg-blue-500/10 text-blue-500 border-blue-500/20"
-      : "bg-green-500/10 text-green-500 border-green-500/20";
   };
 
   const handleDownload = (report: GeneratedReport) => {
@@ -273,7 +253,7 @@ export default function AllGeneratedReportsPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={getTypeColor(report.reportDataType)}>
+                          <Badge variant="outline" className={getGeneratedReportTypeColor(report.reportDataType)}>
                             {report.reportDataType}
                           </Badge>
                         </TableCell>

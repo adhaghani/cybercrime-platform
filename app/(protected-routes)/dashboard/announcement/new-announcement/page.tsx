@@ -6,6 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -16,16 +25,50 @@ import { Switch } from "@/components/ui/switch";
 import { Bell, ArrowLeft, Save, Send, Image as ImageIcon, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { format } from "date-fns";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const announcementSchema = z.object({
+  title: z.string().min(1, "Title is required").max(200, "Title must be less than 200 characters"),
+  message: z.string().min(1, "Message is required").max(2000, "Message must be less than 2000 characters"),
+  type: z.enum(["GENERAL", "EMERGENCY", "EVENT"]),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
+  targetAudience: z.enum(["ALL", "STUDENTS", "STAFF", "ADMIN"]),
+  startDate: z.string().min(1, "Start date is required"),
+  endDate: z.string().min(1, "End date is required"),
+  isPinned: z.boolean(),
+  photo: z.any().optional(),
+}).refine((data) => {
+  if (data.startDate && data.endDate) {
+    return new Date(data.endDate) >= new Date(data.startDate);
+  }
+  return true;
+}, {
+  message: "End date must be after or equal to start date",
+  path: ["endDate"],
+});
 
 export default function NewAnnouncementPage() {
   const router = useRouter();
-  const [isPinned, setIsPinned] = useState(false);
-  const [startDate, setStartDate] = useState<Date>();
-  const [endDate, setEndDate] = useState<Date>();
   const [photoPreview, setPhotoPreview] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const form = useForm<z.infer<typeof announcementSchema>>({
+    resolver: zodResolver(announcementSchema),
+    defaultValues: {
+      title: "",
+      message: "",
+      type: undefined,
+      priority: undefined,
+      targetAudience: undefined,
+      startDate: "",
+      endDate: "",
+      isPinned: false,
+    },
+  });
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -41,13 +84,20 @@ export default function NewAnnouncementPage() {
 
   const handleRemovePhoto = () => {
     setPhotoPreview("");
+    form.setValue("photo", undefined);
   };
 
-  const handleSubmit = (e: React.FormEvent, status: 'DRAFT' | 'PUBLISHED') => {
-    e.preventDefault();
-    // TODO: Implement API call to create announcement
-    console.log('Creating announcement with status:', status);
-    router.push('/dashboard/announcement');
+  const onSubmit = async (data: z.infer<typeof announcementSchema>, status: 'DRAFT' | 'PUBLISHED') => {
+    try {
+      setIsLoading(true);
+      // TODO: Implement API call to create announcement
+      console.log('Creating announcement with status:', status, data);
+      router.push('/dashboard/announcement');
+    } catch (error) {
+      console.error('Failed to create announcement:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -71,71 +121,103 @@ export default function NewAnnouncementPage() {
         </p>
       </div>
 
-      <form className="" onSubmit={(e) => handleSubmit(e, 'PUBLISHED')}>
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Main Form */}
-          <div className="lg:col-span-2 space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Announcement Details</CardTitle>
-                <CardDescription>
-                  Provide the basic information for your announcement
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Title *</Label>
-                  <Input
-                    id="title"
-                    placeholder="Enter announcement title"
-                    required
+      <Form {...form}>
+        <form className="">
+          <div className="grid gap-6 lg:grid-cols-3">
+            {/* Main Form */}
+            <div className="lg:col-span-2 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Announcement Details</CardTitle>
+                  <CardDescription>
+                    Provide the basic information for your announcement
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Title *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter announcement title" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="message">Message *</Label>
-                  <Textarea
-                    id="message"
-                    placeholder="Enter announcement message"
-                    rows={8}
-                    required
+                  <FormField
+                    control={form.control}
+                    name="message"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Message *</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Enter announcement message"
+                            rows={8}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Provide detailed information about the announcement
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Provide detailed information about the announcement
-                  </p>
-                </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="type">Type *</Label>
-                    <Select required>
-                      <SelectTrigger id="type">
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="GENERAL">General</SelectItem>
-                        <SelectItem value="EMERGENCY">Emergency</SelectItem>
-                        <SelectItem value="EVENT">Event</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Type *</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="GENERAL">General</SelectItem>
+                              <SelectItem value="EMERGENCY">Emergency</SelectItem>
+                              <SelectItem value="EVENT">Event</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  <div className="space-y-2">
-                    <Label htmlFor="priority">Priority *</Label>
-                    <Select required>
-                      <SelectTrigger id="priority">
-                        <SelectValue placeholder="Select priority" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="LOW">Low</SelectItem>
-                        <SelectItem value="MEDIUM">Medium</SelectItem>
-                        <SelectItem value="HIGH">High</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormField
+                      control={form.control}
+                      name="priority"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Priority *</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select priority" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="LOW">Low</SelectItem>
+                              <SelectItem value="MEDIUM">Medium</SelectItem>
+                              <SelectItem value="HIGH">High</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
             <Card>
               <CardHeader>
@@ -206,27 +288,33 @@ export default function NewAnnouncementPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="startDate">Start Date *</Label>
-                    <Input
-                      id="startDate"
-                      type="date"
-                      required
-                      value={startDate ? format(startDate, "yyyy-MM-dd") : ""}
-                      onChange={(e) => setStartDate(e.target.value ? new Date(e.target.value) : undefined)}
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="startDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Start Date *</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                  <div className="space-y-2">
-                    <Label htmlFor="endDate">End Date *</Label>
-                    <Input
-                      id="endDate"
-                      type="date"
-                      required
-                      value={endDate ? format(endDate, "yyyy-MM-dd") : ""}
-                      onChange={(e) => setEndDate(e.target.value ? new Date(e.target.value) : undefined)}
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="endDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>End Date *</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -240,34 +328,50 @@ export default function NewAnnouncementPage() {
                 <CardDescription>Configure announcement settings</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="audience">Target Audience *</Label>
-                  <Select required>
-                    <SelectTrigger id="audience">
-                      <SelectValue placeholder="Select audience" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ALL">All Users</SelectItem>
-                      <SelectItem value="STUDENTS">Students Only</SelectItem>
-                      <SelectItem value="STAFF">Staff Only</SelectItem>
-                      <SelectItem value="ADMIN">Admins Only</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <FormField
+                  control={form.control}
+                  name="targetAudience"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Target Audience *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select audience" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="ALL">All Users</SelectItem>
+                          <SelectItem value="STUDENTS">Students Only</SelectItem>
+                          <SelectItem value="STAFF">Staff Only</SelectItem>
+                          <SelectItem value="ADMIN">Admins Only</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="pinned">Pin Announcement</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Display at the top of dashboard
-                    </p>
-                  </div>
-                  <Switch
-                    id="pinned"
-                    checked={isPinned}
-                    onCheckedChange={setIsPinned}
-                  />
-                </div>
+                <FormField
+                  control={form.control}
+                  name="isPinned"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FormLabel>Pin Announcement</FormLabel>
+                        <FormDescription className="text-sm">
+                          Display at the top of dashboard
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
 
@@ -276,15 +380,21 @@ export default function NewAnnouncementPage() {
                 <CardTitle>Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button type="submit" className="w-full">
+                <Button
+                  type="button"
+                  className="w-full"
+                  disabled={isLoading}
+                  onClick={form.handleSubmit((data) => onSubmit(data, 'PUBLISHED'))}
+                >
                   <Send className="h-4 w-4 mr-2" />
-                  Publish Announcement
+                  {isLoading ? "Publishing..." : "Publish Announcement"}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={(e) => handleSubmit(e as React.FormEvent, 'DRAFT')}
+                  disabled={isLoading}
+                  onClick={form.handleSubmit((data) => onSubmit(data, 'DRAFT'))}
                 >
                   <Save className="h-4 w-4 mr-2" />
                   Save as Draft
@@ -302,6 +412,7 @@ export default function NewAnnouncementPage() {
           </div>
         </div>
       </form>
+    </Form>
     </div>
   );
 }

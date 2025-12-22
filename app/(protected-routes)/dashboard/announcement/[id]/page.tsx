@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { getPriorityColor, getAnnouncementTypeColor, getStatusColor } from "@/lib/utils/badge-helpers";
 import {
   Dialog,
   DialogContent,
@@ -42,45 +43,6 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
   if (!announcement) {
     notFound();
   }
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "HIGH":
-        return "bg-red-500/10 text-red-500 border-red-500/20";
-      case "MEDIUM":
-        return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
-      case "LOW":
-        return "bg-blue-500/10 text-blue-500 border-blue-500/20";
-      default:
-        return "bg-gray-500/10 text-gray-500 border-gray-500/20";
-    }
-  };
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case "EMERGENCY":
-        return "bg-red-500/10 text-red-500 border-red-500/20";
-      case "EVENT":
-        return "bg-purple-500/10 text-purple-500 border-purple-500/20";
-      case "GENERAL":
-        return "bg-blue-500/10 text-blue-500 border-blue-500/20";
-      default:
-        return "bg-gray-500/10 text-gray-500 border-gray-500/20";
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "PUBLISHED":
-        return "bg-green-500/10 text-green-500 border-green-500/20";
-      case "DRAFT":
-        return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
-      case "ARCHIVED":
-        return "bg-gray-500/10 text-gray-500 border-gray-500/20";
-      default:
-        return "bg-gray-500/10 text-gray-500 border-gray-500/20";
-    }
-  };
 
   const handleDelete = () => {
     // TODO: Implement API call to delete announcement
@@ -183,7 +145,7 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
 
               <div className="space-y-2">
                 <div className="text-sm font-medium text-muted-foreground">Type</div>
-                <Badge className={getTypeColor(announcement.type)} variant="outline">
+                <Badge className={getAnnouncementTypeColor(announcement.type)} variant="outline">
                   {announcement.type}
                 </Badge>
               </div>
