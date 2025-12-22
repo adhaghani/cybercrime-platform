@@ -56,5 +56,5 @@ export function useIsStaff() {
  */
 export function useIsAdmin() {
   const role = useUserRole();
-  return role === 'ADMIN';
+  return role === 'ADMIN' || role === 'SUPERADMIN';
 }

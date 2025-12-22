@@ -202,15 +202,25 @@ export default function CrimeReportsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Crime Reports ({filteredReports.length})</CardTitle>
-          <CardDescription>
+          <CardDescription className="flex  items-center justify-between gap-2 flex-wrap">
             {filteredReports.length === crimeReports.length 
               ? "Showing all crime reports"
               : `Showing ${filteredReports.length} of ${crimeReports.length} crime reports`
             }
+            {totalPages > 1 && paginatedReports.length > 0 && (
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                itemsPerPage={ITEMS_PER_PAGE}
+                totalItems={filteredReports.length}
+              />
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {filteredReports.length > 0 ? (
+            <>
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
@@ -229,9 +239,6 @@ export default function CrimeReportsPage() {
                       <TableCell>
                         <div className="space-y-1">
                           <div className="font-medium">{report.title}</div>
-                          <div className="text-sm text-muted-foreground line-clamp-1">
-                            {report.description}
-                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -272,17 +279,10 @@ export default function CrimeReportsPage() {
                   ))}
                 </TableBody>
               </Table>
-                          {totalPages > 1 && paginatedReports.length > 0 && (
-              <PaginationControls
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-                itemsPerPage={ITEMS_PER_PAGE}
-                totalItems={filteredReports.length}
-              />
-            )}
+                         
             </div>
 
+            </>
           ) : (
             <div className="text-center py-12 text-muted-foreground">
               <ShieldAlert className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -292,6 +292,7 @@ export default function CrimeReportsPage() {
           )}
         </CardContent>
       </Card>
+
     </div>
   );
 }

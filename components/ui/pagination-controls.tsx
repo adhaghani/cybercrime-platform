@@ -23,7 +23,7 @@ export function PaginationControls({
   const endItem = totalItems ? Math.min(currentPage * (itemsPerPage || 10), totalItems) : 0;
 
   return (
-    <div className="flex items-center justify-between px-2">
+    <div className="flex items-center justify-between px-2 gap-4">
       {totalItems && itemsPerPage && (
         <div className="text-sm text-muted-foreground">
           Showing {startItem} to {endItem} of {totalItems} entries

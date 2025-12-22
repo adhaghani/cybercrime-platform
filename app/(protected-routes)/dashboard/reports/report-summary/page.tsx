@@ -229,10 +229,19 @@ export default function AllGeneratedReportsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Generated Reports ({filteredReports.length})</CardTitle>
-          <CardDescription>
+          <CardDescription className="flex justify-between gap-2 items-center f">
             {filteredReports.length === MOCK_GENERATED_REPORTS.length
               ? "Showing all AI-generated reports"
               : `Showing ${filteredReports.length} of ${MOCK_GENERATED_REPORTS.length} reports`}
+              {totalPages > 1 && (
+                <PaginationControls
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  itemsPerPage={ITEMS_PER_PAGE}
+                  totalItems={filteredReports.length}
+                />
+              )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -246,7 +255,7 @@ export default function AllGeneratedReportsPage() {
                       <TableHead>Category</TableHead>
                       <TableHead>Type</TableHead>
                       <TableHead>Date Range</TableHead>
-                      <TableHead>Generated</TableHead>
+                      
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -256,9 +265,6 @@ export default function AllGeneratedReportsPage() {
                         <TableCell>
                           <div>
                             <div className="font-medium">{report.title}</div>
-                            <div className="text-sm text-muted-foreground line-clamp-1">
-                              {report.summary}
-                            </div>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -279,9 +285,6 @@ export default function AllGeneratedReportsPage() {
                               {format(new Date(report.dateRangeEnd), "MMM d, yyyy")}
                             </span>
                           </div>
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {format(new Date(report.requestedAt), "PPp")}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
@@ -306,15 +309,7 @@ export default function AllGeneratedReportsPage() {
               </div>
 
               {/* Pagination */}
-              {totalPages > 1 && (
-                <PaginationControls
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={setCurrentPage}
-                  itemsPerPage={ITEMS_PER_PAGE}
-                  totalItems={filteredReports.length}
-                />
-              )}
+ 
             </>
           ) : (
             <div className="text-center py-12 text-muted-foreground">

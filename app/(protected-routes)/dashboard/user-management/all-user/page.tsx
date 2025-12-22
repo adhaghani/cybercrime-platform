@@ -22,77 +22,95 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { Account, Student, Staff } from "@/lib/types";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+
+const ITEMS_PER_PAGE = 10;
 
 // Extended mock data - replace with API calls
 const MOCK_ALL_USERS: (Student | Staff)[] = [
   {
-    id: "user-1",
+    accountId: "user-1",
     email: "ahmad.ali@student.uitm.edu.my",
     name: "Ahmad Ali bin Abdullah",
     contactNumber: "012-3456789",
-    role: "STUDENT",
+    accountType: "STUDENT",
     studentId: "2023123456",
     program: "CS240 - Computer Science",
     semester: 4,
     yearOfStudy: 2,
-    avatarUrl: undefined,
+    passwordHash: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: "user-2",
+    accountId: "user-2",
     email: "sarah.wong@student.uitm.edu.my",
     name: "Sarah Wong Li Ying",
     contactNumber: "012-9876543",
-    role: "STUDENT",
+    accountType: "STUDENT",
     studentId: "2023123457",
     program: "IT245 - Information Technology",
     semester: 6,
     yearOfStudy: 3,
-    avatarUrl: undefined,
+    passwordHash: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: "user-3",
+    accountId: "user-3",
     email: "john.tan@student.uitm.edu.my",
     name: "John Tan Wei Ming",
     contactNumber: "013-2468135",
-    role: "STUDENT",
+    accountType: "STUDENT",
     studentId: "2024135791",
     program: "SE250 - Software Engineering",
     semester: 2,
     yearOfStudy: 1,
-    avatarUrl: undefined,
+    passwordHash: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: "staff-1",
+    accountId: "staff-1",
     email: "abu.bakar@uitm.edu.my",
     name: "Officer Abu Bakar",
     contactNumber: "013-9876543",
+    accountType: "STAFF",
     role: "STAFF",
     staffId: "S12345",
     department: "Campus Security",
     position: "Patrol Officer",
-    avatarUrl: undefined,
+    passwordHash: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: "staff-2",
+    accountId: "staff-2",
     email: "siti.nurhaliza@uitm.edu.my",
     name: "Dr. Siti Nurhaliza",
     contactNumber: "012-5556789",
+    accountType: "STAFF",
     role: "STAFF",
     staffId: "S12346",
     department: "Computer Science",
     position: "Senior Lecturer",
-    avatarUrl: undefined,
+    passwordHash: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: "admin-1",
+    accountId: "admin-1",
     email: "rahman.admin@uitm.edu.my",
     name: "Encik Rahman Ibrahim",
     contactNumber: "019-3334567",
+    accountType: "STAFF",
     role: "ADMIN",
     staffId: "A10001",
     department: "System Administration",
     position: "System Administrator",
-    avatarUrl: undefined,
+    passwordHash: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
 ];
 
@@ -101,6 +119,7 @@ type RoleFilter = "ALL" | "STUDENT" | "STAFF" | "ADMIN";
 export default function AllUsersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
   const [users] = useState<(Student | Staff)[]>(MOCK_ALL_USERS);
 
   const filteredUsers = users.filter((user) => {
@@ -110,12 +129,25 @@ export default function AllUsersPage() {
       ("studentId" in user && user.studentId.toLowerCase().includes(searchQuery.toLowerCase())) ||
       ("staffId" in user && user.staffId.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    const matchesRole = roleFilter === "ALL" || user.role === roleFilter;
+    const matchesRole = roleFilter === "ALL" || ("role" in user && user.role === roleFilter) || (roleFilter === "STUDENT" && user.accountType === "STUDENT");
 
     return matchesSearch && matchesRole;
   });
 
-  const getRoleBadgeColor = (role: string) => {
+  // Pagination
+  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  const handleFilterChange = (callback: () => void) => {
+    callback();
+    setCurrentPage(1);
+  };
+
+  const getRoleBadgeColor = (user: Student | Staff) => {
+    const role = "role" in user ? user.role : user.accountType;
     switch (role) {
       case "STUDENT":
         return "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20";
@@ -178,7 +210,7 @@ export default function AllUsersPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as RoleFilter)}>
+        <Select value={roleFilter} onValueChange={(v) => handleFilterChange(() => setRoleFilter(v as RoleFilter))}>
           <SelectTrigger className="w-full md:w-[180px]">
             <Filter className="h-4 w-4 mr-2" />
             <SelectValue placeholder="Filter by role" />
@@ -196,6 +228,15 @@ export default function AllUsersPage() {
       <Card>
         <CardHeader>
           <CardTitle>Users ({filteredUsers.length})</CardTitle>
+          {totalPages > 1 && paginatedUsers.length > 0 && (
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={ITEMS_PER_PAGE}
+              totalItems={filteredUsers.length}
+            />
+          )}
         </CardHeader>
         <CardContent>
           <Table>
@@ -210,8 +251,8 @@ export default function AllUsersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredUsers.map((user) => (
-                <TableRow key={user.id}>
+              {paginatedUsers.map((user) => (
+                <TableRow key={user.accountId}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
@@ -231,8 +272,8 @@ export default function AllUsersPage() {
                     {"studentId" in user ? user.studentId : user.staffId}
                   </TableCell>
                   <TableCell>
-                    <Badge className={getRoleBadgeColor(user.role)}>
-                      {user.role}
+                    <Badge className={getRoleBadgeColor(user)}>
+                      {"role" in user ? user.role : user.accountType}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -275,12 +316,12 @@ export default function AllUsersPage() {
                           View Details
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleDeactivate(user.id)}>
+                        <DropdownMenuItem onClick={() => handleDeactivate(user.accountId)}>
                           <UserX className="h-4 w-4 mr-2" />
                           Deactivate
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => handleDelete(user.id)}
+                          onClick={() => handleDelete(user.accountId)}
                           className="text-destructive"
                         >
                           <Trash2 className="h-4 w-4 mr-2" />

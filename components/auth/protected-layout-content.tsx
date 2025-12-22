@@ -29,17 +29,30 @@ export function ProtectedLayoutContent({
         }
 
         // Set user claims
+        const userRole = 'role' in user ? user.role : user.accountType;
+        
+        console.log('Setting user role:', userRole, 'User type:', user.accountType);
+        
         setClaims({
-          sub: user.id,
+          sub: user.accountId,
           email: user.email,
           user_metadata: {
-            full_name: user.full_name || "",
-            username: user.username || "",
-            avatar_url: user.avatar_url || "",
+            name: user.name || "",
+            contactNumber: user.contactNumber || "",
+            ...(('studentId' in user) ? {
+              studentId: user.studentId,
+              program: user.program,
+              semester: user.semester,
+              yearOfStudy: user.yearOfStudy,
+            } : {
+              staffId: user.staffId,
+              department: user.department,
+              position: user.position,
+            })
           },
-          role: user.role,
-          created_at: user.created_at,
-          updated_at: user.updated_at,
+          role: userRole as any,
+          created_at: user.createdAt,
+          updated_at: user.updatedAt,
         });
       } catch (error) {
         console.error("Error loading user data:", error);

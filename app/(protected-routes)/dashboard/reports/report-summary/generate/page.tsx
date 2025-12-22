@@ -152,13 +152,13 @@ export default function GenerateReportPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto w-full">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="sm" asChild>
-          <Link href="/dashboard/reports">
+          <Link href="/dashboard/reports/report-summary">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Reports
+            Back to Reports summary
           </Link>
         </Button>
       </div>

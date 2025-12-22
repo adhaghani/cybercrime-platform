@@ -8,9 +8,7 @@ import {
   Wrench, 
   Phone, 
   TrendingUp, 
-  FileText,
   Clock,
-  CheckCircle2,
   ArrowRight,
   MapPin,
   Bell
@@ -31,7 +29,7 @@ interface StudentDashboardProps {
   activeAnnouncementsCount: number;
 }
 
-export function StudentDashboard({ stats, activeAnnouncementsCount }: StudentDashboardProps) {
+export function StudentDashboard({ stats }: StudentDashboardProps) {
   const crimeReports = MOCK_REPORTS.filter((r) => r.type === "CRIME") as Crime[];
   const facilityReports = MOCK_REPORTS.filter((r) => r.type === "FACILITY") as Facility[];
   
@@ -51,60 +49,6 @@ export function StudentDashboard({ stats, activeAnnouncementsCount }: StudentDas
 
   return (
     <>
-      {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">My Reports</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.myReports}</div>
-            <p className="text-xs text-muted-foreground">
-              Total submissions
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-500">{stats.pendingReports}</div>
-            <p className="text-xs text-muted-foreground">
-              Awaiting review
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Resolved</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-500">{stats.resolvedReports}</div>
-            <p className="text-xs text-muted-foreground">
-              Successfully closed
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Announcements</CardTitle>
-            <Bell className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeAnnouncementsCount}</div>
-            <p className="text-xs text-muted-foreground">
-              Active notifications
-            </p>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Main Cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

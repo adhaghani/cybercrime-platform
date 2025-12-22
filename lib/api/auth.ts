@@ -43,10 +43,7 @@ export async function login(credentials: LoginCredentials): Promise<AuthResponse
           name: 'John Doe',
           contactNumber: '012-3456789',
           accountType: 'STUDENT',
-          // role: 'SUPERADMIN',
-          // department: 'IT Department',
-          // position: 'System Administrator',
-          // supervisorId: '5',
+          studentId: '2023123456',
           program: 'Computer Science',
           semester: 4,
           yearOfStudy: 2,
@@ -59,12 +56,9 @@ export async function login(credentials: LoginCredentials): Promise<AuthResponse
           accountId: mockUser.accountId,
           name: mockUser.name,
           email: mockUser.email,
-          // role: mockUser.role,
           accountType: mockUser.accountType,
           contactNumber: mockUser.contactNumber,
-          // department: mockUser.department,
-          // position: mockUser.position,
-          // supervisorId: mockUser.supervisorId,
+          studentId: mockUser.studentId,
           program: mockUser.program,
           semester: mockUser.semester,
           yearOfStudy: mockUser.yearOfStudy,
@@ -145,13 +139,14 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
     // Mock user data
     // In a real app, we would fetch the full profile from the backend
     // Here we reconstruct it from the token or return a default mock
-    if (decoded.role === 'STUDENT') {
+    if (decoded.accountType === 'STUDENT') {
       return {
           accountId: decoded.accountId || '1',
           email: decoded.email || "email@john.com",
           name: decoded.name || 'John Doe',
           contactNumber: decoded.contactNumber || '012-3456789',
-          accountType: decoded.accountType || 'STUDENT',
+          accountType: 'STUDENT',
+          studentId: decoded.studentId || '2023123456',
           program: decoded.program || 'Computer Science',
           semester: decoded.semester || 4,
           yearOfStudy: decoded.yearOfStudy || 2,
@@ -165,17 +160,18 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
           email: decoded.email || "john@gmail.com",
           name: decoded.name || 'John Doe',
           contactNumber: decoded.contactNumber || '012-3456789',
-          accountType: decoded.accountType || 'STAFF',
+          accountType: 'STAFF',
+          staffId: decoded.staffId || 'S12345',
           role: decoded.role || 'SUPERADMIN',
           department: decoded.department || 'IT Department',
           position: decoded.position || 'System Administrator',
-          supervisorId: decoded.supervisorId || '5',
+          supervisorId: decoded.supervisorId,
           passwordHash: '',
           createdAt: '',
           updatedAt: ''
       } as Staff;
     }
-  } catch (error) {
+  } catch {
     apiClient.clearToken();
     return null;
   }

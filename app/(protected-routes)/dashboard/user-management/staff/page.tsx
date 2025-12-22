@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
-  ArrowLeft, Search, Filter, MoreVertical, Mail, Phone, 
+  ArrowLeft, Search, MoreVertical, Mail, Phone, 
   Briefcase, Building2, Edit, UserX, Shield
 } from "lucide-react";
 import {
@@ -22,94 +22,130 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { Staff } from "@/lib/types";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+
+const ITEMS_PER_PAGE = 10;
 
 // Extended mock staff data
 const MOCK_STAFF_MEMBERS: Staff[] = [
   {
-    id: "staff-1",
+    accountId: "staff-1",
     email: "abu.bakar@uitm.edu.my",
     name: "Officer Abu Bakar bin Sulaiman",
     contactNumber: "013-9876543",
+    accountType: "STAFF",
     role: "STAFF",
     staffId: "S12345",
     department: "Campus Security",
     position: "Patrol Officer",
+    passwordHash: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: "staff-2",
+    accountId: "staff-2",
     email: "siti.nurhaliza@uitm.edu.my",
     name: "Dr. Siti Nurhaliza binti Mohamed",
     contactNumber: "012-5556789",
+    accountType: "STAFF",
     role: "STAFF",
     staffId: "S12346",
     department: "Computer Science",
     position: "Senior Lecturer",
+    passwordHash: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: "staff-3",
+    accountId: "staff-3",
     email: "ali.imran@uitm.edu.my",
     name: "Encik Ali Imran bin Rahman",
     contactNumber: "019-2223456",
+    accountType: "STAFF",
     role: "STAFF",
     staffId: "S12347",
     department: "Facilities Management",
     position: "Maintenance Supervisor",
+    passwordHash: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: "staff-4",
+    accountId: "staff-4",
     email: "maria.abdullah@uitm.edu.my",
     name: "Puan Maria binti Abdullah",
     contactNumber: "017-8889012",
+    accountType: "STAFF",
     role: "STAFF",
     staffId: "S12348",
     department: "Student Affairs",
     position: "Student Counselor",
+    passwordHash: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: "staff-5",
+    accountId: "staff-5",
     email: "kumar.rajan@uitm.edu.my",
     name: "Dr. Kumar a/l Rajan",
     contactNumber: "016-4445678",
+    accountType: "STAFF",
     role: "STAFF",
     staffId: "S12349",
     department: "Information Technology",
     position: "Associate Professor",
+    passwordHash: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: "staff-6",
+    accountId: "staff-6",
     email: "lim.mei.ling@uitm.edu.my",
     name: "Ms. Lim Mei Ling",
     contactNumber: "012-1112345",
+    accountType: "STAFF",
     role: "STAFF",
     staffId: "S12350",
     department: "Library Services",
     position: "Head Librarian",
+    passwordHash: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: "staff-7",
+    accountId: "staff-7",
     email: "hassan.mahmud@uitm.edu.my",
     name: "Encik Hassan bin Mahmud",
     contactNumber: "019-7778901",
+    accountType: "STAFF",
     role: "STAFF",
     staffId: "S12351",
     department: "Campus Security",
     position: "Security Manager",
+    passwordHash: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: "staff-8",
+    accountId: "staff-8",
     email: "noor.azlina@uitm.edu.my",
     name: "Dr. Noor Azlina binti Ismail",
     contactNumber: "013-6667890",
+    accountType: "STAFF",
     role: "STAFF",
     staffId: "S12352",
     department: "Software Engineering",
     position: "Lecturer",
+    passwordHash: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
 ];
 
 export default function StaffPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
   const [staff] = useState<Staff[]>(MOCK_STAFF_MEMBERS);
 
   // Get unique departments for filter
@@ -127,6 +163,18 @@ export default function StaffPage() {
 
     return matchesSearch && matchesDepartment;
   });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredStaff.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedStaff = filteredStaff.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  const handleFilterChange = (callback: () => void) => {
+    callback();
+    setCurrentPage(1);
+  };
 
   const getInitials = (name: string) => {
     return name
@@ -186,7 +234,7 @@ export default function StaffPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+        <Select value={departmentFilter} onValueChange={(v) => handleFilterChange(() => setDepartmentFilter(v))}>
           <SelectTrigger className="w-full md:w-[240px]">
             <Building2 className="h-4 w-4 mr-2" />
             <SelectValue placeholder="Department" />
@@ -206,6 +254,15 @@ export default function StaffPage() {
       <Card>
         <CardHeader>
           <CardTitle>Staff List ({filteredStaff.length})</CardTitle>
+          {totalPages > 1 && paginatedStaff.length > 0 && (
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={ITEMS_PER_PAGE}
+              totalItems={filteredStaff.length}
+            />
+          )}
         </CardHeader>
         <CardContent>
           <Table>
@@ -220,8 +277,8 @@ export default function StaffPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredStaff.map((member) => (
-                <TableRow key={member.id}>
+              {paginatedStaff.map((member) => (
+                <TableRow key={member.accountId}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
@@ -273,7 +330,7 @@ export default function StaffPage() {
                           View Assignments
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handlePromoteToAdmin(member.id)}>
+                        <DropdownMenuItem onClick={() => handlePromoteToAdmin(member.accountId)}>
                           <Shield className="h-4 w-4 mr-2" />
                           Promote to Admin
                         </DropdownMenuItem>

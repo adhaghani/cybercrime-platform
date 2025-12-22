@@ -46,17 +46,21 @@ export interface Account {
 
 // 2. Student Table
 export interface Student extends Account {
+  studentId: string;
   program: string;
   semester: number;
   yearOfStudy: number;
+  avatarUrl?: string;
 }
 
 // 3. Staff Table
 export interface Staff extends Account {
+  staffId: string;
   role: Role;
   department: string;
   position: string;
   supervisorId?: string; // FK → staff.account_id (self-referencing)
+  avatarUrl?: string;
 }
 
 // 4. Report Table

@@ -22,74 +22,95 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { Student } from "@/lib/types";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+
+const ITEMS_PER_PAGE = 10;
 
 // Extended mock student data
 const MOCK_STUDENTS: Student[] = [
   {
-    id: "stu-1",
+    accountId: "stu-1",
     email: "ahmad.ali@student.uitm.edu.my",
     name: "Ahmad Ali bin Abdullah",
     contactNumber: "012-3456789",
-    role: "STUDENT",
+    accountType: "STUDENT",
     studentId: "2023123456",
     program: "CS240 - Computer Science",
     semester: 4,
     yearOfStudy: 2,
+    passwordHash: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: "stu-2",
+    accountId: "stu-2",
     email: "sarah.wong@student.uitm.edu.my",
     name: "Sarah Wong Li Ying",
     contactNumber: "012-9876543",
-    role: "STUDENT",
+    accountType: "STUDENT",
     studentId: "2023123457",
     program: "IT245 - Information Technology",
     semester: 6,
     yearOfStudy: 3,
+    passwordHash: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: "stu-3",
+    accountId: "stu-3",
     email: "john.tan@student.uitm.edu.my",
     name: "John Tan Wei Ming",
     contactNumber: "013-2468135",
-    role: "STUDENT",
+    accountType: "STUDENT",
     studentId: "2024135791",
     program: "SE250 - Software Engineering",
     semester: 2,
     yearOfStudy: 1,
+    passwordHash: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: "stu-4",
+    accountId: "stu-4",
     email: "nurul.aisyah@student.uitm.edu.my",
     name: "Nurul Aisyah binti Hassan",
     contactNumber: "019-8765432",
-    role: "STUDENT",
+    accountType: "STUDENT",
     studentId: "2022098765",
     program: "CS240 - Computer Science",
     semester: 8,
     yearOfStudy: 4,
+    passwordHash: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: "stu-5",
+    accountId: "stu-5",
     email: "david.lim@student.uitm.edu.my",
     name: "David Lim Chee Kong",
     contactNumber: "016-7654321",
-    role: "STUDENT",
+    accountType: "STUDENT",
     studentId: "2024123789",
     program: "IM246 - Information Management",
     semester: 1,
     yearOfStudy: 1,
+    passwordHash: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: "stu-6",
+    accountId: "stu-6",
     email: "fatimah.zahra@student.uitm.edu.my",
     name: "Fatimah Zahra binti Ahmad",
     contactNumber: "017-5556789",
-    role: "STUDENT",
+    accountType: "STUDENT",
     studentId: "2023234567",
     program: "IT245 - Information Technology",
     semester: 5,
     yearOfStudy: 3,
+    passwordHash: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
 ];
 
@@ -99,6 +120,7 @@ export default function StudentsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [yearFilter, setYearFilter] = useState<YearFilter>("ALL");
   const [programFilter, setProgramFilter] = useState("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
   const [students] = useState<Student[]>(MOCK_STUDENTS);
 
   // Get unique programs for filter
@@ -116,6 +138,18 @@ export default function StudentsPage() {
 
     return matchesSearch && matchesYear && matchesProgram;
   });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredStudents.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedStudents = filteredStudents.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  const handleFilterChange = (callback: () => void) => {
+    callback();
+    setCurrentPage(1);
+  };
 
   const getInitials = (name: string) => {
     return name
@@ -171,7 +205,7 @@ export default function StudentsPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <Select value={yearFilter} onValueChange={(v) => setYearFilter(v as YearFilter)}>
+        <Select value={yearFilter} onValueChange={(v) => handleFilterChange(() => setYearFilter(v as YearFilter))}>
           <SelectTrigger className="w-full md:w-[180px]">
             <Filter className="h-4 w-4 mr-2" />
             <SelectValue placeholder="Year of study" />
@@ -184,7 +218,7 @@ export default function StudentsPage() {
             <SelectItem value="4">Year 4</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={programFilter} onValueChange={setProgramFilter}>
+        <Select value={programFilter} onValueChange={(v) => handleFilterChange(() => setProgramFilter(v))}>
           <SelectTrigger className="w-full md:w-[240px]">
             <BookOpen className="h-4 w-4 mr-2" />
             <SelectValue placeholder="Program" />
@@ -204,6 +238,15 @@ export default function StudentsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Student List ({filteredStudents.length})</CardTitle>
+          {totalPages > 1 && paginatedStudents.length > 0 && (
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={ITEMS_PER_PAGE}
+              totalItems={filteredStudents.length}
+            />
+          )}
         </CardHeader>
         <CardContent>
           <Table>
@@ -218,8 +261,8 @@ export default function StudentsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredStudents.map((student) => (
-                <TableRow key={student.id}>
+              {paginatedStudents.map((student) => (
+                <TableRow key={student.accountId}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>

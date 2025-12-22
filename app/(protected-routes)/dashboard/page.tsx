@@ -14,6 +14,20 @@ export default function DashboardPage() {
   const isStaff = hasAnyRole(['STAFF']);
   const isAdmin = hasAnyRole(['ADMIN', 'SUPERADMIN']);
   
+  // Handle null role - user not authenticated or role not set
+  if (role === null) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center space-y-4">
+          <h2 className="text-2xl font-semibold">Loading...</h2>
+          <p className="text-muted-foreground">
+            Please wait while we fetch your account information.
+          </p>
+        </div>
+      </div>
+    );
+  }
+  
   const crimeReports = MOCK_REPORTS.filter((r) => r.type === "CRIME") as Crime[];
   const facilityReports = MOCK_REPORTS.filter((r) => r.type === "FACILITY") as Facility[];
   

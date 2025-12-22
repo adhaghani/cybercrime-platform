@@ -207,11 +207,20 @@ export default function MyAssignmentsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Assigned Reports ({filteredReports.length})</CardTitle>
-          <CardDescription>
+          <CardDescription className="flex justify-between items-center gap-2 flex-wrap">
             {filteredReports.length === assignedReports.length 
               ? "Showing all your assignments"
               : `Showing ${filteredReports.length} of ${assignedReports.length} assignments`
             }
+                                      {totalPages > 1 && paginatedReports.length > 0 && (
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                itemsPerPage={ITEMS_PER_PAGE}
+                totalItems={filteredReports.length}
+              />
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -234,9 +243,6 @@ export default function MyAssignmentsPage() {
                       <TableCell>
                         <div className="space-y-1">
                           <div className="font-medium">{report.title}</div>
-                          <div className="text-sm text-muted-foreground line-clamp-1">
-                            {report.description}
-                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -271,15 +277,7 @@ export default function MyAssignmentsPage() {
                   ))}
                 </TableBody>
               </Table>
-                          {totalPages > 1 && paginatedReports.length > 0 && (
-              <PaginationControls
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-                itemsPerPage={ITEMS_PER_PAGE}
-                totalItems={filteredReports.length}
-              />
-            )}
+
             </div>
           ) : (
             <div className="text-center py-12 text-muted-foreground">

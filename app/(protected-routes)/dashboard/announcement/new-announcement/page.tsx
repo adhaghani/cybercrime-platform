@@ -51,7 +51,7 @@ export default function NewAnnouncementPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto w-full">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="sm" asChild>
           <Link href="/dashboard/announcement">
@@ -71,7 +71,7 @@ export default function NewAnnouncementPage() {
         </p>
       </div>
 
-      <form onSubmit={(e) => handleSubmit(e, 'PUBLISHED')}>
+      <form className="" onSubmit={(e) => handleSubmit(e, 'PUBLISHED')}>
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Form */}
           <div className="lg:col-span-2 space-y-6">

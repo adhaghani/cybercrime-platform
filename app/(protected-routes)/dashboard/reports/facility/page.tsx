@@ -234,11 +234,19 @@ export default function FacilityReportsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Facility Reports ({filteredReports.length})</CardTitle>
-          <CardDescription>
+          <CardDescription className="flex items-center justify-between gap-2 flex-wrap">
             {filteredReports.length === facilityReports.length 
               ? "Showing all facility reports"
               : `Showing ${filteredReports.length} of ${facilityReports.length} facility reports`
             }
+              {totalPages > 1 && paginatedReports.length > 0 && (
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                itemsPerPage={ITEMS_PER_PAGE}
+                totalItems={filteredReports.length}
+              />)}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -263,9 +271,6 @@ export default function FacilityReportsPage() {
                       <TableCell>
                         <div className="space-y-1">
                           <div className="font-medium">{report.title}</div>
-                          <div className="text-sm text-muted-foreground line-clamp-1">
-                            {report.description}
-                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -311,18 +316,6 @@ export default function FacilityReportsPage() {
                   ))}
                 </TableBody>
               </Table>
-              {totalPages > 1 && paginatedReports.length > 0 ? (
-              <PaginationControls
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-                itemsPerPage={ITEMS_PER_PAGE}
-                totalItems={filteredReports.length}
-              />): (            <div className="text-center py-12 text-muted-foreground">
-              <Wrench className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No facility reports found matching your filters.</p>
-              <p className="text-sm mt-2">Try adjusting your search criteria.</p>
-            </div>)}
             </div>
 
         ): (

@@ -35,7 +35,7 @@ export class AIService {
     // Default to LM Studio local endpoint
     this.baseUrl = config?.baseUrl || 'http://localhost:1234/v1';
     this.apiKey = config?.apiKey || 'lm-studio'; // LM Studio doesn't require real API key
-    this.model = config?.model || 'qwen/qwen3-1.7b';
+    this.model = config?.model || 'liquid/lfm2-1.2b';
   }
 
   /**
