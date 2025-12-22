@@ -4,6 +4,8 @@
  * Uses OpenAI-Compatible endpoints
  */
 
+import { prepareDataForAI, compactDate } from '../process';
+
 export interface AIGenerateRequest {
   prompt: string;
   temperature?: number;
@@ -79,7 +81,7 @@ export class AIService {
   }
 
   /**
-   * Build prompt for report generation
+   * Build prompt for report generation with optimized data
    */
   buildReportPrompt(params: {
     category: string;
@@ -90,34 +92,51 @@ export class AIService {
   }): string {
     const { category, dataType, dateRangeStart, dateRangeEnd, reportData } = params;
 
-    const basePrompt = `Generate a ${dataType.toLowerCase()} ${category.toLowerCase()} report for the period from ${dateRangeStart} to ${dateRangeEnd}.
+    // Process data for AI to reduce token usage
+    const processedData = prepareDataForAI(reportData, {
+      includeDescription: dataType === 'DETAILED',
+      maxDescriptionLength: dataType === 'SUMMARY' ? 50 : 150,
+      logSavings: true, // Log token savings to console
+    });
 
-Based on the following data:
-${JSON.stringify(reportData, null, 2)}
+    // Compact dates for the date range
+    const startCompact = compactDate(dateRangeStart);
+    const endCompact = compactDate(dateRangeEnd);
 
-Provide a comprehensive analysis including:
-1. Executive Summary
-2. Key Statistics and Trends
-3. Detailed Analysis
-4. Risk Assessment
-5. Recommendations
-6. Conclusion
+    const basePrompt = `Generate a ${dataType.toLowerCase()} ${category.toLowerCase()} report for the period from ${startCompact} to ${endCompact}.
 
-Return the response in the following JSON format:
+DATA FORMAT LEGEND:
+- Status: P=Pending, IP=InProgress, R=Resolved, RJ=Rejected
+- Type: C=Crime, F=Facility
+- Keys: tot=total, bySt=byStatus, rpts=reports, ttl=title, loc=location, st=status, typ=type, sub=submittedAt
+- Dates: YYYYMMDD format (e.g., 20241215 = Dec 15, 2024)
+
+PROCESSED DATA:
+${JSON.stringify(processedData, null, 2)}
+
+ANALYSIS REQUIREMENTS:
+1. Executive Summary - Brief overview of key findings
+2. Key Statistics and Trends - Highlight important metrics and patterns
+3. Detailed Analysis - In-depth examination of the data
+4. Risk Assessment - Evaluate security/safety risk level
+5. Recommendations - Actionable suggestions for improvement
+6. Conclusion - Final summary and outlook
+
+IMPORTANT: Return ONLY valid JSON in this exact format:
 {
-  "executiveSummary": "...",
+  "executiveSummary": "string",
   "keyStatistics": {
     "totalIncidents": number,
-    "trends": "...",
-    "comparisonToPrevious": "..."
+    "trends": "string",
+    "comparisonToPrevious": "string"
   },
-  "detailedAnalysis": "...",
+  "detailedAnalysis": "string",
   "riskAssessment": {
     "level": "LOW|MEDIUM|HIGH|CRITICAL",
-    "factors": ["..."]
+    "factors": ["string", "string"]
   },
-  "recommendations": ["..."],
-  "conclusion": "..."
+  "recommendations": ["string", "string"],
+  "conclusion": "string"
 }`;
 
     return basePrompt;
