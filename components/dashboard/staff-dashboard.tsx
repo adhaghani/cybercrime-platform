@@ -18,7 +18,7 @@ import {
   Bell
 } from "lucide-react";
 import Link from "next/link";
-import { Crime, Facility, Report } from "@/lib/types";
+import { Crime, Facility } from "@/lib/types";
 import { format } from "date-fns";
 
 interface StaffDashboardProps {
@@ -157,7 +157,7 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Pending</span>
                 <Badge variant="outline" className="bg-yellow-500/10 text-yellow-500">
-                  {MOCK_REPORTS.filter(r => r.type === "FACILITY" && r.status === "PENDING").length}
+                  {reports.filter(r => r.type === "FACILITY" && r.status === "PENDING").length}
                 </Badge>
               </div>
             </div>

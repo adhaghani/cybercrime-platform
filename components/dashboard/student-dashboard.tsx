@@ -14,7 +14,7 @@ import {
   Bell
 } from "lucide-react";
 import Link from "next/link";
-import { Crime, Facility, Report } from "@/lib/types";
+import { Crime, Facility } from "@/lib/types";
 import { format } from "date-fns";
 import { useAuth } from "@/lib/context/auth-provider";
 

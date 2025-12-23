@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getInitials, getYearBadgeColor } from "@/lib/utils/badge-helpers";
@@ -27,94 +28,6 @@ import { PaginationControls } from "@/components/ui/pagination-controls";
 
 const ITEMS_PER_PAGE = 10;
 
-// Extended mock student data
-const MOCK_STUDENTS: Student[] = [
-  {
-    accountId: "stu-1",
-    email: "ahmad.ali@student.uitm.edu.my",
-    name: "Ahmad Ali bin Abdullah",
-    contactNumber: "012-3456789",
-    accountType: "STUDENT",
-    studentId: "2023123456",
-    program: "CS240 - Computer Science",
-    semester: 4,
-    yearOfStudy: 2,
-    passwordHash: "",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    accountId: "stu-2",
-    email: "sarah.wong@student.uitm.edu.my",
-    name: "Sarah Wong Li Ying",
-    contactNumber: "012-9876543",
-    accountType: "STUDENT",
-    studentId: "2023123457",
-    program: "IT245 - Information Technology",
-    semester: 6,
-    yearOfStudy: 3,
-    passwordHash: "",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    accountId: "stu-3",
-    email: "john.tan@student.uitm.edu.my",
-    name: "John Tan Wei Ming",
-    contactNumber: "013-2468135",
-    accountType: "STUDENT",
-    studentId: "2024135791",
-    program: "SE250 - Software Engineering",
-    semester: 2,
-    yearOfStudy: 1,
-    passwordHash: "",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    accountId: "stu-4",
-    email: "nurul.aisyah@student.uitm.edu.my",
-    name: "Nurul Aisyah binti Hassan",
-    contactNumber: "019-8765432",
-    accountType: "STUDENT",
-    studentId: "2022098765",
-    program: "CS240 - Computer Science",
-    semester: 8,
-    yearOfStudy: 4,
-    passwordHash: "",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    accountId: "stu-5",
-    email: "david.lim@student.uitm.edu.my",
-    name: "David Lim Chee Kong",
-    contactNumber: "016-7654321",
-    accountType: "STUDENT",
-    studentId: "2024123789",
-    program: "IM246 - Information Management",
-    semester: 1,
-    yearOfStudy: 1,
-    passwordHash: "",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    accountId: "stu-6",
-    email: "fatimah.zahra@student.uitm.edu.my",
-    name: "Fatimah Zahra binti Ahmad",
-    contactNumber: "017-5556789",
-    accountType: "STUDENT",
-    studentId: "2023234567",
-    program: "IT245 - Information Technology",
-    semester: 5,
-    yearOfStudy: 3,
-    passwordHash: "",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
-
 type YearFilter = "ALL" | "1" | "2" | "3" | "4";
 
 export default function StudentsPage() {
@@ -122,7 +35,24 @@ export default function StudentsPage() {
   const [yearFilter, setYearFilter] = useState<YearFilter>("ALL");
   const [programFilter, setProgramFilter] = useState("ALL");
   const [currentPage, setCurrentPage] = useState(1);
-  const [students] = useState<Student[]>(MOCK_STUDENTS);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const response = await fetch('/api/students');
+        if (!response.ok) throw new Error('Failed to fetch students');
+        const data = await response.json();
+        setStudents(data);
+      } catch (error) {
+        console.error('Error fetching students:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStudents();
+  }, []);
 
   // Get unique programs for filter
   const programs = Array.from(new Set(students.map(s => s.program)));
@@ -151,6 +81,14 @@ export default function StudentsPage() {
     callback();
     setCurrentPage(1);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
