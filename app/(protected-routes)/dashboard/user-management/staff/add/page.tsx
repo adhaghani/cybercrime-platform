@@ -10,6 +10,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from 'sonner';
 import { Role } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
+import { useForm, Controller } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 interface Supervisor {
   accountId: string;
@@ -17,21 +20,37 @@ interface Supervisor {
   department: string;
 }
 
+const staffSchema = z.object({
+  name: z.string().min(1, "Name is required").max(100, "Name is too long"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  contactNumber: z.string().min(9, "Contact number must be at least 9 characters").optional().or(z.literal("")),
+  role: z.enum(["STAFF", "SUPERVISOR", "ADMIN", "SUPERADMIN"] as const),
+  department: z.string().min(1, "Department is required").max(100, "Department is too long"),
+  position: z.string().min(1, "Position is required").max(100, "Position is too long"),
+  supervisorId: z.string().optional().or(z.literal("")),
+});
+
+type StaffFormData = z.infer<typeof staffSchema>;
+
 export default function AddStaffPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [supervisors, setSupervisors] = useState<Supervisor[]>([]);
   const [currentUser, setCurrentUser] = useState<{ role: Role; accountId: string } | null>(null);
   
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    contactNumber: '',
-    role: 'STAFF' as Role,
-    department: '',
-    position: '',
-    supervisorId: '',
+  const form = useForm<StaffFormData>({
+    resolver: zodResolver(staffSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      contactNumber: '',
+      role: 'STAFF',
+      department: '',
+      position: '',
+      supervisorId: '',
+    },
   });
 
   useEffect(() => {
@@ -48,7 +67,7 @@ export default function AddStaffPage() {
         
         // If current user is SUPERVISOR, auto-assign their ID
         if (data.role === 'SUPERVISOR') {
-          setFormData(prev => ({ ...prev, supervisorId: data.accountId }));
+          form.setValue('supervisorId', data.accountId);
         }
       }
     } catch (error) {
@@ -68,8 +87,7 @@ export default function AddStaffPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: StaffFormData) => {
     setLoading(true);
 
     try {
@@ -78,10 +96,10 @@ export default function AddStaffPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          contactNumber: formData.contactNumber,
+          name: data.name,
+          email: data.email,
+          password: data.password,
+          contactNumber: data.contactNumber || undefined,
           accountType: 'STAFF',
         }),
       });
@@ -99,10 +117,10 @@ export default function AddStaffPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           accountId,
-          role: formData.role,
-          department: formData.department,
-          position: formData.position,
-          supervisorId: formData.supervisorId || null,
+          role: data.role,
+          department: data.department,
+          position: data.position,
+          supervisorId: data.supervisorId || null,
         }),
       });
 
@@ -135,7 +153,7 @@ export default function AddStaffPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Account Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Account Information</h3>
@@ -145,10 +163,11 @@ export default function AddStaffPage() {
                   <Label htmlFor="name">Full Name *</Label>
                   <Input
                     id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
+                    {...form.register("name")}
                   />
+                  {form.formState.errors.name && (
+                    <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -156,10 +175,11 @@ export default function AddStaffPage() {
                   <Input
                     id="email"
                     type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    required
+                    {...form.register("email")}
                   />
+                  {form.formState.errors.email && (
+                    <p className="text-sm text-destructive">{form.formState.errors.email.message}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -167,19 +187,22 @@ export default function AddStaffPage() {
                   <Input
                     id="password"
                     type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    required
+                    {...form.register("password")}
                   />
+                  {form.formState.errors.password && (
+                    <p className="text-sm text-destructive">{form.formState.errors.password.message}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="contactNumber">Contact Number</Label>
                   <Input
                     id="contactNumber"
-                    value={formData.contactNumber}
-                    onChange={(e) => setFormData({ ...formData, contactNumber: e.target.value })}
+                    {...form.register("contactNumber")}
                   />
+                  {form.formState.errors.contactNumber && (
+                    <p className="text-sm text-destructive">{form.formState.errors.contactNumber.message}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -191,67 +214,78 @@ export default function AddStaffPage() {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="role">Role *</Label>
-                  <Select
-                    value={formData.role}
-                    onValueChange={(value: Role) => setFormData({ ...formData, role: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="STAFF">Staff</SelectItem>
-                      <SelectItem value="SUPERVISOR">Supervisor</SelectItem>
-                      {(currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPERADMIN') && (
-                        <>
-                          <SelectItem value="ADMIN">Admin</SelectItem>
-                          {currentUser?.role === 'SUPERADMIN' && (
-                            <SelectItem value="SUPERADMIN">Super Admin</SelectItem>
+                  <Controller
+                    name="role"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="STAFF">Staff</SelectItem>
+                          <SelectItem value="SUPERVISOR">Supervisor</SelectItem>
+                          {(currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPERADMIN') && (
+                            <>
+                              <SelectItem value="ADMIN">Admin</SelectItem>
+                              {currentUser?.role === 'SUPERADMIN' && (
+                                <SelectItem value="SUPERADMIN">Super Admin</SelectItem>
+                              )}
+                            </>
                           )}
-                        </>
-                      )}
-                    </SelectContent>
-                  </Select>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {form.formState.errors.role && (
+                    <p className="text-sm text-destructive">{form.formState.errors.role.message}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="department">Department *</Label>
                   <Input
                     id="department"
-                    value={formData.department}
-                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    required
+                    {...form.register("department")}
                   />
+                  {form.formState.errors.department && (
+                    <p className="text-sm text-destructive">{form.formState.errors.department.message}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="position">Position *</Label>
                   <Input
                     id="position"
-                    value={formData.position}
-                    onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                    required
+                    {...form.register("position")}
                   />
+                  {form.formState.errors.position && (
+                    <p className="text-sm text-destructive">{form.formState.errors.position.message}</p>
+                  )}
                 </div>
 
                 {canSelectSupervisor && (
                   <div className="space-y-2">
                     <Label htmlFor="supervisorId">Supervisor</Label>
-                    <Select
-                      value={formData.supervisorId}
-                      onValueChange={(value) => setFormData({ ...formData, supervisorId: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select supervisor" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">No Supervisor</SelectItem>
-                        {supervisors.map((supervisor) => (
-                          <SelectItem key={supervisor.accountId} value={supervisor.accountId}>
-                            {supervisor.name} - {supervisor.department}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Controller
+                      name="supervisorId"
+                      control={form.control}
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select supervisor" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">No Supervisor</SelectItem>
+                            {supervisors.map((supervisor) => (
+                              <SelectItem key={supervisor.accountId} value={supervisor.accountId}>
+                                {supervisor.name} - {supervisor.department}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
                   </div>
                 )}
               </div>
