@@ -20,19 +20,60 @@ import { useRouter } from "next/navigation";
 import { notFound } from "next/navigation";
 import { Announcement } from "@/lib/types";
 import Image from "next/image";
+import { useForm, Controller } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const announcementSchema = z.object({
+  title: z.string().min(1, "Title is required").max(200, "Title must be less than 200 characters"),
+  message: z.string().min(1, "Message is required").max(2000, "Message must be less than 2000 characters"),
+  type: z.enum(["GENERAL", "EMERGENCY", "EVENT"]).refine(val => val, {
+    message: "Type is required",
+  }),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH"]).refine(val => val, {
+    message: "Priority is required",
+  }),
+  audience: z.enum(["ALL", "STUDENTS", "STAFF", "ADMIN"]).refine(val => val, {
+    message: "Audience is required",
+  }),
+  startDate: z.string().min(1, "Start date is required"),
+  endDate: z.string().min(1, "End date is required"),
+}).refine((data) => {
+  const start = new Date(data.startDate);
+  const end = new Date(data.endDate);
+  return end >= start;
+}, {
+  message: "End date must be after or equal to start date",
+  path: ["endDate"],
+});
+
+type AnnouncementFormData = z.infer<typeof announcementSchema>;
 
 export default function UpdateAnnouncementPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [loading, setLoading] = useState(true);
-  const [title, setTitle] = useState("");
-  const [message, setMessage] = useState("");
-  const [type, setType] = useState("");
-  const [priority, setPriority] = useState("");
-  const [audience, setAudience] = useState("");
-  const [startDate, setStartDate] = useState<Date>();
-  const [endDate, setEndDate] = useState<Date>();
   const [photoPreview, setPhotoPreview] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+    reset,
+  } = useForm<AnnouncementFormData>({
+    resolver: zodResolver(announcementSchema),
+    defaultValues: {
+      title: "",
+      message: "",
+      type: "GENERAL",
+      priority: "LOW",
+      audience: "ALL",
+      startDate: "",
+      endDate: "",
+    },
+  });
 
   useEffect(() => {
     const fetchAnnouncement = async () => {
@@ -41,13 +82,18 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
         if (!response.ok) throw new Error('Not found');
         const data = await response.json();
         setAnnouncement(data);
-        setTitle(data.title);
-        setMessage(data.message);
-        setType(data.type);
-        setPriority(data.priority);
-        setAudience(data.audience);
-        setStartDate(new Date(data.startDate));
-        setEndDate(new Date(data.endDate));
+        
+        // Reset form with fetched data
+        reset({
+          title: data.title,
+          message: data.message,
+          type: data.type,
+          priority: data.priority,
+          audience: data.audience,
+          startDate: format(new Date(data.startDate), "yyyy-MM-dd"),
+          endDate: format(new Date(data.endDate), "yyyy-MM-dd"),
+        });
+        
         setPhotoPreview(data.photoPath || "");
       } catch (error) {
         console.error('Error fetching announcement:', error);
@@ -56,7 +102,7 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
       }
     };
     fetchAnnouncement();
-  }, [params.id]);
+  }, [params.id, reset]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -86,20 +132,20 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
     notFound();
   }
 
-  const handleSubmit = async (e: React.FormEvent, status: 'DRAFT' | 'PUBLISHED') => {
-    e.preventDefault();
+  const onSubmit = async (data: AnnouncementFormData, status: 'DRAFT' | 'PUBLISHED') => {
+    setIsSubmitting(true);
     try {
       const response = await fetch(`/api/announcements/${params.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title,
-          message,
-          type,
-          priority,
-          audience,
-          start_date: startDate?.toISOString(),
-          end_date: endDate?.toISOString(),
+          title: data.title,
+          message: data.message,
+          type: data.type,
+          priority: data.priority,
+          audience: data.audience,
+          start_date: new Date(data.startDate).toISOString(),
+          end_date: new Date(data.endDate).toISOString(),
           status,
         }),
       });
@@ -108,6 +154,8 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
     } catch (error) {
       console.error('Error updating announcement:', error);
       alert('Failed to update announcement');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -132,7 +180,7 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
         </p>
       </div>
 
-      <form onSubmit={(e) => handleSubmit(e, 'PUBLISHED')}>
+      <form onSubmit={handleSubmit((data) => onSubmit(data, 'PUBLISHED'))}>
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Form */}
           <div className="lg:col-span-2 space-y-6">
@@ -148,23 +196,25 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
                   <Label htmlFor="title">Title *</Label>
                   <Input
                     id="title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    {...register("title")}
                     placeholder="Enter announcement title"
-                    required
                   />
+                  {errors.title && (
+                    <p className="text-sm text-destructive">{errors.title.message}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="message">Message *</Label>
                   <Textarea
                     id="message"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
+                    {...register("message")}
                     placeholder="Enter announcement message"
                     rows={8}
-                    required
                   />
+                  {errors.message && (
+                    <p className="text-sm text-destructive">{errors.message.message}</p>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     Provide detailed information about the announcement
                   </p>
@@ -173,30 +223,48 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="type">Type *</Label>
-                    <Select value={type} onValueChange={setType} required>
-                      <SelectTrigger id="type">
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="GENERAL">General</SelectItem>
-                        <SelectItem value="EMERGENCY">Emergency</SelectItem>
-                        <SelectItem value="EVENT">Event</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Controller
+                      name="type"
+                      control={control}
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger id="type">
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="GENERAL">General</SelectItem>
+                            <SelectItem value="EMERGENCY">Emergency</SelectItem>
+                            <SelectItem value="EVENT">Event</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.type && (
+                      <p className="text-sm text-destructive">{errors.type.message}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="priority">Priority *</Label>
-                    <Select value={priority} onValueChange={setPriority} required>
-                      <SelectTrigger id="priority">
-                        <SelectValue placeholder="Select priority" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="LOW">Low</SelectItem>
-                        <SelectItem value="MEDIUM">Medium</SelectItem>
-                        <SelectItem value="HIGH">High</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Controller
+                      name="priority"
+                      control={control}
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger id="priority">
+                            <SelectValue placeholder="Select priority" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="LOW">Low</SelectItem>
+                            <SelectItem value="MEDIUM">Medium</SelectItem>
+                            <SelectItem value="HIGH">High</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.priority && (
+                      <p className="text-sm text-destructive">{errors.priority.message}</p>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -285,10 +353,11 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
                     <Input
                       id="startDate"
                       type="date"
-                      required
-                      value={startDate ? format(startDate, "yyyy-MM-dd") : ""}
-                      onChange={(e) => setStartDate(e.target.value ? new Date(e.target.value) : undefined)}
+                      {...register("startDate")}
                     />
+                    {errors.startDate && (
+                      <p className="text-sm text-destructive">{errors.startDate.message}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -296,10 +365,11 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
                     <Input
                       id="endDate"
                       type="date"
-                      required
-                      value={endDate ? format(endDate, "yyyy-MM-dd") : ""}
-                      onChange={(e) => setEndDate(e.target.value ? new Date(e.target.value) : undefined)}
+                      {...register("endDate")}
                     />
+                    {errors.endDate && (
+                      <p className="text-sm text-destructive">{errors.endDate.message}</p>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -316,17 +386,26 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="audience">Target Audience *</Label>
-                  <Select value={audience} onValueChange={setAudience} required>
-                    <SelectTrigger id="audience">
-                      <SelectValue placeholder="Select audience" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ALL">All Users</SelectItem>
-                      <SelectItem value="STUDENTS">Students Only</SelectItem>
-                      <SelectItem value="STAFF">Staff Only</SelectItem>
-                      <SelectItem value="ADMIN">Admins Only</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="audience"
+                    control={control}
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger id="audience">
+                          <SelectValue placeholder="Select audience" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ALL">All Users</SelectItem>
+                          <SelectItem value="STUDENTS">Students Only</SelectItem>
+                          <SelectItem value="STAFF">Staff Only</SelectItem>
+                          <SelectItem value="ADMIN">Admins Only</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.audience && (
+                    <p className="text-sm text-destructive">{errors.audience.message}</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -336,15 +415,25 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
                 <CardTitle>Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button type="submit" className="w-full">
-                  <Send className="h-4 w-4 mr-2" />
-                  Update & Publish
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Update & Publish
+                    </>
+                  )}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={(e) => handleSubmit(e as React.FormEvent, 'DRAFT')}
+                  disabled={isSubmitting}
+                  onClick={handleSubmit((data) => onSubmit(data, 'DRAFT'))}
                 >
                   <Save className="h-4 w-4 mr-2" />
                   Save as Draft
