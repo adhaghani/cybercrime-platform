@@ -98,9 +98,11 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('========================================');
   console.log('🚀 Cybercrime API Server Running');
   console.log(`📍 http://localhost:${PORT}`);
+  console.log(`DB_USER: ${process.env.DB_USER || 'PDBADMIN'}`);
+  console.log(`DB_PASSWORD: ${process.env.DB_PASSWORD ? 'Configured' : 'Using default'}`);
   console.log(`🔒 JWT: ${process.env.JWT_SECRET ? 'Configured' : 'Using default'}`);
   console.log(`🌐 CORS: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
-  console.log(`🗄️  Database: ${process.env.DB_CONNECT_STRING || 'localhost:1521/FREEPDB1'}`);
+  console.log(`🗄️  Database: ${process.env.DB_CONNECT_STRING || 'localhost:1521/CYBERCRIME'}`);
   console.log('========================================');
   console.log('📋 Available Routes:');
   console.log('   - /api/test (GET)');
