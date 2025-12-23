@@ -25,6 +25,13 @@ const announcementsRoutes = require('./routes/announcements');
 const reportsRoutes = require('./routes/reports');
 const crimesRoutes = require('./routes/crimes');
 const facilitiesRoutes = require('./routes/facilities');
+const reportAssignmentsRoutes = require('./routes/report-assignments');
+const staffRoutes = require('./routes/staff');
+const studentsRoutes = require('./routes/students');
+const emergencyRoutes = require('./routes/emergency');
+const policeRoutes = require('./routes/police');
+const generatedReportsRoutes = require('./routes/generated-reports');
+const dashboardRoutes = require('./routes/dashboard');
 
 // Mount routes
 app.use('/api/auth', authRoutes);
@@ -33,6 +40,13 @@ app.use('/api/announcements', announcementsRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/crimes', crimesRoutes);
 app.use('/api/facilities', facilitiesRoutes);
+app.use('/api/report-assignments', reportAssignmentsRoutes);
+app.use('/api/staff', staffRoutes);
+app.use('/api/students', studentsRoutes);
+app.use('/api/emergency', emergencyRoutes);
+app.use('/api/police', policeRoutes);
+app.use('/api/generated-reports', generatedReportsRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Test endpoint
 app.get('/api/test', (req, res) => {
@@ -47,7 +61,14 @@ app.get('/api/test', (req, res) => {
       reports: 11,
       crimes: 5,
       facilities: 5,
-      total: '90+'
+      reportAssignments: 10,
+      staff: 7,
+      students: 7,
+      emergency: 5,
+      police: 5,
+      generatedReports: 4,
+      dashboard: 4,
+      total: '84+'
     }
   });
 });
@@ -89,5 +110,12 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('   - /api/reports/* (11 endpoints)');
   console.log('   - /api/crimes/* (5 endpoints)');
   console.log('   - /api/facilities/* (5 endpoints)');
+  console.log('   - /api/report-assignments/* (10 endpoints)');
+  console.log('   - /api/staff/* (7 endpoints)');
+  console.log('   - /api/students/* (7 endpoints)');
+  console.log('   - /api/emergency/* (5 endpoints)');
+  console.log('   - /api/police/* (5 endpoints)');
+  console.log('   - /api/generated-reports/* (4 endpoints)');
+  console.log('   - /api/dashboard/* (4 endpoints)');
   console.log('========================================');
 });
