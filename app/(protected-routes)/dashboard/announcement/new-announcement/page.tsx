@@ -90,11 +90,26 @@ export default function NewAnnouncementPage() {
   const onSubmit = async (data: z.infer<typeof announcementSchema>, status: 'DRAFT' | 'PUBLISHED') => {
     try {
       setIsLoading(true);
-      // TODO: Implement API call to create announcement
-      console.log('Creating announcement with status:', status, data);
+      const response = await fetch('/api/announcements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: data.title,
+          message: data.message,
+          type: data.type,
+          priority: data.priority,
+          audience: data.targetAudience,
+          start_date: data.startDate,
+          end_date: data.endDate,
+          status,
+          is_pinned: data.isPinned,
+        }),
+      });
+      if (!response.ok) throw new Error('Failed to create announcement');
       router.push('/dashboard/announcement');
     } catch (error) {
       console.error('Failed to create announcement:', error);
+      alert('Failed to create announcement. Please try again.');
     } finally {
       setIsLoading(false);
     }

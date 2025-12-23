@@ -1,123 +1,47 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Phone, MapPin, Search, Siren, Flame, Stethoscope, ShieldAlert, Pencil } from "lucide-react";
+import { Phone, MapPin, Search, Siren, Flame, Stethoscope, ShieldAlert, Pencil, Loader2 } from "lucide-react";
 import { useHasAnyRole } from "@/hooks/use-user-role";
 import Link from "next/link";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 
 const ITEMS_PER_PAGE = 9;
 
-// Mock data - User to populate
-const contacts = [
-  {
-    id: 1,
-    name: "Ibu Pejabat Polis Kontinjen (IPK) Selangor",
-    type: "Police",
-    state: "Selangor",
-    address: "Persiaran Masjid, Seksyen 9, 40000 Shah Alam, Selangor",
-    phone: "03-5514 5222",
-    
-  },
-  {
-    id: 2,
-    name: "Balai Bomba dan Penyelamat Shah Alam",
-    type: "Fire",
-    state: "Selangor",
-    address: "Jalan Persiaran Perbandaran, Seksyen 14, 40000 Shah Alam, Selangor",
-    phone: "03-5519 4444",
-    
-  },
-  {
-    id: 3,
-    name: "Hospital Shah Alam",
-    type: "Medical",
-    state: "Selangor",
-    address: "Jalan Persiaran Kayangan, Seksyen 7, 40000 Shah Alam, Selangor",
-    phone: "03-5526 3000",
-    
-  },
-  {
-    id: 4,
-    name: "Angkatan Pertahanan Awam (APM) Shah Alam",
-    type: "Civil Defence",
-    state: "Selangor",
-    address: "Jalan Lompat Pagar 13/37, Seksyen 13, 40100 Shah Alam, Selangor",
-    phone: "03-5510 6323",
-    
-  },
-  {
-    id: 5,
-    name: "Ibu Pejabat Polis Kontinjen (IPK) Kuala Lumpur",
-    type: "Police",
-    state: "Kuala Lumpur",
-    address: "Jalan Hang Tuah, 55200 Kuala Lumpur",
-    phone: "03-2115 9999",
-    
-  },
-  {
-    id: 6,
-    name: "Hospital Kuala Lumpur (HKL)",
-    type: "Medical",
-    state: "Kuala Lumpur",
-    address: "Jalan Pahang, 50586 Kuala Lumpur",
-    phone: "03-2615 5555",
-    
-  },
-  {
-    id: 7,
-    name: "Balai Bomba dan Penyelamat Hang Tuah",
-    type: "Fire",
-    state: "Kuala Lumpur",
-    address: "Jalan Hang Tuah, 55200 Kuala Lumpur",
-    phone: "03-2148 4444",
-    
-  },
-  {
-    id: 8,
-    name: "Ibu Pejabat Polis Kontinjen (IPK) Johor",
-    type: "Police",
-    state: "Johor",
-    address: "Jalan Tebrau, 80990 Johor Bahru, Johor",
-    phone: "07-221 2999",
-    
-  },
-  {
-    id: 9,
-    name: "Hospital Sultanah Aminah",
-    type: "Medical",
-    state: "Johor",
-    address: "Jalan Persiaran Abu Bakar Sultan, 80100 Johor Bahru, Johor",
-    phone: "07-225 7000",
-    
-  },
-  {
-    id: 10,
-    name: "Ibu Pejabat Polis Kontinjen (IPK) Pulau Pinang",
-    type: "Police",
-    state: "Pulau Pinang",
-    address: "Jalan Penang, 10000 George Town, Pulau Pinang",
-    phone: "04-222 1522",
-    
-  },
-];
 
 export default function EmergencyContactsPage() {
+  const [contacts, setContacts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-const hasAnyRole = useHasAnyRole();
+  const hasAnyRole = useHasAnyRole();
 
-const isAuthorizedForEdit = () => {
-  
-  if(hasAnyRole(['ADMIN', 'SUPERADMIN', 'STAFF'])) return true;
+  useEffect(() => {
+    const fetchEmergencyContacts = async () => {
+      try {
+        const response = await fetch('/api/emergency');
+        if (!response.ok) throw new Error('Failed to fetch');
+        const data = await response.json();
+        setContacts(data);
+      } catch (error) {
+        console.error('Error fetching emergency contacts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEmergencyContacts();
+  }, []);
 
-  return false;
-}
+  const isAuthorizedForEdit = () => {
+    if(hasAnyRole(['ADMIN', 'SUPERADMIN', 'STAFF'])) return true;
+    return false;
+  };
 
 
   const filteredContacts = contacts.filter((contact) => {
@@ -142,6 +66,14 @@ const isAuthorizedForEdit = () => {
     callback();
     setCurrentPage(1);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   const getIcon = (type: string) => {
     switch (type) {

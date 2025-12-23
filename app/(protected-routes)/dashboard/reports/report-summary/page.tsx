@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,23 +21,40 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Search, FileText, Download, Eye, Calendar, Filter } from "lucide-react";
+import { ArrowLeft, Search, FileText, Download, Eye, Calendar, Filter, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
-import { MOCK_GENERATED_REPORTS } from "@/lib/api/mock-data";
 import { GeneratedReport, GeneratedReportCategory, GeneratedReportDataType } from "@/lib/types";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 
 const ITEMS_PER_PAGE = 10;
 
 export default function AllGeneratedReportsPage() {
+  const [reports, setReports] = useState<GeneratedReport[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<GeneratedReportCategory | "ALL">("ALL");
   const [typeFilter, setTypeFilter] = useState<GeneratedReportDataType | "ALL">("ALL");
   const [currentPage, setCurrentPage] = useState(1);
 
+  useEffect(() => {
+    const fetchGeneratedReports = async () => {
+      try {
+        const response = await fetch('/api/generated-reports');
+        if (!response.ok) throw new Error('Failed to fetch generated reports');
+        const data = await response.json();
+        setReports(data);
+      } catch (error) {
+        console.error('Error fetching generated reports:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchGeneratedReports();
+  }, []);
+
   // Filter reports
-  const filteredReports = MOCK_GENERATED_REPORTS.filter((report) => {
+  const filteredReports = reports.filter((report) => {
     const matchesSearch =
       report.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       report.summary.toLowerCase().includes(searchQuery.toLowerCase());
@@ -72,11 +89,19 @@ export default function AllGeneratedReportsPage() {
   };
 
   const stats = {
-    total: MOCK_GENERATED_REPORTS.length,
-    crime: MOCK_GENERATED_REPORTS.filter((r) => r.reportCategory === "CRIME").length,
-    facility: MOCK_GENERATED_REPORTS.filter((r) => r.reportCategory === "FACILITY").length,
-    all: MOCK_GENERATED_REPORTS.filter((r) => r.reportCategory === "ALL REPORTS").length,
+    total: reports.length,
+    crime: reports.filter((r) => r.reportCategory === "CRIME").length,
+    facility: reports.filter((r) => r.reportCategory === "FACILITY").length,
+    all: reports.filter((r) => r.reportCategory === "ALL REPORTS").length,
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -210,9 +235,9 @@ export default function AllGeneratedReportsPage() {
         <CardHeader>
           <CardTitle>Generated Reports ({filteredReports.length})</CardTitle>
           <CardDescription className="flex justify-between gap-2 items-center f">
-            {filteredReports.length === MOCK_GENERATED_REPORTS.length
+            {filteredReports.length === reports.length
               ? "Showing all AI-generated reports"
-              : `Showing ${filteredReports.length} of ${MOCK_GENERATED_REPORTS.length} reports`}
+              : `Showing ${filteredReports.length} of ${reports.length} reports`}
               {totalPages > 1 && (
                 <PaginationControls
                   currentPage={currentPage}

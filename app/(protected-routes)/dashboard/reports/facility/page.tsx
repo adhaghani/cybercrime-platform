@@ -27,16 +27,17 @@ import {
   UserPlus,
   Calendar,
   MapPin,
-  AlertTriangle
+  AlertTriangle,
+  Loader2
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
-import { MOCK_REPORTS } from "@/lib/api/mock-data";
+import { useState, useEffect } from "react";
 import { Facility } from "@/lib/types";
 import { format } from "date-fns";
 import FacilitySeverityBadge from "@/components/ui/facilitySeverityBadge";
 import StatusBadge from "@/components/ui/statusBadge";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import { useHasAnyRole } from "@/hooks/use-user-role";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -46,9 +47,27 @@ export default function FacilityReportsPage() {
   const [typeFilter, setTypeFilter] = useState<string>("ALL");
   const [severityFilter, setSeverityFilter] = useState<string>("ALL");
   const [currentPage, setCurrentPage] = useState(1);
+  const [facilityReports, setFacilityReports] = useState<Facility[]>([]);
+  const [loading, setLoading] = useState(true);
+  const isSupervisorOrAdmin = useHasAnyRole()(["SUPERVISOR", "ADMIN", "SUPERADMIN"]);
 
-  // Filter only facility reports
-  const facilityReports = MOCK_REPORTS.filter((r) => r.type === "FACILITY") as Facility[];
+  useEffect(() => {
+    fetchReports();
+  }, []);
+
+  const fetchReports = async () => {
+    try {
+      const response = await fetch('/api/reports?type=FACILITY');
+      if (response.ok) {
+        const data = await response.json();
+        setFacilityReports(data.reports || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch facility reports:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredReports = facilityReports.filter((report) => {
     const matchesSearch = 
@@ -82,6 +101,14 @@ export default function FacilityReportsPage() {
     resolved: facilityReports.filter(r => r.status === "RESOLVED").length,
     critical: facilityReports.filter(r => r.severityLevel === "CRITICAL").length,
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -293,7 +320,7 @@ export default function FacilityReportsPage() {
                               <Eye className="h-4 w-4" />
                             </Link>
                           </Button>
-                          {report.status !== "RESOLVED" && (
+                          {isSupervisorOrAdmin && report.status !== "RESOLVED" && (
                             <Button asChild variant="ghost" size="sm">
                               <Link href={`/dashboard/reports/${report.reportId}?action=assign`}>
                                 <UserPlus className="h-4 w-4" />

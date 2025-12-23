@@ -162,6 +162,109 @@ const getNavMainByRole = (role: string | undefined) => {
         },
       ],
     },
+    {
+      title: "Team",
+      url: "/dashboard/team/my-team",
+      icon: Users,
+    }
+  ];
+
+  // supervisor navigation - can view/manage their team
+  const supervisorNav = [
+        {
+      title: "Report",
+      url: "#",
+      icon: FileText,
+      isActive: true,
+      items: [
+
+        {
+          title: "Crime Reports",
+          url: "/dashboard/reports/crime",
+        },
+        {
+          title: "Facility Reports",
+          url: "/dashboard/reports/facility",
+        },
+        {
+          title: "My Assigned Reports",
+          url: "/dashboard/reports/my-assignments",
+        },
+      ],
+    },
+    {
+      title: "AI Report Summary",
+      url: "/dashboard/reports/report-summary",
+      icon: Stars,
+      items: [
+        {
+          title: "View Past Reports",
+          url: "/dashboard/reports/report-summary",
+        },
+        {
+          title: "Generate AI Report",
+          url: "/dashboard/reports/report-summary/generate",
+        }
+      ]
+    },
+        {
+      title: "Emergency Services",
+      url: "/dashboard/emergency-services",
+      icon: Bot,
+      items: [
+        {
+          title: "UiTM Auxiliary Police",
+          url: "/dashboard/emergency-services/uitm-auxiliary-police",
+        },
+        {
+          title: "All Emergency Contacts",
+          url: "/dashboard/emergency-services/emergency-contacts",
+        },
+                {
+          title: "Add New Contact",
+          url: "/dashboard/emergency-services/add",
+        }
+      ],
+    },
+    {
+      title: "User Management",
+      url: "/dashboard/user-management",
+      icon: Users,
+      items: [
+        {
+          title: "Staff Members",
+          url: "/dashboard/user-management/staff",
+        },
+      ],
+    },
+    {
+      title: "Announcements",
+      url: "/dashboard/announcement",
+      icon: FileText,
+      items: [
+        {
+          title: "All Announcements",
+          url: "/dashboard/announcement",
+        },
+        {
+          title: "Create Announcement",
+          url: "/dashboard/announcement/new-announcement",
+        },
+      ],
+    },
+    {
+      title: "Team",
+      url: "/dashboard/team",
+      icon: Users,
+      items: [
+        {
+          title: "My Team",
+          url: "/dashboard/team/my-team",
+        }
+      ]
+    },
+
+
   ];
 
   // Admin navigation - full access including user management
@@ -232,7 +335,7 @@ const getNavMainByRole = (role: string | undefined) => {
         },
         {
           title: "Staff Members",
-          url: "/dashboard/users/staff",
+          url: "/dashboard/user-management/staff",
         },
       ],
     },
@@ -251,6 +354,12 @@ const getNavMainByRole = (role: string | undefined) => {
         },
       ],
     },
+    {
+      title: "Team",
+      url: "/dashboard/team",
+      icon: Users,
+    },
+
 
   ];
 
@@ -334,7 +443,7 @@ const getNavMainByRole = (role: string | undefined) => {
         }
       ],
     },
-    {
+        {
       title: "Announcements",
       url: "/dashboard/announcement",
       icon: FileText,
@@ -348,7 +457,13 @@ const getNavMainByRole = (role: string | undefined) => {
           url: "/dashboard/announcement/new-announcement",
         },
       ],
-    }
+    },
+    {
+      title: "Team",
+      url: "/dashboard/team",
+      icon: Users,
+    },
+
 
   ];
 
@@ -357,6 +472,8 @@ const getNavMainByRole = (role: string | undefined) => {
       return superAdminNav;
     case 'ADMIN':
       return adminNav;
+    case 'SUPERVISOR':
+      return supervisorNav;
     case 'STAFF':
       return staffNav;
     case 'STUDENT':

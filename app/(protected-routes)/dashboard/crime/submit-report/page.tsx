@@ -52,11 +52,24 @@ export default function SubmitCrimeReportPage() {
     setIsSubmitting(true);
 
     try {
-      // TODO: Replace with actual API call
-      console.log("Submitting crime report:", data);
+      const response = await fetch('/api/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'CRIME',
+          title: data.title,
+          description: data.description,
+          location: data.location,
+          crime_category: data.crimeCategory,
+          suspect_description: data.suspectDescription,
+          victim_involved: data.victimInvolved,
+          weapon_involved: data.weaponInvolved,
+          injury_level: data.injuryLevel,
+          evidence_details: data.evidenceDetails,
+        }),
+      });
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      if (!response.ok) throw new Error('Failed to submit report');
       
       toast.success("Crime report submitted successfully!");
       router.push("/dashboard/crime/my-reports");

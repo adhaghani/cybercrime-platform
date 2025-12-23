@@ -12,11 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, FileText, Download, Sparkles, Calendar, Clock } from "lucide-react";
+import { ArrowLeft, FileText, Download, Sparkles, Calendar, Clock, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
-import { GeneratedReportCategory, GeneratedReportDataType, GeneratedReport } from "@/lib/types";
-import { MOCK_REPORTS } from "@/lib/api/mock-data";
+import { useState, useEffect } from "react";
+import { GeneratedReportCategory, GeneratedReportDataType, GeneratedReport, Report } from "@/lib/types";
 import { aiService } from "@/lib/api/ai-service";
 import { format } from "date-fns";
 
@@ -32,6 +31,26 @@ export default function GenerateReportPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedReport, setGeneratedReport] = useState<GeneratedReport | null>(null);
   const [error, setError] = useState<string>("");
+  
+  // Reports data
+  const [reports, setReports] = useState<Report[]>([]);
+  const [loadingReports, setLoadingReports] = useState(true);
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        const response = await fetch('/api/reports');
+        if (!response.ok) throw new Error('Failed to fetch reports');
+        const data = await response.json();
+        setReports(data);
+      } catch (error) {
+        console.error('Error fetching reports:', error);
+      } finally {
+        setLoadingReports(false);
+      }
+    };
+    fetchReports();
+  }, []);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +60,7 @@ export default function GenerateReportPage() {
 
     try {
       // Filter reports based on category and date range
-      const filteredReports = MOCK_REPORTS.filter((report) => {
+      const filteredReports = reports.filter((report) => {
         let matchesCategory;
         if(category === "ALL REPORTS") {
             matchesCategory = true;

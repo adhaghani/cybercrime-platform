@@ -5,16 +5,44 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, MapPin, Calendar, Clock, ShieldAlert, FileText } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Clock, ShieldAlert, FileText, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
-import { Crime,  } from "@/lib/types";
+import { Crime } from "@/lib/types";
 import { format } from "date-fns";
 import StatusBadge from "@/components/ui/statusBadge";
 import CrimeCategoryBadge from "@/components/ui/crimeCategoryBadge";
+import { useState, useEffect } from "react";
 export default function CrimeReportDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const report = MOCK_REPORTS.find((r) => r.reportId === id && r.type === "CRIME") as Crime | undefined;
+  const [report, setReport] = useState<Crime | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchReport = async () => {
+      try {
+        const response = await fetch(`/api/reports/${id}`);
+        if (!response.ok) throw new Error('Not found');
+        const data = await response.json();
+        if (data.type === 'CRIME') {
+          setReport(data as Crime);
+        }
+      } catch (error) {
+        console.error('Error fetching report:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReport();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   if (!report) {
     return (

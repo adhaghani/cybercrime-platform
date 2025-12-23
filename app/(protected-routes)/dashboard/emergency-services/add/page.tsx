@@ -11,6 +11,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Shield, Siren, Save, Phone, Mail, MapPin, Clock } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useForm, Controller } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 // UiTM States for campus selection
 const UITM_STATES = [
@@ -31,45 +34,77 @@ const MALAYSIAN_STATES = [
   "Sabah", "Sarawak", "Selangor", "Terengganu"
 ];
 
+const uitmPoliceSchema = z.object({
+  campus: z.string().min(1, "Campus name is required").max(200, "Campus name is too long"),
+  state: z.string().min(1, "State is required"),
+  address: z.string().min(10, "Address must be at least 10 characters").max(500, "Address is too long"),
+  phone: z.string().min(9, "Phone number must be at least 9 characters").max(20, "Phone number is too long"),
+  hotline: z.string().min(9, "Hotline must be at least 9 characters").max(20, "Hotline is too long"),
+  email: z.string().email("Invalid email address"),
+  operatingHours: z.string().min(1, "Operating hours is required"),
+});
+
+const nationalEmergencySchema = z.object({
+  name: z.string().min(1, "Service name is required").max(200, "Service name is too long"),
+  type: z.string().min(1, "Service type is required"),
+  state: z.string().min(1, "State is required"),
+  address: z.string().min(10, "Address must be at least 10 characters").max(500, "Address is too long"),
+  phone: z.string().min(9, "Phone number must be at least 9 characters").max(20, "Phone number is too long"),
+  email: z.string().email("Invalid email address").optional().or(z.literal("")),
+});
+
+type UitmPoliceFormData = z.infer<typeof uitmPoliceSchema>;
+type NationalEmergencyFormData = z.infer<typeof nationalEmergencySchema>;
+
 export default function AddEmergencyServicePage() {
   const router = useRouter();
   const [serviceType, setServiceType] = useState<"uitm" | "national">("uitm");
-
-  // UiTM Police Form State
-  const [uitmData, setUitmData] = useState({
-    campus: "",
-    state: "",
-    address: "",
-    phone: "",
-    hotline: "",
-    email: "",
-    operatingHours: "24 Hours",
-  });
-
-  // National Emergency Service Form State
-  const [nationalData, setNationalData] = useState({
-    name: "",
-    type: "",
-    state: "",
-    address: "",
-    phone: "",
-    email: "",
-  });
-
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleUitmSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const uitmForm = useForm<UitmPoliceFormData>({
+    resolver: zodResolver(uitmPoliceSchema),
+    defaultValues: {
+      campus: "",
+      state: "",
+      address: "",
+      phone: "",
+      hotline: "",
+      email: "",
+      operatingHours: "24 Hours",
+    },
+  });
+
+  const nationalForm = useForm<NationalEmergencyFormData>({
+    resolver: zodResolver(nationalEmergencySchema),
+    defaultValues: {
+      name: "",
+      type: "",
+      state: "",
+      address: "",
+      phone: "",
+      email: "",
+    },
+  });
+
+  const onUitmSubmit = async (data: UitmPoliceFormData) => {
     setIsSubmitting(true);
 
     try {
-      // TODO: API call to save UiTM police station
-      console.log("Saving UiTM Police Station:", uitmData);
+      const response = await fetch('/api/police', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          campus: data.campus,
+          state: data.state,
+          address: data.address,
+          phone: data.phone,
+          hotline: data.hotline,
+          email: data.email,
+          operating_hours: data.operatingHours,
+        }),
+      });
       
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      // Redirect after success
+      if (!response.ok) throw new Error('Failed to save');
       router.push("/dashboard/emergency-services/uitm-auxiliary-police");
     } catch (error) {
       console.error("Error saving UiTM police station:", error);
@@ -79,18 +114,24 @@ export default function AddEmergencyServicePage() {
     }
   };
 
-  const handleNationalSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onNationalSubmit = async (data: NationalEmergencyFormData) => {
     setIsSubmitting(true);
 
     try {
-      // TODO: API call to save national emergency service
-      console.log("Saving National Emergency Service:", nationalData);
+      const response = await fetch('/api/emergency', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: data.name,
+          type: data.type,
+          state: data.state,
+          address: data.address,
+          phone: data.phone,
+          email: data.email || undefined,
+        }),
+      });
       
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      // Redirect after success
+      if (!response.ok) throw new Error('Failed to save');
       router.push("/dashboard/emergency-services/emergency-contacts");
     } catch (error) {
       console.error("Error saving national emergency service:", error);
@@ -138,37 +179,43 @@ export default function AddEmergencyServicePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleUitmSubmit} className="space-y-6">
+              <form onSubmit={uitmForm.handleSubmit(onUitmSubmit)} className="space-y-6">
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="campus">Campus Name *</Label>
                     <Input
                       id="campus"
                       placeholder="e.g., UiTM Shah Alam (Main Campus)"
-                      value={uitmData.campus}
-                      onChange={(e) => setUitmData({ ...uitmData, campus: e.target.value })}
-                      required
+                      {...uitmForm.register("campus")}
                     />
+                    {uitmForm.formState.errors.campus && (
+                      <p className="text-sm text-destructive">{uitmForm.formState.errors.campus.message}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="uitm-state">State *</Label>
-                    <Select
-                      value={uitmData.state}
-                      onValueChange={(v) => setUitmData({ ...uitmData, state: v })}
-                      required
-                    >
-                      <SelectTrigger id="uitm-state">
-                        <SelectValue placeholder="Select state" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {UITM_STATES.map((state) => (
-                          <SelectItem key={state} value={state}>
-                            {state}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Controller
+                      name="state"
+                      control={uitmForm.control}
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger id="uitm-state">
+                            <SelectValue placeholder="Select state" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {UITM_STATES.map((state) => (
+                              <SelectItem key={state} value={state}>
+                                {state}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {uitmForm.formState.errors.state && (
+                      <p className="text-sm text-destructive">{uitmForm.formState.errors.state.message}</p>
+                    )}
                   </div>
                 </div>
 
@@ -180,11 +227,12 @@ export default function AddEmergencyServicePage() {
                   <Textarea
                     id="address"
                     placeholder="Full address of the police station"
-                    value={uitmData.address}
-                    onChange={(e) => setUitmData({ ...uitmData, address: e.target.value })}
                     rows={3}
-                    required
+                    {...uitmForm.register("address")}
                   />
+                  {uitmForm.formState.errors.address && (
+                    <p className="text-sm text-destructive">{uitmForm.formState.errors.address.message}</p>
+                  )}
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-2">
@@ -197,10 +245,11 @@ export default function AddEmergencyServicePage() {
                       id="phone"
                       type="tel"
                       placeholder="03-5544 2000"
-                      value={uitmData.phone}
-                      onChange={(e) => setUitmData({ ...uitmData, phone: e.target.value })}
-                      required
+                      {...uitmForm.register("phone")}
                     />
+                    {uitmForm.formState.errors.phone && (
+                      <p className="text-sm text-destructive">{uitmForm.formState.errors.phone.message}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -209,10 +258,11 @@ export default function AddEmergencyServicePage() {
                       id="hotline"
                       type="tel"
                       placeholder="03-5544 2222"
-                      value={uitmData.hotline}
-                      onChange={(e) => setUitmData({ ...uitmData, hotline: e.target.value })}
-                      required
+                      {...uitmForm.register("hotline")}
                     />
+                    {uitmForm.formState.errors.hotline && (
+                      <p className="text-sm text-destructive">{uitmForm.formState.errors.hotline.message}</p>
+                    )}
                   </div>
                 </div>
 
@@ -226,10 +276,11 @@ export default function AddEmergencyServicePage() {
                       id="email"
                       type="email"
                       placeholder="pb_uitm@uitm.edu.my"
-                      value={uitmData.email}
-                      onChange={(e) => setUitmData({ ...uitmData, email: e.target.value })}
-                      required
+                      {...uitmForm.register("email")}
                     />
+                    {uitmForm.formState.errors.email && (
+                      <p className="text-sm text-destructive">{uitmForm.formState.errors.email.message}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -240,10 +291,11 @@ export default function AddEmergencyServicePage() {
                     <Input
                       id="operating-hours"
                       placeholder="24 Hours"
-                      value={uitmData.operatingHours}
-                      onChange={(e) => setUitmData({ ...uitmData, operatingHours: e.target.value })}
-                      required
+                      {...uitmForm.register("operatingHours")}
                     />
+                    {uitmForm.formState.errors.operatingHours && (
+                      <p className="text-sm text-destructive">{uitmForm.formState.errors.operatingHours.message}</p>
+                    )}
                   </div>
                 </div>
 
@@ -271,57 +323,68 @@ export default function AddEmergencyServicePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleNationalSubmit} className="space-y-6">
+              <form onSubmit={nationalForm.handleSubmit(onNationalSubmit)} className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="service-name">Service Name *</Label>
                   <Input
                     id="service-name"
                     placeholder="e.g., Ibu Pejabat Polis Kontinjen (IPK) Selangor"
-                    value={nationalData.name}
-                    onChange={(e) => setNationalData({ ...nationalData, name: e.target.value })}
-                    required
+                    {...nationalForm.register("name")}
                   />
+                  {nationalForm.formState.errors.name && (
+                    <p className="text-sm text-destructive">{nationalForm.formState.errors.name.message}</p>
+                  )}
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="service-type">Service Type *</Label>
-                    <Select
-                      value={nationalData.type}
-                      onValueChange={(v) => setNationalData({ ...nationalData, type: v })}
-                      required
-                    >
-                      <SelectTrigger id="service-type">
-                        <SelectValue placeholder="Select service type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {EMERGENCY_TYPES.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Controller
+                      name="type"
+                      control={nationalForm.control}
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger id="service-type">
+                            <SelectValue placeholder="Select service type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {EMERGENCY_TYPES.map((type) => (
+                              <SelectItem key={type} value={type}>
+                                {type}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {nationalForm.formState.errors.type && (
+                      <p className="text-sm text-destructive">{nationalForm.formState.errors.type.message}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="national-state">State/Territory *</Label>
-                    <Select
-                      value={nationalData.state}
-                      onValueChange={(v) => setNationalData({ ...nationalData, state: v })}
-                      required
-                    >
-                      <SelectTrigger id="national-state">
-                        <SelectValue placeholder="Select state" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MALAYSIAN_STATES.map((state) => (
-                          <SelectItem key={state} value={state}>
-                            {state}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Controller
+                      name="state"
+                      control={nationalForm.control}
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger id="national-state">
+                            <SelectValue placeholder="Select state" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {MALAYSIAN_STATES.map((state) => (
+                              <SelectItem key={state} value={state}>
+                                {state}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {nationalForm.formState.errors.state && (
+                      <p className="text-sm text-destructive">{nationalForm.formState.errors.state.message}</p>
+                    )}
                   </div>
                 </div>
 
@@ -333,11 +396,12 @@ export default function AddEmergencyServicePage() {
                   <Textarea
                     id="national-address"
                     placeholder="Full address of the emergency service"
-                    value={nationalData.address}
-                    onChange={(e) => setNationalData({ ...nationalData, address: e.target.value })}
                     rows={3}
-                    required
+                    {...nationalForm.register("address")}
                   />
+                  {nationalForm.formState.errors.address && (
+                    <p className="text-sm text-destructive">{nationalForm.formState.errors.address.message}</p>
+                  )}
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-2">
@@ -350,10 +414,11 @@ export default function AddEmergencyServicePage() {
                       id="national-phone"
                       type="tel"
                       placeholder="03-5514 5222"
-                      value={nationalData.phone}
-                      onChange={(e) => setNationalData({ ...nationalData, phone: e.target.value })}
-                      required
+                      {...nationalForm.register("phone")}
                     />
+                    {nationalForm.formState.errors.phone && (
+                      <p className="text-sm text-destructive">{nationalForm.formState.errors.phone.message}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -365,9 +430,11 @@ export default function AddEmergencyServicePage() {
                       id="national-email"
                       type="email"
                       placeholder="contact@example.gov.my"
-                      value={nationalData.email}
-                      onChange={(e) => setNationalData({ ...nationalData, email: e.target.value })}
+                      {...nationalForm.register("email")}
                     />
+                    {nationalForm.formState.errors.email && (
+                      <p className="text-sm text-destructive">{nationalForm.formState.errors.email.message}</p>
+                    )}
                   </div>
                 </div>
 

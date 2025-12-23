@@ -5,16 +5,44 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, MapPin, Calendar, Clock, Wrench, FileText } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Clock, Wrench, FileText, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { MOCK_REPORTS } from "@/lib/api/mock-data";
 import { Facility } from "@/lib/types";
 import { format } from "date-fns";
 import FacilitySeverityBadge from "@/components/ui/facilitySeverityBadge";
 import StatusBadge from "@/components/ui/statusBadge";
+import { useState, useEffect } from "react";
 export default function ReportDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const report = MOCK_REPORTS.find((r) => r.reportId === id && r.type === "FACILITY") as Facility | undefined;
+  const [report, setReport] = useState<Facility | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchReport = async () => {
+      try {
+        const response = await fetch(`/api/reports/${id}`);
+        if (!response.ok) throw new Error('Not found');
+        const data = await response.json();
+        if (data.type === 'FACILITY') {
+          setReport(data as Facility);
+        }
+      } catch (error) {
+        console.error('Error fetching report:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReport();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   if (!report) {
     return (

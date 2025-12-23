@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,52 +17,77 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { 
   FileText,
   Calendar,
   MapPin,
   User,
   UserPlus,
-  CheckCircle2,
   Clock,
   Image as ImageIcon,
   ShieldAlert,
-  Wrench
+  Wrench,
+  Loader2
 } from "lucide-react";
-import { useState } from "react";
-import { MOCK_REPORTS } from "@/lib/api/mock-data";
-import { Crime, Facility, ResolutionType, ReportAssignment } from "@/lib/types";
+import { useState, useEffect } from "react";
+import { Crime, Facility,  ReportAssignment } from "@/lib/types";
 import { format } from "date-fns";
 import StatusBadge from "@/components/ui/statusBadge";
 import { notFound, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/context/auth-provider";
+import { ResolveReportDialog } from "@/components/report/resolve-report-dialog";
+import { AssignStaffDialog } from "@/components/report/assign-staff-dialog";
+import { useHasAnyRole } from "@/hooks/use-user-role";
 
 export default function ReportDetailsPage({ params }: { params: { id: string } }) {
   const searchParams = useSearchParams();
   const showAssignDialog = searchParams.get("action") === "assign";
   const { claims } = useAuth();
+  const [report, setReport] = useState<Crime | Facility | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const isSupervisorOrAdmin = useHasAnyRole()(["SUPERVISOR", "ADMIN", "SUPERADMIN"]);
+
+  useEffect(() => {
+    fetchReport();
+  }, [params.id]);
+
+  const fetchReport = async () => {
+    try {
+      const response = await fetch(`/api/reports/${params.id}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          setReport(null);
+          setLoading(false);
+          return;
+        }
+        throw new Error('Failed to fetch report');
+      }
+      const data = await response.json();
+      setReport(data.report);
+    } catch (error) {
+      console.error('Failed to fetch report:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
   
-  const report = MOCK_REPORTS.find((r) => r.reportId === params.id);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(showAssignDialog);
   const [isResolveDialogOpen, setIsResolveDialogOpen] = useState(false);
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
-  const [selectedStaff, setSelectedStaff] = useState("");
   const [updateActionTaken, setUpdateActionTaken] = useState("");
   const [updateFeedback, setUpdateFeedback] = useState("");
-  const [resolutionType, setResolutionType] = useState<ResolutionType>("RESOLVED");
-  const [resolutionSummary, setResolutionSummary] = useState("");
-  const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
-  
   // Get current user info for auto-fill
   const currentUserName = claims?.user_metadata?.name || "Current User";
   const currentUserId = claims?.sub || "user-1";
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   if (!report) {
     notFound();
@@ -70,14 +96,6 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
   const isCrimeReport = report.type === "CRIME";
   const crimeData = isCrimeReport ? (report as Crime) : null;
   const facilityData = !isCrimeReport ? (report as Facility) : null;
-
-
-  const handleAssignReport = () => {
-    // TODO: Implement API call to assign report
-    console.log("Assigning report to:", selectedStaff);
-    setIsAssignDialogOpen(false);
-    setSelectedStaff("");
-  };
 
   const handleUpdateReport = () => {
     // TODO: Implement API call to update assignment
@@ -94,138 +112,43 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
     setUpdateFeedback("");
   };
 
-  const handleResolveReport = () => {
-    // TODO: Implement API call to create resolution
-    console.log("Resolving report:", {
-      reportId: params.id,
-      resolutionType,
-      resolutionSummary,
-      evidenceFile
-    });
-    setIsResolveDialogOpen(false);
-    setResolutionType("RESOLVED");
-    setResolutionSummary("");
-    setEvidenceFile(null);
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setEvidenceFile(e.target.files[0]);
-    }
-  };
-
   return (
     <div className="space-y-6 mx-auto w-full max-w-7xl">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex gap-2">
+      
+        <div className="w-full flex gap-2 justify-end">
           {report.status !== "RESOLVED" && (
             <>
-              <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline">
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Assign Staff
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Assign Report to Staff</DialogTitle>
-                    <DialogDescription>
-                      Assign this report to a subordinate staff member for handling
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="staff">Select Staff Member *</Label>
-                      <Select value={selectedStaff} onValueChange={setSelectedStaff}>
-                        <SelectTrigger id="staff">
-                          <SelectValue placeholder="Choose a staff member" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="staff-1">John Doe (Security Officer)</SelectItem>
-                          <SelectItem value="staff-2">Jane Smith (Maintenance)</SelectItem>
-                          <SelectItem value="staff-3">Ahmad Ali (Security Lead)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsAssignDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handleAssignReport} disabled={!selectedStaff}>
-                      Assign Report
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+            {isSupervisorOrAdmin ? <>
+              <Button variant="outline" onClick={() => setIsAssignDialogOpen(true)}>
+                <UserPlus className="h-4 w-4 mr-2" />
+                Assign Staff
+              </Button>
 
-              <Dialog open={isResolveDialogOpen} onOpenChange={setIsResolveDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                    Resolve Report
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Resolve Report</DialogTitle>
-                    <DialogDescription>
-                      Provide resolution details for this report
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="resolution-type">Resolution Type *</Label>
-                      <Select value={resolutionType} onValueChange={(value) => setResolutionType(value as ResolutionType)}>
-                        <SelectTrigger id="resolution-type">
-                          <SelectValue placeholder="Select resolution type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="RESOLVED">Resolved - Issue Fixed</SelectItem>
-                          <SelectItem value="ESCALATED">Escalated - Needs Higher Authority</SelectItem>
-                          <SelectItem value="DISMISSED">Dismissed - Not Valid</SelectItem>
-                          <SelectItem value="TRANSFERRED">Transferred - Different Department</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="resolution-summary">Resolution Summary *</Label>
-                      <Textarea
-                        id="resolution-summary"
-                        placeholder="Describe how the issue was resolved or handled..."
-                        value={resolutionSummary}
-                        onChange={(e) => setResolutionSummary(e.target.value)}
-                        rows={6}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="evidence">Evidence / Attachment (Optional)</Label>
-                      <Input
-                        id="evidence"
-                        type="file"
-                        accept="image/*,.pdf,.doc,.docx"
-                        onChange={handleFileChange}
-                      />
-                      {evidenceFile && (
-                        <p className="text-sm text-muted-foreground">
-                          Selected: {evidenceFile.name}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsResolveDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handleResolveReport} disabled={!resolutionSummary.trim()}>
-                      Submit Resolution
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+              <AssignStaffDialog
+                reportId={report.reportId}
+                reportTitle={report.title}
+                open={isAssignDialogOpen}
+                onOpenChange={setIsAssignDialogOpen}
+                onSuccess={() => {
+                  fetchReport(); // Refresh report data
+                }}
+              />
+
+              <Button variant="outline" onClick={() => setIsResolveDialogOpen(true)}>
+                Create Report Resolution
+              </Button>
+
+              <ResolveReportDialog 
+                open={isResolveDialogOpen} 
+                onOpenChange={setIsResolveDialogOpen} 
+                reportTitle={report.title} 
+                onSuccess={() => {
+                  fetchReport(); // Refresh report data
+                }}
+                reportId={report.reportId}
+              />
+              </> : null}
               
               <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
                 <DialogTrigger asChild>
@@ -285,7 +208,7 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
             </>
           )}
         </div>
-      </div>
+    
 
       {/* Report Header */}
       <div>

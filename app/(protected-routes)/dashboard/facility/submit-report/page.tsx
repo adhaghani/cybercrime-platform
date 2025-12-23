@@ -46,11 +46,21 @@ export default function SubmitReportPage() {
     setIsSubmitting(true);
 
     try {
-      // TODO: Replace with actual API call
-      console.log("Submitting facility report:", data);
+      const response = await fetch('/api/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'FACILITY',
+          title: data.title,
+          description: data.description,
+          location: data.location,
+          facility_type: data.facilityType,
+          severity_level: data.severityLevel,
+          affected_equipment: data.affectedEquipment,
+        }),
+      });
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      if (!response.ok) throw new Error('Failed to submit report');
       
       toast.success("Report submitted successfully!");
       router.push("/dashboard/facility/my-reports");

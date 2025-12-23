@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getInitials, getRoleBadgeColor } from "@/lib/utils/badge-helpers";
@@ -22,98 +23,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
-import { Account, Student, Staff } from "@/lib/types";
+import {  Student, Staff } from "@/lib/types";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 
 const ITEMS_PER_PAGE = 10;
-
-// Extended mock data - replace with API calls
-const MOCK_ALL_USERS: (Student | Staff)[] = [
-  {
-    accountId: "user-1",
-    email: "ahmad.ali@student.uitm.edu.my",
-    name: "Ahmad Ali bin Abdullah",
-    contactNumber: "012-3456789",
-    accountType: "STUDENT",
-    studentId: "2023123456",
-    program: "CS240 - Computer Science",
-    semester: 4,
-    yearOfStudy: 2,
-    passwordHash: "",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    accountId: "user-2",
-    email: "sarah.wong@student.uitm.edu.my",
-    name: "Sarah Wong Li Ying",
-    contactNumber: "012-9876543",
-    accountType: "STUDENT",
-    studentId: "2023123457",
-    program: "IT245 - Information Technology",
-    semester: 6,
-    yearOfStudy: 3,
-    passwordHash: "",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    accountId: "user-3",
-    email: "john.tan@student.uitm.edu.my",
-    name: "John Tan Wei Ming",
-    contactNumber: "013-2468135",
-    accountType: "STUDENT",
-    studentId: "2024135791",
-    program: "SE250 - Software Engineering",
-    semester: 2,
-    yearOfStudy: 1,
-    passwordHash: "",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    accountId: "staff-1",
-    email: "abu.bakar@uitm.edu.my",
-    name: "Officer Abu Bakar",
-    contactNumber: "013-9876543",
-    accountType: "STAFF",
-    role: "STAFF",
-    staffId: "S12345",
-    department: "Campus Security",
-    position: "Patrol Officer",
-    passwordHash: "",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    accountId: "staff-2",
-    email: "siti.nurhaliza@uitm.edu.my",
-    name: "Dr. Siti Nurhaliza",
-    contactNumber: "012-5556789",
-    accountType: "STAFF",
-    role: "STAFF",
-    staffId: "S12346",
-    department: "Computer Science",
-    position: "Senior Lecturer",
-    passwordHash: "",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    accountId: "admin-1",
-    email: "rahman.admin@uitm.edu.my",
-    name: "Encik Rahman Ibrahim",
-    contactNumber: "019-3334567",
-    accountType: "STAFF",
-    role: "ADMIN",
-    staffId: "A10001",
-    department: "System Administration",
-    position: "System Administrator",
-    passwordHash: "",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
 
 type RoleFilter = "ALL" | "STUDENT" | "STAFF" | "ADMIN";
 
@@ -121,7 +34,24 @@ export default function AllUsersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("ALL");
   const [currentPage, setCurrentPage] = useState(1);
-  const [users] = useState<(Student | Staff)[]>(MOCK_ALL_USERS);
+  const [users, setUsers] = useState<(Student | Staff)[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch('/api/users');
+        if (!response.ok) throw new Error('Failed to fetch users');
+        const data = await response.json();
+        setUsers(data);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch = 
@@ -160,6 +90,14 @@ export default function AllUsersPage() {
       alert("User deletion functionality will be implemented with backend API");
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

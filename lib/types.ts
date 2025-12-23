@@ -5,7 +5,7 @@
 // ============================================================================
 
 export type AccountType = 'STUDENT' | 'STAFF';
-export type Role = 'STUDENT' | 'STAFF' | 'ADMIN' | 'SUPERADMIN';
+export type Role = 'STUDENT' | 'STAFF'| 'SUPERVISOR' | 'ADMIN' | 'SUPERADMIN';
 
 export type ReportStatus = 'PENDING' | 'IN_PROGRESS' | 'RESOLVED' | 'REJECTED';
 export type ReportType = 'CRIME' | 'FACILITY';

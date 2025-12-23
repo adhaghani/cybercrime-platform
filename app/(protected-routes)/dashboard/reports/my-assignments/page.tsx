@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,28 +28,59 @@ import {
   Eye,
   Calendar,
   MapPin,
-  CheckCircle2
+  CheckCircle2,
+  Loader2
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
-import { MOCK_REPORTS } from "@/lib/api/mock-data";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import StatusBadge from "@/components/ui/statusBadge";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import { Report } from "@/lib/types";
+import { useAuth } from "@/lib/context/auth-provider";
 
 const ITEMS_PER_PAGE = 10;
 
 export default function MyAssignmentsPage() {
+  const { claims } = useAuth();
+  const [reports, setReports] = useState<Report[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [typeFilter, setTypeFilter] = useState<string>("ALL");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // TODO: Filter reports assigned to current staff member
-  // For now, showing all reports as mock data
-  const assignedReports = MOCK_REPORTS;
+  useEffect(() => {
+    const fetchAssignedReports = async () => {
+      try {
+        // Fetch all reports and filter by assigned staff
+        const response = await fetch('/api/reports');
+        if (!response.ok) throw new Error('Failed to fetch reports');
+        const allReports = await response.json();
+        
+        // Fetch report assignments to find reports assigned to current user
+        const assignmentsResponse = await fetch('/api/report-assignments');
+        if (!assignmentsResponse.ok) throw new Error('Failed to fetch assignments');
+        const assignments = await assignmentsResponse.json();
+        
+        // Filter reports assigned to current staff member
+        const userAssignments = assignments.filter((a: any) => a.staffId === claims?.user_metadata?.staffId);
+        const assignedReportIds = userAssignments.map((a: any) => a.reportId);
+        const assignedReports = allReports.filter((r: Report) => 
+          assignedReportIds.includes(r.reportId)
+        );
+        
+        setReports(assignedReports);
+      } catch (error) {
+        console.error('Error fetching assigned reports:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAssignedReports();
+  }, [claims]);
 
-  const filteredReports = assignedReports.filter((report) => {
+  const filteredReports = reports.filter((report) => {
     const matchesSearch = 
       report.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       report.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -74,11 +106,20 @@ export default function MyAssignmentsPage() {
 
 
   const stats = {
-    total: assignedReports.length,
-    pending: assignedReports.filter(r => r.status === "PENDING").length,
-    inProgress: assignedReports.filter(r => r.status === "IN_PROGRESS").length,
-    resolved: assignedReports.filter(r => r.status === "RESOLVED").length,
+    total: reports.length,
+    pending: reports.filter(r => r.status === "PENDING").length,
+    inProgress: reports.filter(r => r.status === "IN_PROGRESS").length,
+    resolved: reports.filter(r => r.status === "RESOLVED").length,
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
 
   return (
     <div className="space-y-6">
@@ -193,10 +234,10 @@ export default function MyAssignmentsPage() {
         <CardHeader>
           <CardTitle>Assigned Reports ({filteredReports.length})</CardTitle>
           <CardDescription className="flex justify-between items-center gap-2 flex-wrap">
-            {filteredReports.length === assignedReports.length 
-              ? "Showing all your assignments"
-              : `Showing ${filteredReports.length} of ${assignedReports.length} assignments`
-            }
+            {filteredReports.length === reports.length
+              ? "Showing all assignments"
+              : `Showing ${filteredReports.length} of ${reports.length} assignments`}
+            
                                       {totalPages > 1 && paginatedReports.length > 0 && (
               <PaginationControls
                 currentPage={currentPage}

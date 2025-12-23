@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getInitials, getDepartmentColor } from "@/lib/utils/badge-helpers";
@@ -11,7 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   ArrowLeft, Search, MoreVertical, Mail, Phone, 
-  Briefcase, Building2, Edit, UserX, Shield
+  Briefcase, Building2, Edit, UserX, Shield, Loader2, UserPlus,
+  ShieldCheck
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -27,142 +28,45 @@ import { PaginationControls } from "@/components/ui/pagination-controls";
 
 const ITEMS_PER_PAGE = 10;
 
-// Extended mock staff data
-const MOCK_STAFF_MEMBERS: Staff[] = [
-  {
-    accountId: "staff-1",
-    email: "abu.bakar@uitm.edu.my",
-    name: "Officer Abu Bakar bin Sulaiman",
-    contactNumber: "013-9876543",
-    accountType: "STAFF",
-    role: "STAFF",
-    staffId: "S12345",
-    department: "Campus Security",
-    position: "Patrol Officer",
-    passwordHash: "",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    accountId: "staff-2",
-    email: "siti.nurhaliza@uitm.edu.my",
-    name: "Dr. Siti Nurhaliza binti Mohamed",
-    contactNumber: "012-5556789",
-    accountType: "STAFF",
-    role: "STAFF",
-    staffId: "S12346",
-    department: "Computer Science",
-    position: "Senior Lecturer",
-    passwordHash: "",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    accountId: "staff-3",
-    email: "ali.imran@uitm.edu.my",
-    name: "Encik Ali Imran bin Rahman",
-    contactNumber: "019-2223456",
-    accountType: "STAFF",
-    role: "STAFF",
-    staffId: "S12347",
-    department: "Facilities Management",
-    position: "Maintenance Supervisor",
-    passwordHash: "",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    accountId: "staff-4",
-    email: "maria.abdullah@uitm.edu.my",
-    name: "Puan Maria binti Abdullah",
-    contactNumber: "017-8889012",
-    accountType: "STAFF",
-    role: "STAFF",
-    staffId: "S12348",
-    department: "Student Affairs",
-    position: "Student Counselor",
-    passwordHash: "",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    accountId: "staff-5",
-    email: "kumar.rajan@uitm.edu.my",
-    name: "Dr. Kumar a/l Rajan",
-    contactNumber: "016-4445678",
-    accountType: "STAFF",
-    role: "STAFF",
-    staffId: "S12349",
-    department: "Information Technology",
-    position: "Associate Professor",
-    passwordHash: "",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    accountId: "staff-6",
-    email: "lim.mei.ling@uitm.edu.my",
-    name: "Ms. Lim Mei Ling",
-    contactNumber: "012-1112345",
-    accountType: "STAFF",
-    role: "STAFF",
-    staffId: "S12350",
-    department: "Library Services",
-    position: "Head Librarian",
-    passwordHash: "",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    accountId: "staff-7",
-    email: "hassan.mahmud@uitm.edu.my",
-    name: "Encik Hassan bin Mahmud",
-    contactNumber: "019-7778901",
-    accountType: "STAFF",
-    role: "STAFF",
-    staffId: "S12351",
-    department: "Campus Security",
-    position: "Security Manager",
-    passwordHash: "",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    accountId: "staff-8",
-    email: "noor.azlina@uitm.edu.my",
-    name: "Dr. Noor Azlina binti Ismail",
-    contactNumber: "013-6667890",
-    accountType: "STAFF",
-    role: "STAFF",
-    staffId: "S12352",
-    department: "Software Engineering",
-    position: "Lecturer",
-    passwordHash: "",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
-
-export default function StaffPage() {
+export default function StaffManagementPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [departmentFilter, setDepartmentFilter] = useState("ALL");
+  const [departmentFilter, setDepartmentFilter] = useState<string>("ALL");
+  const [roleFilter, setRoleFilter] = useState<string>("ALL");
   const [currentPage, setCurrentPage] = useState(1);
-  const [staff] = useState<Staff[]>(MOCK_STAFF_MEMBERS);
+  const [staffMembers, setStaffMembers] = useState<Staff[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    fetchStaff();
+  }, []);
+
+  const fetchStaff = async () => {
+    try {
+      const response = await fetch('/api/staff');
+      if (response.ok) {
+        const data = await response.json();
+        setStaffMembers(data.staff || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch staff:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
   // Get unique departments for filter
-  const departments = Array.from(new Set(staff.map(s => s.department)));
+  const departments = Array.from(new Set(staffMembers.map(s => s.department)));
 
-  const filteredStaff = staff.filter((member) => {
+  const filteredStaff = staffMembers.filter((member) => {
     const matchesSearch = 
       member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       member.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.staffId.toLowerCase().includes(searchQuery.toLowerCase()) ||
       member.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
       member.position.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesDepartment = departmentFilter === "ALL" || member.department === departmentFilter;
+    const matchesRole = roleFilter === "ALL" || member.role === roleFilter;
 
-    return matchesSearch && matchesDepartment;
+    return matchesSearch && matchesDepartment && matchesRole;
   });
 
   // Pagination
@@ -183,9 +87,18 @@ export default function StaffPage() {
     alert("Promotion functionality will be implemented with backend API");
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex justify-between items-center gap-4">
+        <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
           <Link href="/dashboard/user-management">
             <ArrowLeft className="h-4 w-4" />
@@ -200,6 +113,13 @@ export default function StaffPage() {
             Manage staff accounts and department information ({filteredStaff.length} staff members)
           </p>
         </div>
+        </div>
+        <Button asChild>
+          <Link href="/dashboard/user-management/staff/add">
+            <UserPlus className="h-4 w-4 mr-2" />
+            Add New Staff
+          </Link>
+        </Button>
       </div>
 
       {/* Filters */}
@@ -213,6 +133,19 @@ export default function StaffPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
+        <Select value={roleFilter} onValueChange={(v) => handleFilterChange(() => setRoleFilter(v))}>
+          <SelectTrigger className="w-full md:w-[180px]">
+            <ShieldCheck className="h-4 w-4 mr-2" />
+            <SelectValue placeholder="Role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Roles</SelectItem>
+            <SelectItem value="STAFF">Staff</SelectItem>
+            <SelectItem value="SUPERVISOR">Supervisor</SelectItem>
+            <SelectItem value="ADMIN">Admin</SelectItem>
+            <SelectItem value="SUPERADMIN">Super Admin</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={departmentFilter} onValueChange={(v) => handleFilterChange(() => setDepartmentFilter(v))}>
           <SelectTrigger className="w-full md:w-[240px]">
             <Building2 className="h-4 w-4 mr-2" />
