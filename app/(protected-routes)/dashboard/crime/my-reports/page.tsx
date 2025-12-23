@@ -1,31 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Search,PlusCircle } from "lucide-react";
+import { ArrowLeft, Search, PlusCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { MOCK_REPORTS } from "@/lib/api/mock-data";
 import { Crime, ReportStatus } from "@/lib/types";
 import { PaginationControls } from "@/components/ui/pagination-controls";
-
+import { useAuth } from "@/lib/context/auth-provider";
 import ReportCard from "@/components/report/reportCard";
 
 const ITEMS_PER_PAGE = 6;
 
 export default function MyCrimeReportsPage() {
+  const { claims } = useAuth();
+  const [reports, setReports] = useState<Crime[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<ReportStatus | "ALL">("ALL");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Filter reports by current user (user-1) and crime type
-  const myReports = MOCK_REPORTS.filter(
-    (r) => r.type === "CRIME" && r.submittedBy === "user-1"
-  ) as Crime[];
+  useEffect(() => {
+    const fetchMyReports = async () => {
+      try {
+        const response = await fetch(`/api/reports?type=CRIME&submittedBy=${claims?.user_metadata?.userId}`);
+        if (!response.ok) throw new Error('Failed to fetch reports');
+        const data = await response.json();
+        setReports(data as Crime[]);
+      } catch (error) {
+        console.error('Error fetching my reports:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (claims?.user_metadata?.userId) fetchMyReports();
+  }, [claims?.user_metadata?.userId]);
 
-  const filteredReports = myReports.filter((report) => {
+  const filteredReports = reports.filter((report) => {
     const matchesSearch =
       report.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       report.location.toLowerCase().includes(searchQuery.toLowerCase());
@@ -46,11 +59,19 @@ export default function MyCrimeReportsPage() {
   };
 
   const statusCounts = {
-    total: myReports.length,
-    pending: myReports.filter(r => r.status === "PENDING").length,
-    inProgress: myReports.filter(r => r.status === "IN_PROGRESS").length,
-    resolved: myReports.filter(r => r.status === "RESOLVED").length,
+    total: reports.length,
+    pending: reports.filter(r => r.status === "PENDING").length,
+    inProgress: reports.filter(r => r.status === "IN_PROGRESS").length,
+    resolved: reports.filter(r => r.status === "RESOLVED").length,
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -140,11 +161,11 @@ export default function MyCrimeReportsPage() {
           <CardContent className="py-12">
             <div className="text-center space-y-4">
               <p className="text-muted-foreground">
-                {myReports.length === 0
+                {reports.length === 0
                   ? "You haven't submitted any crime reports yet."
                   : "No reports found matching your filters."}
               </p>
-              {myReports.length === 0 && (
+              {reports.length === 0 && (
                 <Button asChild>
                   <Link href="/dashboard/crime/submit-report">
                     <PlusCircle className="h-4 w-4 mr-2" />

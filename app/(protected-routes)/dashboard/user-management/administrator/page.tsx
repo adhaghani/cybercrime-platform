@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getInitials, getDepartmentColor } from "@/lib/utils/badge-helpers";
@@ -26,84 +26,27 @@ import { Staff } from "@/lib/types";
 
 const ITEMS_PER_PAGE = 10;
 
-// Mock administrator data - these are staff with ADMIN role
-const MOCK_ADMINISTRATORS: Staff[] = [
-  {
-    accountId: "admin-1",
-    email: "rahman.admin@uitm.edu.my",
-    passwordHash: "",
-    accountType: "STAFF",
-    name: "Encik Rahman Ibrahim",
-    contactNumber: "019-3334567",
-    role: "ADMIN",
-    staffId: "A10001",
-    department: "System Administration",
-    position: "System Administrator",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    accountId: "admin-2",
-    email: "fatimah.admin@uitm.edu.my",
-    passwordHash: "",
-    accountType: "STAFF",
-    name: "Puan Fatimah Zahra binti Hassan",
-    contactNumber: "012-8887654",
-    role: "ADMIN",
-    staffId: "A10002",
-    department: "Campus Security",
-    position: "Security Administrator",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    accountId: "admin-3",
-    email: "wong.admin@uitm.edu.my",
-    passwordHash: "",
-    accountType: "STAFF",
-    name: "Mr. Wong Chen Wei",
-    contactNumber: "013-5554321",
-    role: "ADMIN",
-    staffId: "A10003",
-    department: "IT Services",
-    position: "IT Administrator",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    accountId: "admin-4",
-    email: "azman.admin@uitm.edu.my",
-    passwordHash: "",
-    accountType: "STAFF",
-    name: "Encik Azman bin Yusof",
-    contactNumber: "017-2221098",
-    role: "ADMIN",
-    staffId: "A10004",
-    department: "Facilities Management",
-    position: "Facilities Administrator",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    accountId: "admin-5",
-    email: "priya.admin@uitm.edu.my",
-    passwordHash: "",
-    accountType: "STAFF",
-    name: "Dr. Priya Devi a/p Subramaniam",
-    contactNumber: "016-9998765",
-    role: "ADMIN",
-    staffId: "A10005",
-    department: "Academic Affairs",
-    position: "Academic Administrator",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
-
 export default function AdministratorPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [administrators] = useState<Staff[]>(MOCK_ADMINISTRATORS);
+  const [administrators, setAdministrators] = useState<Staff[]>([]);
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    const fetchAdministrators = async () => {
+      try {
+        const response = await fetch('/api/staff?role=ADMIN');
+        if (!response.ok) throw new Error('Failed to fetch administrators');
+        const data = await response.json();
+        setAdministrators(data);
+      } catch (error) {
+        console.error('Error fetching administrators:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAdministrators();
+  }, []);
 
   const filteredAdministrators = administrators.filter((admin) => {
     const matchesSearch = 
@@ -141,6 +84,14 @@ export default function AdministratorPage() {
     console.log("Resetting password for admin:", adminId);
     alert("Password reset link will be sent to the administrator's email");
   };
+
+  if(loading){
+    return (
+      <div className="text-center py-20">
+        <p className="text-muted-foreground">Loading administrators...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -12,8 +12,8 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { EmergencyInfo } from "@/lib/types";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-
 const emergencyContactSchema = z.object({
   name: z.string().min(5, "Name must be at least 5 characters").max(150, "Name is too long"),
   type: z.enum(["Police", "Fire", "Medical", "Civil Defence"] as const),
@@ -24,17 +24,6 @@ const emergencyContactSchema = z.object({
 });
 
 type EmergencyContactFormValues = z.infer<typeof emergencyContactSchema>;
-
-// Mock data for demonstration
-const MOCK_EMERGENCY_CONTACT = {
-  id: "1",
-  name: "Ibu Pejabat Polis Kontinjen (IPK) Selangor",
-  type: "Police" as const,
-  state: "Selangor",
-  address: "Persiaran Masjid, Seksyen 9, 40000 Shah Alam, Selangor",
-  phone: "03-5514 5222",
-  email: "ipk.selangor@rmp.gov.my",
-};
 
 const MALAYSIAN_STATES = [
   "Johor", "Kedah", "Kelantan", "Kuala Lumpur", "Labuan", "Melaka",
@@ -48,7 +37,7 @@ export default function UpdateEmergencyContactPage() {
   const router = useRouter();
   const params = useParams();
   const [isLoading, setIsLoading] = useState(false);
-  const [contact, setContact] = useState<typeof MOCK_EMERGENCY_CONTACT | null>(null);
+  const [contact, setContact] = useState<EmergencyInfo | null>(null);
 
   const form = useForm<EmergencyContactFormValues>({
     resolver: zodResolver(emergencyContactSchema),
@@ -63,31 +52,45 @@ export default function UpdateEmergencyContactPage() {
   });
 
   useEffect(() => {
-    // TODO: Fetch emergency contact data from API
-    // For now, using mock data
-    if (params.id === "1") {
-      setContact(MOCK_EMERGENCY_CONTACT);
-      form.reset({
-        name: MOCK_EMERGENCY_CONTACT.name,
-        type: MOCK_EMERGENCY_CONTACT.type,
-        state: MOCK_EMERGENCY_CONTACT.state,
-        address: MOCK_EMERGENCY_CONTACT.address,
-        phone: MOCK_EMERGENCY_CONTACT.phone,
-        email: MOCK_EMERGENCY_CONTACT.email || "",
-      });
-    }
+    const fetchEmergencyContact = async () => {
+      try {
+        const response = await fetch(`/api/emergency/${params.id}`);
+        if (!response.ok) throw new Error('Not found');
+        const data = await response.json();
+        setContact(data);
+        form.reset({
+          name: data.name,
+          type: data.type,
+          state: data.state,
+          address: data.address,
+          phone: data.phone,
+          email: data.email || '',
+        });
+      } catch (error) {
+        console.error('Error fetching emergency contact:', error);
+      }
+    };
+    fetchEmergencyContact();
   }, [params.id, form]);
 
   const onSubmit = async (data: EmergencyContactFormValues) => {
     setIsLoading(true);
 
     try {
-      // TODO: Replace with actual API call
-      console.log("Updating emergency contact:", { id: params.id, ...data });
+      const response = await fetch(`/api/emergency/${params.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: data.name,
+          type: data.type,
+          state: data.state,
+          address: data.address,
+          phone: data.phone,
+          email: data.email,
+        }),
+      });
       
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
+      if (!response.ok) throw new Error('Failed to update');
       router.push("/dashboard/emergency-services/emergency-contacts");
     } catch (error) {
       console.error("Error updating emergency contact:", error);

@@ -6,9 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Search, MapPin, LayoutGrid, Table2 } from "lucide-react";
+import { ArrowLeft, Search, MapPin, LayoutGrid, Table2, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { MOCK_REPORTS } from "@/lib/api/mock-data";
 import { Crime, ReportStatus, CrimeCategory } from "@/lib/types";
 import { format } from "date-fns";
 import CrimeCategoryBadge from "@/components/ui/crimeCategoryBadge";
@@ -28,15 +27,31 @@ import ReportCard from "@/components/report/reportCard";
 export default function AllCrimeReportsPage() {
   const ITEMS_PER_PAGE = 6;
 
+  const [reports, setReports] = useState<Crime[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<ReportStatus | "ALL">("ALL");
   const [categoryFilter, setCategoryFilter] = useState<CrimeCategory | "ALL">("ALL");
   const [viewMode, setViewMode] = useState<"card" | "table">("card");
   const [page, setPage] = useState(1);
 
-  const crimeReports = MOCK_REPORTS.filter((r) => r.type === "CRIME") as Crime[];
+  useEffect(() => {
+    const fetchCrimeReports = async () => {
+      try {
+        const response = await fetch('/api/reports?type=CRIME');
+        if (!response.ok) throw new Error('Failed to fetch reports');
+        const data = await response.json();
+        setReports(data as Crime[]);
+      } catch (error) {
+        console.error('Error fetching crime reports:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCrimeReports();
+  }, []);
 
-  const filteredReports = crimeReports.filter((report) => {
+  const filteredReports = reports.filter((report) => {
     const matchesSearch =
       report.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       report.location.toLowerCase().includes(searchQuery.toLowerCase());
@@ -75,6 +90,14 @@ export default function AllCrimeReportsPage() {
     items.push(totalPages);
     return items;
   }, [page, totalPages]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

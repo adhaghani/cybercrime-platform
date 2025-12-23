@@ -3,7 +3,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
 import {
   Table,
   TableBody,
@@ -29,13 +28,14 @@ import {
   MapPin,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
-import { MOCK_REPORTS } from "@/lib/api/mock-data";
-import { Crime,  } from "@/lib/types";
+import { useState, useEffect } from "react";
+import { Crime } from "@/lib/types";
 import { format } from "date-fns";
 import StatusBadge from "@/components/ui/statusBadge";
 import CrimeCategoryBadge from "@/components/ui/crimeCategoryBadge";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import { useHasAnyRole } from "@/hooks/use-user-role";
+import { Loader2 } from "lucide-react";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -44,9 +44,27 @@ export default function CrimeReportsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [currentPage, setCurrentPage] = useState(1);
+  const [crimeReports, setCrimeReports] = useState<Crime[]>([]);
+  const [loading, setLoading] = useState(true);
+  const isSupervisorOrAdmin = useHasAnyRole()(["SUPERVISOR", "ADMIN", "SUPERADMIN"]);
 
-  // Filter only crime reports
-  const crimeReports = MOCK_REPORTS.filter((r) => r.type === "CRIME") as Crime[];
+  useEffect(() => {
+    fetchReports();
+  }, []);
+
+  const fetchReports = async () => {
+    try {
+      const response = await fetch('/api/reports?type=CRIME');
+      if (response.ok) {
+        const data = await response.json();
+        setCrimeReports(data.reports || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch crime reports:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredReports = crimeReports.filter((report) => {
     const matchesSearch = 
@@ -78,6 +96,14 @@ export default function CrimeReportsPage() {
     inProgress: crimeReports.filter(r => r.status === "IN_PROGRESS").length,
     resolved: crimeReports.filter(r => r.status === "RESOLVED").length,
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -256,7 +282,7 @@ export default function CrimeReportsPage() {
                               <Eye className="h-4 w-4" />
                             </Link>
                           </Button>
-                          {report.status !== "RESOLVED" && (
+                          {isSupervisorOrAdmin && report.status !== "RESOLVED" && (
                             <Button asChild variant="ghost" size="sm">
                               <Link href={`/dashboard/reports/${report.reportId}?action=assign`}>
                                 <UserPlus className="h-4 w-4" />

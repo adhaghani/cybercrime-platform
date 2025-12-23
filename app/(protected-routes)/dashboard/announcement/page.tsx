@@ -22,13 +22,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, Plus, Search, MoreVertical, Eye, Edit, Trash2, Archive } from "lucide-react";
+import { Bell, Plus, Search, MoreVertical, Eye, Edit, Trash2, Archive, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { MOCK_ANNOUNCEMENTS } from "@/lib/api/mock-data";
 import { Announcement } from "@/lib/types";
 import { format } from "date-fns";
 import { useHasAnyRole } from "@/hooks/use-user-role";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 
 const ITEMS_PER_PAGE = 10;
@@ -36,10 +35,28 @@ const ITEMS_PER_PAGE = 10;
 export default function AnnouncementsPage() {
   const hasAnyRole = useHasAnyRole();
   const hasManageAccess = hasAnyRole(['STAFF', 'ADMIN', 'SUPERADMIN']);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [publishedPage, setPublishedPage] = useState(1);
   const [draftPage, setDraftPage] = useState(1);
   const [archivedPage, setArchivedPage] = useState(1);
+
+  useEffect(() => {
+    const fetchAnnouncements = async () => {
+      try {
+        const response = await fetch('/api/announcements');
+        if (!response.ok) throw new Error('Failed to fetch announcements');
+        const data = await response.json();
+        setAnnouncements(data);
+      } catch (error) {
+        console.error('Error fetching announcements:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAnnouncements();
+  }, []);
 
   // Filter announcements based on search
   const filteredAnnouncements = (announcements: Announcement[]) => {
@@ -61,14 +78,22 @@ export default function AnnouncementsPage() {
   };
 
   const publishedAnnouncements = filteredAnnouncements(
-    MOCK_ANNOUNCEMENTS.filter((a) => a.status === "PUBLISHED")
+    announcements.filter((a) => a.status === "PUBLISHED")
   );
   const draftAnnouncements = filteredAnnouncements(
-    MOCK_ANNOUNCEMENTS.filter((a) => a.status === "DRAFT")
+    announcements.filter((a) => a.status === "DRAFT")
   );
   const archivedAnnouncements = filteredAnnouncements(
-    MOCK_ANNOUNCEMENTS.filter((a) => a.status === "ARCHIVED")
+    announcements.filter((a) => a.status === "ARCHIVED")
   );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   const AnnouncementTable = ({ 
     announcements, 
@@ -223,7 +248,7 @@ export default function AnnouncementsPage() {
             <Bell className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{MOCK_ANNOUNCEMENTS.length}</div>
+            <div className="text-2xl font-bold">{announcements.length}</div>
             <p className="text-xs text-muted-foreground">All announcements</p>
           </CardContent>
         </Card>

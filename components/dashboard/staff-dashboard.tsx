@@ -18,7 +18,7 @@ import {
   Bell
 } from "lucide-react";
 import Link from "next/link";
-import { MOCK_REPORTS } from "@/lib/api/mock-data";
+import { Crime, Facility, Report } from "@/lib/types";
 import { format } from "date-fns";
 
 interface StaffDashboardProps {
@@ -31,10 +31,11 @@ interface StaffDashboardProps {
     totalReports: number;
   };
   isAdmin: boolean;
+  reports: (Crime | Facility)[];
 }
 
-export function StaffDashboard({ stats, isAdmin }: StaffDashboardProps) {
-  const allRecentReports = [...MOCK_REPORTS]
+export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps) {
+  const allRecentReports = [...reports]
     .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
     .slice(0, 5);
 
@@ -126,7 +127,7 @@ export function StaffDashboard({ stats, isAdmin }: StaffDashboardProps) {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Pending</span>
                 <Badge variant="outline" className="bg-yellow-500/10 text-yellow-500">
-                  {MOCK_REPORTS.filter(r => r.type === "CRIME" && r.status === "PENDING").length}
+                  {reports.filter(r => r.type === "CRIME" && r.status === "PENDING").length}
                 </Badge>
               </div>
             </div>

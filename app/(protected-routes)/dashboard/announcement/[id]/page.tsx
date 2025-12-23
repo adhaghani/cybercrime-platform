@@ -19,7 +19,7 @@ import {
   ArrowLeft,
   Edit,
   Trash2,
-
+  Loader2,
   Archive,
   Calendar,
   User,
@@ -27,28 +27,60 @@ import {
   Target,
 } from "lucide-react";
 import Link from "next/link";
-import { MOCK_ANNOUNCEMENTS } from "@/lib/api/mock-data";
 import { format } from "date-fns";
 import { useHasAnyRole } from "@/hooks/use-user-role";
 import { useRouter } from "next/navigation";
 import { notFound } from "next/navigation";
+import { useState, useEffect } from "react";
 
 export default function AnnouncementDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const hasAnyRole = useHasAnyRole();
   const hasManageAccess = hasAnyRole(['STAFF', 'ADMIN', 'SUPERADMIN']);
+  const [announcement, setAnnouncement] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const announcement = MOCK_ANNOUNCEMENTS.find((a) => a.announcementId === params.id);
+  useEffect(() => {
+    const fetchAnnouncement = async () => {
+      try {
+        const response = await fetch(`/api/announcements/${params.id}`);
+        if (!response.ok) throw new Error('Not found');
+        const data = await response.json();
+        setAnnouncement(data);
+      } catch (error) {
+        console.error('Error fetching announcement:', error);
+        setAnnouncement(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAnnouncement();
+  }, [params.id]);
+
+  const handleDelete = async () => {
+    try {
+      const response = await fetch(`/api/announcements/${params.id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to delete');
+      router.push('/dashboard/announcement');
+    } catch (error) {
+      console.error('Error deleting announcement:', error);
+      alert('Failed to delete announcement');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   if (!announcement) {
     notFound();
   }
-
-  const handleDelete = () => {
-    // TODO: Implement API call to delete announcement
-    console.log('Deleting announcement:', announcement.announcementId);
-    router.push('/dashboard/announcement');
-  };
 
   return (
     <div className="space-y-6">

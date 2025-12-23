@@ -1,41 +1,78 @@
 "use client";
 
-import { MOCK_REPORTS, MOCK_ANNOUNCEMENTS } from "@/lib/api/mock-data";
-import { Crime, Facility } from "@/lib/types";
+import { useState, useEffect } from "react";
+import { Crime, Facility, Announcement } from "@/lib/types";
 import { useHasAnyRole, useUserRole } from "@/hooks/use-user-role";
 import { StudentDashboard } from "@/components/dashboard/student-dashboard";
 import { StaffDashboard } from "@/components/dashboard/staff-dashboard";
 import { AnnouncementsSection } from "@/components/dashboard/announcements-section";
+import { useAuth } from "@/lib/context/auth-provider";
+import { Loader2 } from "lucide-react";
 
 export default function DashboardPage() {
   const hasAnyRole = useHasAnyRole();
   const role = useUserRole();
+  const { claims } = useAuth();
+  const [reports, setReports] = useState<(Crime | Facility)[]>([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [loading, setLoading] = useState(true);
+  
   const isStudent = role === 'STUDENT';
   const isStaff = hasAnyRole(['STAFF']);
   const isAdmin = hasAnyRole(['ADMIN', 'SUPERADMIN']);
   
+  useEffect(() => {
+    if (role) {
+      fetchDashboardData();
+    }
+  }, [role]);
+
+  const fetchDashboardData = async () => {
+    try {
+      const [reportsRes, announcementsRes] = await Promise.all([
+        fetch('/api/reports'),
+        fetch('/api/announcements')
+      ]);
+
+      if (reportsRes.ok) {
+        const reportsData = await reportsRes.json();
+        setReports(reportsData.reports || []);
+      }
+
+      if (announcementsRes.ok) {
+        const announcementsData = await announcementsRes.json();
+        setAnnouncements(announcementsData.announcements || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   // Handle null role - user not authenticated or role not set
-  if (role === null) {
+  if (role === null || loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto" />
           <h2 className="text-2xl font-semibold">Loading...</h2>
           <p className="text-muted-foreground">
-            Please wait while we fetch your account information.
+            Please wait while we fetch your dashboard.
           </p>
         </div>
       </div>
     );
   }
   
-  const crimeReports = MOCK_REPORTS.filter((r) => r.type === "CRIME") as Crime[];
-  const facilityReports = MOCK_REPORTS.filter((r) => r.type === "FACILITY") as Facility[];
-  
-  const myReports = MOCK_REPORTS.filter((r) => r.submittedBy === "user-1");
+  const crimeReports = reports.filter((r) => r.type === "CRIME") as Crime[];
+  const facilityReports = reports.filter((r) => r.type === "FACILITY") as Facility[];
+  const currentUserId = claims?.sub || '';
+  const myReports = reports.filter((r) => r.submittedBy === currentUserId);
 
   // Filter active announcements (published and within date range)
   const now = new Date();
-  const activeAnnouncements = MOCK_ANNOUNCEMENTS
+  const activeAnnouncements = announcements
     .filter(a => 
       a.status === 'PUBLISHED' && 
       new Date(a.startDate) <= now && 
@@ -55,10 +92,10 @@ export default function DashboardPage() {
     pendingReports: myReports.filter(r => r.status === "PENDING").length,
     resolvedReports: myReports.filter(r => r.status === "RESOLVED").length,
     // System-wide stats for staff/admin
-    allPending: MOCK_REPORTS.filter(r => r.status === "PENDING").length,
-    allInProgress: MOCK_REPORTS.filter(r => r.status === "IN_PROGRESS").length,
-    allResolved: MOCK_REPORTS.filter(r => r.status === "RESOLVED").length,
-    totalReports: MOCK_REPORTS.length,
+    allPending: reports.filter(r => r.status === "PENDING").length,
+    allInProgress: reports.filter(r => r.status === "IN_PROGRESS").length,
+    allResolved: reports.filter(r => r.status === "RESOLVED").length,
+    totalReports: reports.length,
   };
 
   return (
@@ -86,6 +123,7 @@ export default function DashboardPage() {
             resolvedReports: stats.resolvedReports,
           }}
           activeAnnouncementsCount={activeAnnouncements.length}
+          reports={reports}
         />
       ) : (
         <StaffDashboard 
@@ -98,6 +136,7 @@ export default function DashboardPage() {
             totalReports: stats.totalReports,
           }}
           isAdmin={isAdmin}
+          reports={reports}
         />
       )}
     </div>

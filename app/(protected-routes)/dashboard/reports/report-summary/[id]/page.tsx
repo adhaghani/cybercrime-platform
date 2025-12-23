@@ -27,10 +27,19 @@ export default function ReportSummaryDetailPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate fetching the report
-    const foundReport = MOCK_GENERATED_REPORTS.find((r) => r.generateId === reportId);
-    setReport(foundReport || null);
-    setLoading(false);
+    const fetchReport = async () => {
+      try {
+        const response = await fetch(`/api/generated-reports/${reportId}`);
+        if (!response.ok) throw new Error('Not found');
+        const data = await response.json();
+        setReport(data);
+      } catch (error) {
+        console.error('Error fetching report:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReport();
   }, [reportId]);
 
   const handleDownload = () => {

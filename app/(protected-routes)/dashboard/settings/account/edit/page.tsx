@@ -80,32 +80,62 @@ export default function SettingsProfilePage() {
   }, [claims, form]);
 
   function onSubmit(data: ProfileFormValues) {
-    // Update local state/session storage via setClaims
-    // In a real app, this would be an API call
-    if (claims) {
-      const updatedClaims = {
-        ...claims,
-        user_metadata: {
-          ...claims.user_metadata,
-          name: data.name,
-          contactNumber: data.contactNumber,
-          // Only update relevant fields based on role
-          ...(role === 'STUDENT' ? {
-            program: data.program,
-            semester: data.semester ? parseInt(data.semester) : undefined,
-            yearOfStudy: data.yearOfStudy ? parseInt(data.yearOfStudy) : undefined,
-          } : {}),
-          ...((role === 'STAFF' || role === 'ADMIN' || role === 'SUPERADMIN') ? {
-            department: data.department,
-            position: data.position,
-          } : {}),
-        },
-      };
-      setClaims(updatedClaims);
-    }
+    // Update via API
+    const updateAccount = async () => {
+      try {
+        const accountId = claims?.sub;
+        if (!accountId) return;
 
-    toast.success("Profile updated successfully");
-    router.push("/dashboard/settings/account");
+        const response = await fetch(`/api/accounts/${accountId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: data.name,
+            contact_number: data.contactNumber,
+            ...(role === 'STUDENT' ? {
+              program: data.program,
+              semester: data.semester ? parseInt(data.semester) : undefined,
+              year_of_study: data.yearOfStudy ? parseInt(data.yearOfStudy) : undefined,
+            } : {}),
+            ...((role === 'STAFF' || role === 'ADMIN' || role === 'SUPERADMIN') ? {
+              department: data.department,
+              position: data.position,
+            } : {}),
+          }),
+        });
+
+        if (!response.ok) throw new Error('Failed to update');
+
+        // Update local claims
+        if (claims) {
+          const updatedClaims = {
+            ...claims,
+            user_metadata: {
+              ...claims.user_metadata,
+              name: data.name,
+              contactNumber: data.contactNumber,
+              ...(role === 'STUDENT' ? {
+                program: data.program,
+                semester: data.semester ? parseInt(data.semester) : undefined,
+                yearOfStudy: data.yearOfStudy ? parseInt(data.yearOfStudy) : undefined,
+              } : {}),
+              ...((role === 'STAFF' || role === 'ADMIN' || role === 'SUPERADMIN') ? {
+                department: data.department,
+                position: data.position,
+              } : {}),
+            },
+          };
+          setClaims(updatedClaims);
+        }
+
+        toast.success("Profile updated successfully");
+        router.push("/dashboard/settings/account");
+      } catch (error) {
+        console.error('Error updating profile:', error);
+        toast.error("Failed to update profile. Please try again.");
+      }
+    };
+    updateAccount();
   }
 
   return (

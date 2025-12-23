@@ -14,9 +14,9 @@ import {
   Bell
 } from "lucide-react";
 import Link from "next/link";
-import { MOCK_REPORTS } from "@/lib/api/mock-data";
-import { Crime, Facility } from "@/lib/types";
+import { Crime, Facility, Report } from "@/lib/types";
 import { format } from "date-fns";
+import { useAuth } from "@/lib/context/auth-provider";
 
 interface StudentDashboardProps {
   stats: {
@@ -27,13 +27,17 @@ interface StudentDashboardProps {
     resolvedReports: number;
   };
   activeAnnouncementsCount: number;
+  reports: (Crime | Facility)[];
 }
 
-export function StudentDashboard({ stats }: StudentDashboardProps) {
-  const crimeReports = MOCK_REPORTS.filter((r) => r.type === "CRIME") as Crime[];
-  const facilityReports = MOCK_REPORTS.filter((r) => r.type === "FACILITY") as Facility[];
+export function StudentDashboard({ stats, reports }: StudentDashboardProps) {
+  const { claims } = useAuth();
+  const currentUserId = claims?.sub || '';
   
-  const myReports = MOCK_REPORTS.filter((r) => r.submittedBy === "user-1");
+  const crimeReports = reports.filter((r) => r.type === "CRIME") as Crime[];
+  const facilityReports = reports.filter((r) => r.type === "FACILITY") as Facility[];
+  
+  const myReports = reports.filter((r) => r.submittedBy === currentUserId);
   const recentReports = [...myReports]
     .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
     .slice(0, 5);
@@ -72,7 +76,7 @@ export function StudentDashboard({ stats }: StudentDashboardProps) {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">My Reports</span>
                 <Badge variant="outline">
-                  {crimeReports.filter(r => r.submittedBy === "user-1").length}
+                  {crimeReports.filter(r => r.submittedBy === currentUserId).length}
                 </Badge>
               </div>
             </div>
@@ -107,7 +111,7 @@ export function StudentDashboard({ stats }: StudentDashboardProps) {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">My Reports</span>
                 <Badge variant="outline">
-                  {facilityReports.filter(r => r.submittedBy === "user-1").length}
+                  {facilityReports.filter(r => r.submittedBy === currentUserId).length}
                 </Badge>
               </div>
             </div>

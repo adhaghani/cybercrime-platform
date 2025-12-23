@@ -12,19 +12,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Bell, ArrowLeft, Save, Send, Image as ImageIcon, X } from "lucide-react";
+import { Bell, ArrowLeft, Save, Send, Image as ImageIcon, X , Loader2} from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
-import { MOCK_ANNOUNCEMENTS } from "@/lib/api/mock-data";
 import { notFound } from "next/navigation";
+import { Announcement } from "@/lib/types";
 import Image from "next/image";
 
 export default function UpdateAnnouncementPage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const announcement = MOCK_ANNOUNCEMENTS.find((a) => a.announcementId === params.id);
-
+  const [announcement, setAnnouncement] = useState<Announcement | null>(null);
+  const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [type, setType] = useState("");
@@ -35,17 +35,28 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
   const [photoPreview, setPhotoPreview] = useState<string>("");
 
   useEffect(() => {
-    if (announcement) {
-      setTitle(announcement.title);
-      setMessage(announcement.message);
-      setType(announcement.type);
-      setPriority(announcement.priority);
-      setAudience(announcement.audience);
-      setStartDate(new Date(announcement.startDate));
-      setEndDate(new Date(announcement.endDate));
-      setPhotoPreview(announcement.photoPath || "");
-    }
-  }, [announcement]);
+    const fetchAnnouncement = async () => {
+      try {
+        const response = await fetch(`/api/announcements/${params.id}`);
+        if (!response.ok) throw new Error('Not found');
+        const data = await response.json();
+        setAnnouncement(data);
+        setTitle(data.title);
+        setMessage(data.message);
+        setType(data.type);
+        setPriority(data.priority);
+        setAudience(data.audience);
+        setStartDate(new Date(data.startDate));
+        setEndDate(new Date(data.endDate));
+        setPhotoPreview(data.photoPath || "");
+      } catch (error) {
+        console.error('Error fetching announcement:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAnnouncement();
+  }, [params.id]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -63,15 +74,41 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
     setPhotoPreview("");
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   if (!announcement) {
     notFound();
   }
 
-  const handleSubmit = (e: React.FormEvent, status: 'DRAFT' | 'PUBLISHED') => {
+  const handleSubmit = async (e: React.FormEvent, status: 'DRAFT' | 'PUBLISHED') => {
     e.preventDefault();
-    // TODO: Implement API call to update announcement
-    console.log('Updating announcement with status:', status);
-    router.push('/dashboard/announcement');
+    try {
+      const response = await fetch(`/api/announcements/${params.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          message,
+          type,
+          priority,
+          audience,
+          start_date: startDate?.toISOString(),
+          end_date: endDate?.toISOString(),
+          status,
+        }),
+      });
+      if (!response.ok) throw new Error('Failed to update');
+      router.push('/dashboard/announcement');
+    } catch (error) {
+      console.error('Error updating announcement:', error);
+      alert('Failed to update announcement');
+    }
   };
 
   return (

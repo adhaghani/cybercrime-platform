@@ -5,11 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Search,LayoutGrid, Table2 } from "lucide-react";
+import { ArrowLeft, Search, LayoutGrid, Table2, Loader2 } from "lucide-react";
 import Link from "next/link";
 import StatusBadge from "@/components/ui/statusBadge";
 import FacilitySeverityBadge from "@/components/ui/facilitySeverityBadge";
-import { MOCK_REPORTS } from "@/lib/api/mock-data";
 import { Facility, ReportStatus, SeverityLevel } from "@/lib/types";
 import {
   Pagination,
@@ -25,15 +24,31 @@ import ReportCard from "@/components/report/reportCard";
 export default function AllReportsPage() {
   const ITEMS_PER_PAGE = 6;
 
+  const [reports, setReports] = useState<Facility[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<ReportStatus | "ALL">("ALL");
   const [severityFilter, setSeverityFilter] = useState<SeverityLevel | "ALL">("ALL");
   const [viewMode, setViewMode] = useState<"card" | "table">("card");
   const [page, setPage] = useState(1);
 
-  const facilityReports = MOCK_REPORTS.filter((r) => r.type === "FACILITY") as Facility[];
+  useEffect(() => {
+    const fetchFacilityReports = async () => {
+      try {
+        const response = await fetch('/api/reports?type=FACILITY');
+        if (!response.ok) throw new Error('Failed to fetch reports');
+        const data = await response.json();
+        setReports(data as Facility[]);
+      } catch (error) {
+        console.error('Error fetching facility reports:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFacilityReports();
+  }, []);
 
-  const filteredReports = facilityReports.filter((report) => {
+  const filteredReports = reports.filter((report) => {
     const matchesSearch =
       report.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       report.location.toLowerCase().includes(searchQuery.toLowerCase());
@@ -72,6 +87,14 @@ export default function AllReportsPage() {
     items.push(totalPages);
     return items;
   }, [page, totalPages]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

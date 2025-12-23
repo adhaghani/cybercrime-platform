@@ -63,13 +63,21 @@ export default function AddEmergencyServicePage() {
     setIsSubmitting(true);
 
     try {
-      // TODO: API call to save UiTM police station
-      console.log("Saving UiTM Police Station:", uitmData);
+      const response = await fetch('/api/police', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          campus: uitmData.campus,
+          state: uitmData.state,
+          address: uitmData.address,
+          phone: uitmData.phone,
+          hotline: uitmData.hotline,
+          email: uitmData.email,
+          operating_hours: uitmData.operatingHours,
+        }),
+      });
       
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      // Redirect after success
+      if (!response.ok) throw new Error('Failed to save');
       router.push("/dashboard/emergency-services/uitm-auxiliary-police");
     } catch (error) {
       console.error("Error saving UiTM police station:", error);
@@ -84,13 +92,20 @@ export default function AddEmergencyServicePage() {
     setIsSubmitting(true);
 
     try {
-      // TODO: API call to save national emergency service
-      console.log("Saving National Emergency Service:", nationalData);
+      const response = await fetch('/api/emergency', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: nationalData.name,
+          type: nationalData.type,
+          state: nationalData.state,
+          address: nationalData.address,
+          phone: nationalData.phone,
+          email: nationalData.email,
+        }),
+      });
       
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      // Redirect after success
+      if (!response.ok) throw new Error('Failed to save');
       router.push("/dashboard/emergency-services/emergency-contacts");
     } catch (error) {
       console.error("Error saving national emergency service:", error);

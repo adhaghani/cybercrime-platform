@@ -57,32 +57,47 @@ export default function UpdateUitmPolicePage() {
   });
 
   useEffect(() => {
-    // TODO: Fetch police station data from API
-    // For now, using mock data
-    if (params.id === "1") {
-      setPoliceStation(MOCK_UITM_POLICE);
-      form.reset({
-        campus: MOCK_UITM_POLICE.campus,
-        state: MOCK_UITM_POLICE.state,
-        address: MOCK_UITM_POLICE.address,
-        phone: MOCK_UITM_POLICE.phone,
-        hotline: MOCK_UITM_POLICE.hotline,
-        email: MOCK_UITM_POLICE.email,
-        operatingHours: MOCK_UITM_POLICE.operatingHours,
-      });
-    }
+    const fetchPoliceStation = async () => {
+      try {
+        const response = await fetch(`/api/police/${params.id}`);
+        if (!response.ok) throw new Error('Not found');
+        const data = await response.json();
+        setPoliceStation(data);
+        form.reset({
+          campus: data.campus,
+          state: data.state,
+          address: data.address,
+          phone: data.phone,
+          hotline: data.hotline,
+          email: data.email,
+          operatingHours: data.operating_hours || '24 Hours',
+        });
+      } catch (error) {
+        console.error('Error fetching police station:', error);
+      }
+    };
+    fetchPoliceStation();
   }, [params.id, form]);
 
   const onSubmit = async (data: UitmPoliceFormValues) => {
     setIsLoading(true);
 
     try {
-      // TODO: Replace with actual API call
-      console.log("Updating UiTM police station:", { id: params.id, ...data });
+      const response = await fetch(`/api/police/${params.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          campus: data.campus,
+          state: data.state,
+          address: data.address,
+          phone: data.phone,
+          hotline: data.hotline,
+          email: data.email,
+          operating_hours: data.operatingHours,
+        }),
+      });
       
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
+      if (!response.ok) throw new Error('Failed to update');
       router.push("/dashboard/emergency-services/uitm-auxiliary-police");
     } catch (error) {
       console.error("Error updating police station:", error);
