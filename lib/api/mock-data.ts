@@ -1,37 +1,6 @@
-import { AnyReport, ReportAssignment, Student, Staff, Announcement, GeneratedReport } from "@/lib/types";
+import { AnyReport, ReportAssignment, Announcement, GeneratedReport } from "@/lib/types";
 import { generateMockReports } from "./data_factory";
-// Mock Users
-export const MOCK_STUDENTS: Student[] = [
-  {
-    accountId: "user-1",
-    email: "student@uitm.edu.my",
-    name: "Ahmad Ali",
-    contactNumber: "012-3456789",
-    accountType: "STUDENT",
-    program: "CS240",
-    semester: 4,
-    yearOfStudy: 2,
-    passwordHash: "hashedpassword1",
-    createdAt: "2023-01-15T10:00:00Z",
-    updatedAt: "2023-06-20T12:00:00Z",
-  },
-];
 
-export const MOCK_STAFF: Staff[] = [
-  {
-    accountId: "staff-1",
-    email: "officer@uitm.edu.my",
-    name: "Officer Abu",
-    contactNumber: "013-9876543",
-    role: "STAFF",
-    accountType: "STAFF",
-    department: "Security",
-    position: "Patrol Officer",
-    passwordHash: "hashedpassword1",
-    createdAt: "2023-01-15T10:00:00Z",
-    updatedAt: "2023-06-20T12:00:00Z",
-  },
-];
 
 // Mock Reports
 export const MOCK_REPORTS: AnyReport[] = [
