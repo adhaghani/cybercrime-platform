@@ -17,6 +17,10 @@ export interface SignUpData {
   contact_number: string;
   password: string;
   account_type?: string;
+  studentID: string;
+  program: string;
+  semester: number;
+  year_of_study: number;
 }
 
 export interface AuthResponse {
@@ -73,6 +77,7 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
     return response;
   } catch (error) {
     // If unauthorized or token invalid, clear token
+    console.error("Error fetching current user:", error);
     apiClient.clearToken();
     return null;
   }

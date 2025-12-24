@@ -3,7 +3,7 @@
  * Set to true to use mock data for authentication and API testing
  * Set to false to use real API endpoints
  */
-export const IS_TESTING = false;
+export const IS_TESTING = true;
 
 /**
  * Auth testing configuration
@@ -14,7 +14,7 @@ export const TESTING_CONFIG = {
   mockUser: {
     id: 'test-user-1',
     email: 'test@example.com',
-    role: 'ADMIN',
+    role: 'SUPERADMIN',
     name: 'Test User',
   },
 };

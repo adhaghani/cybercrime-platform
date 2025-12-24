@@ -13,6 +13,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { passwordComplexity, StaffEmailRegex } from '@/lib/constant';
 
 interface Supervisor {
   accountId: string;
@@ -22,8 +23,8 @@ interface Supervisor {
 
 const staffSchema = z.object({
   name: z.string().min(1, "Name is required").max(100, "Name is too long"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  email: z.string().email("Invalid email address").regex(StaffEmailRegex, "Need to use UiTM Staff email"),
+  password: z.string().min(8, "Password must be at least 8 characters").regex(passwordComplexity, "Password must include uppercase, lowercase, number and symbol"),
   contactNumber: z.string().min(9, "Contact number must be at least 9 characters").optional().or(z.literal("")),
   role: z.enum(["STAFF", "SUPERVISOR", "ADMIN", "SUPERADMIN"] as const),
   department: z.string().min(1, "Department is required").max(100, "Department is too long"),

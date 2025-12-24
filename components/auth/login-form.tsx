@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -25,10 +26,10 @@ import { useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { passwordComplexity } from "@/lib/constant";
-
+import { passwordComplexity, StudentEmailRegex } from "@/lib/constant";
+import { toast } from "sonner";
 const formSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z.string().email("Invalid email address").regex(StudentEmailRegex, "Need to use UiTM Student email"),
   password: z
     .string()
     .min(8, "invalid password")
@@ -59,22 +60,31 @@ export function LoginForm({
       setIsLoading(true);
 
       const { user } = await login({
-        email: form.getValues("email"),
-        password: form.getValues("password"),
+        email: value.email,
+        password: value.password,
       });
 
       // Set user claims
       setClaims({
-        sub: user.id,
+        sub: user.accountId,
         email: user.email,
         user_metadata: {
-          full_name: user.full_name || "",
-          username: user.username || "",
-          avatar_url: user.avatar_url || "",
+          name: user.name || "",
+          contactNumber: user.contactNumber || "",
+          ...(('studentId' in user) ? {
+            studentId: user.studentId,
+            program: user.program,
+            semester: user.semester,
+            yearOfStudy: user.yearOfStudy,
+          } : {
+            staffId: user.staffId,
+            department: user.department,
+            position: user.position,
+          })
         },
-        role: user.role,
-        created_at: user.created_at,
-        updated_at: user.updated_at,
+        role: 'role' in user ? user.role : user.accountType as any,
+        created_at: user.createdAt,
+        updated_at: user.updatedAt,
       });
 
       // Get redirect URL from searchParams or default to dashboard
@@ -86,6 +96,10 @@ export function LoginForm({
       setIsLoading(false);
     }
   };
+
+  if(error){
+    toast.error(error);
+  }
 
   return (
     <div className={cn("flex", className)} {...props}>
@@ -107,6 +121,8 @@ export function LoginForm({
                     <FormLabel>Email Address</FormLabel>
                     <FormControl>
                       <Input
+                        disabled={isLoading}
+                        type="email"
                         placeholder="youremailaddress@example.com"
                         {...field}
                       />
@@ -131,6 +147,7 @@ export function LoginForm({
                     </FormLabel>
                     <FormControl>
                       <Input
+                        disabled={isLoading}
                         type="password"
                         placeholder="********"
                         {...field}
@@ -140,8 +157,8 @@ export function LoginForm({
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full">
-                Login
+              <Button type="submit" disabled={isLoading} className="w-full">
+                {isLoading ? "Logging in..." : "Login"}
               </Button>
             </form>
           </Form>

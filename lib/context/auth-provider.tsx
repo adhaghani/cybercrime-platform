@@ -4,36 +4,26 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { Role } from "@/lib/types";
 
 interface Claims {
+  sub?: string; // accountId
   email?: string;
-  sub?: string;
-  aud?: string;
-  iat?: number;
-  exp?: number;
   role?: Role;
-  session_id?: string;
   user_metadata?: {
     name?: string;
     contactNumber?: string;
     avatarUrl?: string;
-    // Student specific
+    // Student specific fields
     studentId?: string;
     program?: string;
     semester?: number;
     yearOfStudy?: number;
-    // Staff specific
+    // Staff specific fields
     staffId?: string;
     department?: string;
     position?: string;
     [key: string]: string | number | boolean | null | undefined;
   };
-  app_metadata?: {
-    provider?: string;
-    providers?: string[];
-    [key: string]: string | number | boolean | string[] | null | undefined;
-  };
   created_at?: string;
   updated_at?: string;
-  [key: string]: string | number | boolean | object | null | undefined;
 }
 
 type AuthContextValue = {

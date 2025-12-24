@@ -21,42 +21,102 @@ router.get('/', optionalAuth, async (req, res) => {
 });
 
 // POST /api/accounts
+// Create a new account
 router.post('/', async (req, res) => {
+  let connection;
   try {
-    const { name, email, password, contact_number, account_type } = req.body;
+    const { name, email, password, contact_number, account_type, studentID, program, semester, year_of_study, staffID, role, department, position, supervisorID } = req.body;
     
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: 'Name, email, and password are required' });
+    if (!name || !email || !password || !account_type) {
+      return res.status(400).json({ error: 'Name, email, password, and account_type are required' });
+    }
+
+    // Validate required fields based on account type
+    if (account_type === 'STUDENT') {
+      if (!studentID || !program || !semester || !year_of_study) {
+        return res.status(400).json({ error: 'StudentID, program, semester, and year_of_study are required for students' });
+      }
+    } else if (account_type === 'STAFF') {
+      if (!staffID || !department || !position) {
+        return res.status(400).json({ error: 'StaffID, department, and position are required for staff' });
+      }
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const sql = `
-      INSERT INTO ACCOUNT (
-        ACCOUNT_ID, NAME, EMAIL, PASSWORD_HASH, CONTACT_NUMBER, 
-        ACCOUNT_TYPE, CREATED_AT, UPDATED_AT
-      ) VALUES (
-        account_seq.NEXTVAL, :name, :email, :password, :contact, 
-        :type, SYSTIMESTAMP, SYSTIMESTAMP
-      ) RETURNING ACCOUNT_ID INTO :id
+    // Get connection for transaction
+    connection = await oracledb.getConnection();
+
+    // 1. Insert into ACCOUNT table (trigger will auto-create empty STUDENT/STAFF record)
+    const accountSql = `
+      INSERT INTO ACCOUNT (NAME, EMAIL, PASSWORD_HASH, CONTACT_NUMBER, ACCOUNT_TYPE)
+      VALUES (:name, :email, :password, :contact_number, :type)
+      RETURNING ACCOUNT_ID INTO :id
     `;
-    
-    const binds = {
+
+    const accountBinds = {
       name,
       email,
       password: hashedPassword,
       contact: contact_number || null,
-      type: account_type || 'STUDENT',
+      type: account_type,
       id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
     };
 
-    const result = await exec(sql, binds, { autoCommit: true });
-    
+    const accountResult = await connection.execute(accountSql, accountBinds);
+    const accountId = accountResult.outBinds.id[0];
+
+    // 2. Update the child table with user-provided data
+    if (account_type === 'STUDENT') {
+      const studentSql = `
+        UPDATE STUDENT 
+        SET STUDENT_ID = :studentID, 
+            PROGRAM = :program, 
+            SEMESTER = :semester, 
+            YEAR_OF_STUDY = :year_of_study
+        WHERE ACCOUNT_ID = :accountId
+      `;
+      await connection.execute(studentSql, { 
+        studentID, 
+        program, 
+        semester, 
+        year_of_study, 
+        accountId 
+      });
+
+    } else if (account_type === 'STAFF') {
+      const staffSql = `
+        UPDATE STAFF 
+        SET STAFF_ID = :staffID, 
+            ROLE = :role, 
+            DEPARTMENT = :department, 
+            POSITION = :position, 
+            SUPERVISOR_ID = :supervisorID
+        WHERE ACCOUNT_ID = :accountId
+      `;
+      await connection.execute(staffSql, { 
+        staffID, 
+        role: role || 'STAFF', 
+        department, 
+        position, 
+        supervisorID: supervisorID || null,
+        accountId 
+      });
+    }
+
+    await connection.commit();
+    await connection.close();
+
     res.status(201).json({ 
-      message: 'Account created',
-      account_id: result.outBinds.id[0]
+      message: 'Account created successfully',
+      account_id: accountId
     });
+
   } catch (err) {
+    if (connection) {
+      await connection.rollback();
+      await connection.close();
+    }
     console.error('Create account error:', err);
     res.status(500).json({ error: 'Failed to create account', details: err.message });
   }
