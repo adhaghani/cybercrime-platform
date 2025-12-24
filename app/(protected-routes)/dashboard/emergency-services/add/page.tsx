@@ -115,6 +115,7 @@ export default function AddEmergencyServicePage() {
   };
 
   const onNationalSubmit = async (data: NationalEmergencyFormData) => {
+    console.log(data);
     setIsSubmitting(true);
 
     try {

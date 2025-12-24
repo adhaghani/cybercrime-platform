@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -9,12 +9,12 @@ import { Pencil, MapPin, Search, Mail, Clock, Loader2 } from "lucide-react";
 import { useHasAnyRole } from "@/hooks/use-user-role";
 import Link from "next/link";
 import { PaginationControls } from "@/components/ui/pagination-controls";
-
+import { UiTMAuxiliaryPolice } from "@/lib/types";
 const ITEMS_PER_PAGE = 9;
 
 export default function UitmAuxiliaryPolicePage() {
   const hasAnyRole = useHasAnyRole();
-  const [policeStations, setPoliceStations] = useState<any[]>([]);
+  const [policeStations, setPoliceStations] = useState<UiTMAuxiliaryPolice[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -26,6 +26,7 @@ export default function UitmAuxiliaryPolicePage() {
         if (!response.ok) throw new Error('Failed to fetch');
         const data = await response.json();
         setPoliceStations(data);
+        console.log(data);
       } catch (error) {
         console.error('Error fetching police stations:', error);
       } finally {
@@ -36,13 +37,13 @@ export default function UitmAuxiliaryPolicePage() {
   }, []);
 
   const isAuthorizedForEdit = () => {
-    if(hasAnyRole(['ADMIN', 'SUPERADMIN'])) return true;
+    if(hasAnyRole(['STAFF','SUPERVISOR','ADMIN', 'SUPERADMIN'])) return true;
     return false;
   };
 
   const filteredStations = policeStations.filter((station) =>
-    station.campus.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    station.state.toLowerCase().includes(searchQuery.toLowerCase())
+    station.CAMPUS.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    station.STATE.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Pagination
@@ -86,42 +87,42 @@ export default function UitmAuxiliaryPolicePage() {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {paginatedStations.map((station) => (
-          <Card key={station.id} className="flex flex-col">
+          <Card key={station.EMERGENCY_ID} className="flex flex-col">
             <CardHeader>
-              <CardTitle className="flex justify-between items-start gap-2 w-full text-lg">{station.campus}
+              <CardTitle className="flex justify-between items-start gap-2 w-full text-lg">{station.CAMPUS}
                 {isAuthorizedForEdit() ? <Button variant={"ghost"} asChild>
-                  <Link href={`/dashboard/emergency-services/uitm-auxiliary-police/${station.id}/update`}>
+                  <Link href={`/dashboard/emergency-services/uitm-auxiliary-police/${station.EMERGENCY_ID}/update`}>
                  <Pencil size={10} /> 
                  </Link>
                 </Button> : null}
               </CardTitle>
-              <CardDescription>{station.state}</CardDescription>
+              <CardDescription>{station.STATE}</CardDescription>
             </CardHeader>
             <CardContent className="flex-1 space-y-2">
               <div className="flex items-start gap-3 text-sm">
                 <MapPin className="h-4 w-4 mt-1 shrink-0" />
-                <span>{station.address}</span>
+                <span>{station.ADDRESS}</span>
               </div>
               
               <div className="flex flex-wrap gap-3 items-center ">
                 <div className="flex items-center gap-3 text-sm">
                    <Mail className="h-4 w-4 shrink-0" />
-                   <span>{station.email}</span>
+                   <span>{station.EMAIL}</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm">
                    <Clock className="h-4 w-4 shrink-0" />
-                   <span>{station.operatingHours}</span>
+                   <span>{station.OPERATING_HOURS}</span>
                 </div>
 
               </div>
             </CardContent>
             <CardFooter className="gap-2 flex-wrap">                
                 <Button className="w-full" variant="destructive">
-                        Emergency: {station.hotline}
+                        Emergency: {station.HOTLINE}
                 </Button>
-                 {station.phone && (
+                 {station.PHONE && (
                     <Button className="w-full" variant="outline">
-                            Office: {station.phone}
+                            Office: {station.PHONE}
                     </Button>
                  )}</CardFooter>
           </Card>

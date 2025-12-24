@@ -16,7 +16,7 @@ export default function EmergencyServicesLayout({
   children: React.ReactNode;
 }) {
   const hasAnyRole = useHasAnyRole();
-  const isStaffOrAdmin = hasAnyRole(['STAFF', 'ADMIN', 'SUPERADMIN']);
+  const isStaffOrAdmin = hasAnyRole(['STAFF','SUPERVISOR', 'ADMIN', 'SUPERADMIN']);
 
   // Mock statistics - replace with actual API calls
   const stats = {

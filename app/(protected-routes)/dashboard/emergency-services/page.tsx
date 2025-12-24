@@ -13,7 +13,7 @@ export default function EmergencyServicesPage() {
 const hasAnyRole = useHasAnyRole();
   const isAuthorizedForAdd = () => {
 
-  if(hasAnyRole(['ADMIN', 'SUPERADMIN', 'STAFF'])) return true;
+  if(hasAnyRole(['ADMIN','SUPERVISOR', 'SUPERADMIN', 'STAFF'])) return true;
 
   return false;
 }

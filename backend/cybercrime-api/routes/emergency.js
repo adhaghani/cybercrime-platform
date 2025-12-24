@@ -22,7 +22,7 @@ router.get('/', optionalAuth, async (req, res) => {
       binds.type = type;
     }
 
-    const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+    const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` + ` AND TYPE IS NOT NULL ` : 'WHERE TYPE IS NOT NULL ';
     
     const sql = `
       SELECT EMERGENCY_ID, NAME, ADDRESS, PHONE, EMAIL, STATE, TYPE, HOTLINE, 
@@ -45,8 +45,8 @@ router.post('/', authenticateToken, async (req, res) => {
   try {
     const { name, address, phone, email, state, type, hotline } = req.body;
     
-    if (!name || !address || !phone || !state) {
-      return res.status(400).json({ error: 'Name, address, phone, and state are required' });
+    if (!name || !address || !phone || !state || !type) {
+      return res.status(400).json({ error: 'Name, address, phone, state, and type are required' });
     }
 
     const sql = `

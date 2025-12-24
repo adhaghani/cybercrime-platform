@@ -89,16 +89,16 @@ export interface ReportAssignment {
 
 // 6. Emergency Info Table
 export interface EmergencyInfo {
-  emergencyId: string;
-  name: string;
-  address: string;
-  phone: string;
-  email?: string;
-  state: MalaysianState;
-  type?: EmergencyServiceType;
-  hotline?: string;
-  createdAt: string;
-  updatedAt: string;
+  EMERGENCY_ID: string;
+  NAME: string;
+  ADDRESS: string;
+  PHONE: string;
+  EMAIL?: string;
+  STATE: MalaysianState;
+  TYPE?: EmergencyServiceType;
+  HOTLINE?: string;
+  CREATED_AT: string;
+  UPDATED_AT: string;
 }
 
 // 7. Generated Report Table
@@ -151,8 +151,8 @@ export interface Facility extends Report{
 
 // 11. UiTM Auxiliary Police Table
 export interface UiTMAuxiliaryPolice extends EmergencyInfo {
-  campus: UiTMCampus;
-  operatingHours: string;
+  CAMPUS: UiTMCampus;
+  OPERATING_HOURS: string;
 }
 
 // 12. Resolution Table
