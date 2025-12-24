@@ -21,7 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Bell, ArrowLeft, Save, Send, Image as ImageIcon, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -39,7 +38,6 @@ const announcementSchema = z.object({
   targetAudience: z.enum(["ALL", "STUDENTS", "STAFF", "ADMIN"]),
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().min(1, "End date is required"),
-  isPinned: z.boolean(),
   photo: z.any().optional(),
 }).refine((data) => {
   if (data.startDate && data.endDate) {
@@ -66,7 +64,6 @@ export default function NewAnnouncementPage() {
       targetAudience: undefined,
       startDate: "",
       endDate: "",
-      isPinned: false,
     },
   });
 
@@ -102,7 +99,6 @@ export default function NewAnnouncementPage() {
           start_date: data.startDate,
           end_date: data.endDate,
           status,
-          is_pinned: data.isPinned,
         }),
       });
       if (!response.ok) throw new Error('Failed to create announcement');
@@ -363,27 +359,6 @@ export default function NewAnnouncementPage() {
                         </SelectContent>
                       </Select>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="isPinned"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                      <div className="space-y-0.5">
-                        <FormLabel>Pin Announcement</FormLabel>
-                        <FormDescription className="text-sm">
-                          Display at the top of dashboard
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
                     </FormItem>
                   )}
                 />

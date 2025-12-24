@@ -2,8 +2,10 @@ const express = require('express');
 const oracledb = require('oracledb');
 const { exec } = require('../database/connection');
 const { authenticateToken, optionalAuth } = require('../middleware/auth');
-
+const { toPlainRows } = require('../helper/toPlainRows');
 const router = express.Router();
+
+
 
 // GET /api/announcements
 router.get('/', optionalAuth, async (req, res) => {
@@ -19,7 +21,8 @@ router.get('/', optionalAuth, async (req, res) => {
       { offset: parseInt(offset), endRow: parseInt(offset) + parseInt(limit) }
     );
 
-    res.json(result.rows);
+    const announcements = toPlainRows(result.rows);
+    res.json({ announcements, totalAnnouncement : announcements.length });
   } catch (err) {
     console.error('Get announcements error:', err);
     res.status(500).json({ error: 'Failed to get announcements', details: err.message });
@@ -29,6 +32,7 @@ router.get('/', optionalAuth, async (req, res) => {
 // POST /api/announcements
 router.post('/', authenticateToken, async (req, res) => {
   try {
+    console.log('Create announcement request body:', req.body);
     const { 
       title, message, audience, type, priority, status, 
       photo_path, start_date, end_date 
@@ -63,7 +67,11 @@ router.post('/', authenticateToken, async (req, res) => {
       id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
     };
 
+    console.log('SQL binds:', binds);
+
     const result = await exec(sql, binds, { autoCommit: true });
+
+    console.log('Announcement created successfully:', result.outBinds.id[0]);
 
     res.status(201).json({
       message: 'Announcement created successfully',
@@ -71,6 +79,7 @@ router.post('/', authenticateToken, async (req, res) => {
     });
   } catch (err) {
     console.error('Create announcement error:', err);
+    console.error('Error stack:', err.stack);
     res.status(500).json({ error: 'Failed to create announcement', details: err.message });
   }
 });
@@ -85,7 +94,7 @@ router.get('/active', optionalAuth, async (req, res) => {
        AND END_DATE >= SYSDATE
        ORDER BY PRIORITY DESC, CREATED_AT DESC`
     );
-    res.json(result.rows);
+    res.json(toPlainRows(result.rows));
   } catch (err) {
     console.error('Get active announcements error:', err);
     res.status(500).json({ error: 'Failed to get active announcements', details: err.message });
@@ -102,7 +111,7 @@ router.get('/by-audience/:audience', optionalAuth, async (req, res) => {
        ORDER BY CREATED_AT DESC`,
       { audience: req.params.audience }
     );
-    res.json(result.rows);
+    res.json(toPlainRows(result.rows));
   } catch (err) {
     console.error('Get announcements by audience error:', err);
     res.status(500).json({ error: 'Failed to get announcements', details: err.message });
@@ -113,7 +122,6 @@ router.get('/by-audience/:audience', optionalAuth, async (req, res) => {
 router.get('/search', optionalAuth, async (req, res) => {
   try {
     const { q, priority, type, target_audience } = req.query;
-    
     let whereClauses = [];
     const binds = {};
 
@@ -139,7 +147,7 @@ router.get('/search', optionalAuth, async (req, res) => {
     const sql = `SELECT * FROM ANNOUNCEMENT ${whereClause} ORDER BY CREATED_AT DESC`;
     const result = await exec(sql, binds);
 
-    res.json(result.rows);
+    res.json(toPlainRows(result.rows));
   } catch (err) {
     console.error('Search announcements error:', err);
     res.status(500).json({ error: 'Failed to search announcements', details: err.message });
@@ -185,7 +193,8 @@ router.get('/:id', optionalAuth, async (req, res) => {
       return res.status(404).json({ error: 'Announcement not found' });
     }
 
-    res.json(result.rows[0]);
+    const [announcement] = toPlainRows(result.rows);
+    res.json(announcement);
   } catch (err) {
     console.error('Get announcement error:', err);
     res.status(500).json({ error: 'Failed to get announcement', details: err.message });
@@ -202,11 +211,22 @@ router.put('/:id', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'No fields to update' });
     }
 
-    const updates = fields.map((f, i) => `${f.toUpperCase()} = :v${i}`);
+    const dateFields = new Set(['start_date', 'end_date']);
     const binds = {};
-    fields.forEach((f, i) => binds[`v${i}`] = data[f]);
-    binds.id = req.params.id;
+    
+    const updates = fields.map((f, i) => {
+      const column = f.toUpperCase();
+      binds[`v${i}`] = data[f];
+      
+      // Use TO_DATE for date fields, just like in INSERT
+      if (dateFields.has(f)) {
+        return `${column} = TO_DATE(:v${i}, 'YYYY-MM-DD')`;
+      }
+      
+      return `${column} = :v${i}`;
+    });
 
+    binds.id = req.params.id;
     updates.push('UPDATED_AT = SYSTIMESTAMP');
 
     const sql = `UPDATE ANNOUNCEMENT SET ${updates.join(', ')} WHERE ANNOUNCEMENT_ID = :id`;

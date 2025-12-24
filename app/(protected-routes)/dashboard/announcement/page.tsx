@@ -21,11 +21,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bell, Plus, Search, MoreVertical, Eye, Edit, Trash2, Archive, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Announcement } from "@/lib/types";
-import { format } from "date-fns";
 import { useHasAnyRole } from "@/hooks/use-user-role";
 import { useState, useEffect } from "react";
 import { PaginationControls } from "@/components/ui/pagination-controls";
@@ -38,9 +36,7 @@ export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [publishedPage, setPublishedPage] = useState(1);
-  const [draftPage, setDraftPage] = useState(1);
-  const [archivedPage, setArchivedPage] = useState(1);
+  const [Page, setPage] = useState(1)
 
   useEffect(() => {
     const fetchAnnouncements = async () => {
@@ -48,7 +44,7 @@ export default function AnnouncementsPage() {
         const response = await fetch('/api/announcements');
         if (!response.ok) throw new Error('Failed to fetch announcements');
         const data = await response.json();
-        setAnnouncements(data);
+        setAnnouncements(data.announcements as Announcement[]);
       } catch (error) {
         console.error('Error fetching announcements:', error);
       } finally {
@@ -58,34 +54,10 @@ export default function AnnouncementsPage() {
     fetchAnnouncements();
   }, []);
 
-  // Filter announcements based on search
-  const filteredAnnouncements = (announcements: Announcement[]) => {
-    if (!searchQuery) return announcements;
-    const query = searchQuery.toLowerCase();
-    return announcements.filter(
-      (ann) =>
-        ann.title.toLowerCase().includes(query) ||
-        ann.message.toLowerCase().includes(query)
-    );
-  };
-
   // Reset pagination when search changes
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
-    setPublishedPage(1);
-    setDraftPage(1);
-    setArchivedPage(1);
   };
-
-  const publishedAnnouncements = filteredAnnouncements(
-    announcements.filter((a) => a.status === "PUBLISHED")
-  );
-  const draftAnnouncements = filteredAnnouncements(
-    announcements.filter((a) => a.status === "DRAFT")
-  );
-  const archivedAnnouncements = filteredAnnouncements(
-    announcements.filter((a) => a.status === "ARCHIVED")
-  );
 
   if (loading) {
     return (
@@ -97,19 +69,15 @@ export default function AnnouncementsPage() {
 
   const AnnouncementTable = ({ 
     announcements, 
-    currentPage, 
+    currentPage,
+    totalPages,
     onPageChange 
   }: { 
     announcements: Announcement[]; 
     currentPage: number;
+    totalPages: number;
     onPageChange: (page: number) => void;
   }) => {
-    // Pagination
-    const totalPages = Math.ceil(announcements.length / ITEMS_PER_PAGE);
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    const paginatedAnnouncements = announcements.slice(startIndex, endIndex);
-
     return (
       <div className="space-y-4">
         <Table>
@@ -125,43 +93,43 @@ export default function AnnouncementsPage() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {paginatedAnnouncements.length === 0 ? (
+        {announcements.length === 0 ? (
           <TableRow>
             <TableCell colSpan={hasManageAccess ? 7 : 6} className="text-center text-muted-foreground">
               No announcements found
             </TableCell>
           </TableRow>
         ) : (
-          paginatedAnnouncements.map((announcement) => (
-            <TableRow key={announcement.announcementId}>
+          announcements.map((announcement) => (
+            <TableRow key={announcement.ANNOUNCEMENT_ID}>
               <TableCell>
                 <div className="flex items-center gap-2">
                   <Link
-                    href={`/dashboard/announcement/${announcement.announcementId}`}
+                    href={`/dashboard/announcement/${announcement.ANNOUNCEMENT_ID}`}
                     className="font-medium hover:underline"
                   >
-                    {announcement.title}
+                    {announcement.TITLE}
                   </Link>
                 </div>
               </TableCell>
               <TableCell>
-                <Badge className={getAnnouncementTypeColor(announcement.type)} variant="outline">
-                  {announcement.type}
+                <Badge className={getAnnouncementTypeColor(announcement.TYPE)} variant="outline">
+                  {announcement.TYPE}
                 </Badge>
               </TableCell>
               <TableCell>
-                <Badge variant="outline">{announcement.audience}</Badge>
+                <Badge variant="outline">{announcement.AUDIENCE}</Badge>
               </TableCell>
               <TableCell>
-                <Badge className={getPriorityColor(announcement.priority)} variant="outline">
-                  {announcement.priority}
+                <Badge className={getPriorityColor(announcement.PRIORITY)} variant="outline">
+                  {announcement.PRIORITY}
                 </Badge>
               </TableCell>
               <TableCell className="text-sm text-muted-foreground">
-                {format(new Date(announcement.startDate), "MMM d")} -{" "}
-                {format(new Date(announcement.endDate), "MMM d, yyyy")}
+                {new Date(announcement.START_DATE).toLocaleDateString()} - 
+                {new Date(announcement.END_DATE).toLocaleDateString()}
               </TableCell>
-              <TableCell className="text-sm">Staff</TableCell>
+              <TableCell className="text-sm">{announcement.CREATED_BY}</TableCell>
               {hasManageAccess && (
                 <TableCell className="text-right">
                   <DropdownMenu>
@@ -174,13 +142,13 @@ export default function AnnouncementsPage() {
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/announcement/${announcement.announcementId}`}>
+                        <Link href={`/dashboard/announcement/${announcement.ANNOUNCEMENT_ID}`}>
                           <Eye className="h-4 w-4 mr-2" />
                           View Details
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/announcement/${announcement.announcementId}/update`}>
+                        <Link href={`/dashboard/announcement/${announcement.ANNOUNCEMENT_ID}/update`}>
                           <Edit className="h-4 w-4 mr-2" />
                           Edit
                         </Link>
@@ -203,7 +171,7 @@ export default function AnnouncementsPage() {
         )}
       </TableBody>
     </Table>
-    {totalPages > 1 && paginatedAnnouncements.length > 0 && (
+    {totalPages > 1 && announcements.length > 0 && (
       <PaginationControls
         currentPage={currentPage}
         totalPages={totalPages}
@@ -252,7 +220,7 @@ export default function AnnouncementsPage() {
             <p className="text-xs text-muted-foreground">All announcements</p>
           </CardContent>
         </Card>
-        <Card>
+        {/* <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Published</CardTitle>
             <Bell className="h-4 w-4 text-green-500" />
@@ -271,7 +239,7 @@ export default function AnnouncementsPage() {
             <div className="text-2xl font-bold text-yellow-500">{draftAnnouncements.length}</div>
             <p className="text-xs text-muted-foreground">Pending publication</p>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       {/* Search and Filters */}
@@ -292,49 +260,12 @@ export default function AnnouncementsPage() {
               />
             </div>
           </div>
-
-          <Tabs defaultValue="published" className="w-full">
-            <TabsList>
-              <TabsTrigger value="published">
-                Published ({publishedAnnouncements.length})
-              </TabsTrigger>
-              {hasManageAccess && (
-                <>
-                  <TabsTrigger value="drafts">Drafts ({draftAnnouncements.length})</TabsTrigger>
-                  <TabsTrigger value="archived">
-                    Archived ({archivedAnnouncements.length})
-                  </TabsTrigger>
-                </>
-              )}
-            </TabsList>
-
-            <TabsContent value="published" className="mt-4">
-              <AnnouncementTable 
-                announcements={publishedAnnouncements}
-                currentPage={publishedPage}
-                onPageChange={setPublishedPage}
+            <AnnouncementTable 
+                announcements={announcements}
+                currentPage={Page}
+                onPageChange={setPage}
+                totalPages={1}
               />
-            </TabsContent>
-
-            {hasManageAccess && (
-              <>
-                <TabsContent value="drafts" className="mt-4">
-                  <AnnouncementTable 
-                    announcements={draftAnnouncements}
-                    currentPage={draftPage}
-                    onPageChange={setDraftPage}
-                  />
-                </TabsContent>
-                <TabsContent value="archived" className="mt-4">
-                  <AnnouncementTable 
-                    announcements={archivedAnnouncements}
-                    currentPage={archivedPage}
-                    onPageChange={setArchivedPage}
-                  />
-                </TabsContent>
-              </>
-            )}
-          </Tabs>
         </CardContent>
       </Card>
     </div>

@@ -81,20 +81,20 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
         const response = await fetch(`/api/announcements/${params.id}`);
         if (!response.ok) throw new Error('Not found');
         const data = await response.json();
+        console.log(data);
         setAnnouncement(data);
-        
-        // Reset form with fetched data
+
         reset({
-          title: data.title,
-          message: data.message,
-          type: data.type,
-          priority: data.priority,
-          audience: data.audience,
-          startDate: format(new Date(data.startDate), "yyyy-MM-dd"),
-          endDate: format(new Date(data.endDate), "yyyy-MM-dd"),
+          title: data.TITLE,
+          message: data.MESSAGE,
+          type: data.TYPE,
+          priority: data.PRIORITY,
+          audience: data.AUDIENCE,
+          startDate: format(new Date(data.START_DATE), "yyyy-MM-dd"),
+          endDate: format(new Date(data.END_DATE), "yyyy-MM-dd"),
         });
         
-        setPhotoPreview(data.photoPath || "");
+        setPhotoPreview(data.PHOTO_PATH || "");
       } catch (error) {
         console.error('Error fetching announcement:', error);
       } finally {
@@ -133,7 +133,10 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
   }
 
   const onSubmit = async (data: AnnouncementFormData, status: 'DRAFT' | 'PUBLISHED') => {
+    const startDateIso = new Date(data.startDate).toISOString().slice(0, 10);
+    const endDateIso = new Date(data.endDate).toISOString().slice(0, 10);
     setIsSubmitting(true);
+
     try {
       const response = await fetch(`/api/announcements/${params.id}`, {
         method: 'PUT',
@@ -144,9 +147,9 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
           type: data.type,
           priority: data.priority,
           audience: data.audience,
-          start_date: new Date(data.startDate).toISOString(),
-          end_date: new Date(data.endDate).toISOString(),
-          status,
+          start_date: startDateIso,
+          end_date: endDateIso,
+          status: status,
         }),
       });
       if (!response.ok) throw new Error('Failed to update');

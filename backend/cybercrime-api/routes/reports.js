@@ -2,7 +2,7 @@ const express = require('express');
 const oracledb = require('oracledb');
 const { exec } = require('../database/connection');
 const { authenticateToken } = require('../middleware/auth');
-
+const { toPlainRows } = require('../helper/toPlainRows');
 const router = express.Router();
 
 // GET /api/reports
@@ -32,7 +32,8 @@ router.get('/', authenticateToken, async (req, res) => {
                  FROM REPORT ${whereClause} ORDER BY SUBMITTED_AT DESC`;
     
     const result = await exec(sql, binds);
-    res.json(result.rows);
+    const reports = toPlainRows(result.rows);
+    res.json({ reports, total: reports.length });
   } catch (err) {
     console.error('Get reports error:', err);
     res.status(500).json({ error: 'Failed to get reports', details: err.message });

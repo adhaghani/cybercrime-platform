@@ -20,7 +20,6 @@ import {
   Edit,
   Trash2,
   Loader2,
-  Archive,
   Calendar,
   User,
   Clock,
@@ -32,12 +31,13 @@ import { useHasAnyRole } from "@/hooks/use-user-role";
 import { useRouter } from "next/navigation";
 import { notFound } from "next/navigation";
 import { useState, useEffect } from "react";
+import { Announcement } from "@/lib/types";
 
 export default function AnnouncementDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const hasAnyRole = useHasAnyRole();
-  const hasManageAccess = hasAnyRole(['STAFF', 'ADMIN', 'SUPERADMIN']);
-  const [announcement, setAnnouncement] = useState<any>(null);
+  const hasManageAccess = hasAnyRole(['STAFF', 'ADMIN', 'SUPERVISOR' ,'SUPERADMIN']);
+  const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -98,22 +98,22 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
           <div className="flex items-center gap-2">
             <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
               <Bell className="h-8 w-8" />
-              {announcement.title}
+              {announcement.TITLE}
             </h1>
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <User className="h-4 w-4" />
-            <span>Posted by {announcement.createdBy || "Unknown"}</span>
+            <span>Posted by {announcement.CREATED_BY || "Unknown"}</span>
             <span>•</span>
             <Clock className="h-4 w-4" />
-            <span>{format(new Date(announcement.createdAt), "PPP")}</span>
+            <span>{format(new Date(announcement.CREATED_AT), "PPP")}</span>
           </div>
         </div>
 
         {hasManageAccess && (
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/dashboard/announcement/${announcement.announcementId}/update`}>
+              <Link href={`/dashboard/announcement/${announcement.ANNOUNCEMENT_ID}/update`}>
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
               </Link>
@@ -153,7 +153,7 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
             </CardHeader>
             <CardContent>
               <div className="prose prose-sm max-w-none dark:prose-invert">
-                <p className="text-base leading-7">{announcement.message}</p>
+                <p className="text-base leading-7">{announcement.MESSAGE}</p>
               </div>
             </CardContent>
           </Card>
@@ -168,8 +168,8 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <div className="text-sm font-medium text-muted-foreground">Status</div>
-                <Badge className={getStatusColor(announcement.status)} variant="outline">
-                  {announcement.status}
+                <Badge className={getStatusColor(announcement.STATUS)} variant="outline">
+                  {announcement.STATUS}
                 </Badge>
               </div>
 
@@ -177,8 +177,8 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
 
               <div className="space-y-2">
                 <div className="text-sm font-medium text-muted-foreground">Type</div>
-                <Badge className={getAnnouncementTypeColor(announcement.type)} variant="outline">
-                  {announcement.type}
+                <Badge className={getAnnouncementTypeColor(announcement.TYPE)} variant="outline">
+                  {announcement.TYPE}
                 </Badge>
               </div>
 
@@ -186,8 +186,8 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
 
               <div className="space-y-2">
                 <div className="text-sm font-medium text-muted-foreground">Priority</div>
-                <Badge className={getPriorityColor(announcement.priority)} variant="outline">
-                  {announcement.priority}
+                <Badge className={getPriorityColor(announcement.PRIORITY)} variant="outline">
+                  {announcement.PRIORITY}
                 </Badge>
               </div>
 
@@ -198,7 +198,7 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
                   <Target className="h-4 w-4" />
                   Target Audience
                 </div>
-                <Badge variant="outline">{announcement.audience}</Badge>
+                <Badge variant="outline">{announcement.AUDIENCE}</Badge>
               </div>
 
               <Separator />
@@ -211,13 +211,13 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
                 <div className="text-sm">
                   <div className="font-medium">Start Date</div>
                   <div className="text-muted-foreground">
-                    {format(new Date(announcement.startDate), "PPP")}
+                    {format(new Date(announcement.START_DATE), "PPP")}
                   </div>
                 </div>
                 <div className="text-sm">
                   <div className="font-medium">End Date</div>
                   <div className="text-muted-foreground">
-                    {format(new Date(announcement.endDate), "PPP")}
+                    {format(new Date(announcement.END_DATE), "PPP")}
                   </div>
                 </div>
               </div>
@@ -226,36 +226,22 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
 
               <div className="space-y-2">
                 <div className="text-sm font-medium text-muted-foreground">Created By</div>
-                <div className="text-sm">{announcement.createdBy || "Unknown"}</div>
+                <div className="text-sm">{announcement.CREATED_BY || "Unknown"}</div>
               </div>
 
-              {announcement.updatedAt && (
+              {announcement.UPDATED_AT && (
                 <>
                   <Separator />
                   <div className="space-y-2">
                     <div className="text-sm font-medium text-muted-foreground">Last Updated</div>
                     <div className="text-sm">
-                      {format(new Date(announcement.updatedAt), "PPP")}
+                      {format(new Date(announcement.UPDATED_AT), "PPP")}
                     </div>
                   </div>
                 </>
               )}
             </CardContent>
           </Card>
-
-          {hasManageAccess && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button variant="outline" className="w-full justify-start">
-                  <Archive className="h-4 w-4 mr-2" />
-                  Archive Announcement
-                </Button>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
     </div>

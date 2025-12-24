@@ -51,20 +51,11 @@ export default function AllCrimeReportsPage() {
     fetchCrimeReports();
   }, []);
 
-  const filteredReports = reports.filter((report) => {
-    const matchesSearch =
-      report.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.location.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "ALL" || report.status === statusFilter;
-    const matchesCategory = categoryFilter === "ALL" || report.crimeCategory === categoryFilter;
-    return matchesSearch && matchesStatus && matchesCategory;
-  });
-
   useEffect(() => {
     setPage(1);
   }, [searchQuery, statusFilter, categoryFilter]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredReports.length / ITEMS_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(reports.length / ITEMS_PER_PAGE));
 
   useEffect(() => {
     setPage((prev) => Math.min(Math.max(prev, 1), totalPages));
@@ -72,8 +63,8 @@ export default function AllCrimeReportsPage() {
 
   const paginatedReports = useMemo(() => {
     const start = (page - 1) * ITEMS_PER_PAGE;
-    return filteredReports.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredReports, page]);
+    return reports.slice(start, start + ITEMS_PER_PAGE);
+  }, [reports, page]);
 
   const pageItems = useMemo(() => {
     if (totalPages <= 7) {
@@ -223,7 +214,7 @@ export default function AllCrimeReportsPage() {
           </Table>
       )}
 
-      {filteredReports.length > 0 && totalPages > 1 && (
+      {reports.length > 0 && totalPages > 1 && (
         <Pagination>
           <PaginationContent>
             <PaginationItem>
@@ -268,7 +259,7 @@ export default function AllCrimeReportsPage() {
         </Pagination>
       )}
 
-      {filteredReports.length === 0 && (
+      {reports.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">
           No reports found matching your filters.
         </div>

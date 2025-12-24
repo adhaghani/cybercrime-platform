@@ -117,19 +117,19 @@ export interface GeneratedReport {
 
 // 8. Announcement Table
 export interface Announcement {
-  announcementId: string;
-  createdBy: string; // FK → staff.account_id
-  title: string;
-  message: string;
-  audience: AnnouncementAudience;
-  type: AnnouncementType;
-  priority: AnnouncementPriority;
-  status: AnnouncementStatus;
-  photoPath?: string;
-  startDate: string;
-  endDate: string;
-  createdAt: string;
-  updatedAt: string;
+  ANNOUNCEMENT_ID: string;
+  CREATED_BY: string; // FK → staff.account_id
+  TITLE: string;
+  MESSAGE: string;
+  AUDIENCE: AnnouncementAudience;
+  TYPE: AnnouncementType;
+  PRIORITY: AnnouncementPriority;
+  STATUS: AnnouncementStatus;
+  PHOTO_PATH?: string;
+  START_DATE: string;
+  END_DATE: string;
+  CREATED_AT: string;
+  UPDATED_AT: string;
 }
 
 // 9. Crime Table

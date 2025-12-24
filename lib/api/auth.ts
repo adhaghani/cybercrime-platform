@@ -7,7 +7,7 @@ import { apiClient } from './client';
 import { Staff, Student } from '@/lib/types';
 
 // Toggle between mock and real API
-const USE_MOCK_AUTH = true;
+const USE_MOCK_AUTH = false;
 
 // Mock users for testing
 const MOCK_USERS = {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Crime, Facility, Announcement } from "@/lib/types";
 import { useHasAnyRole, useUserRole } from "@/hooks/use-user-role";
 import { StudentDashboard } from "@/components/dashboard/student-dashboard";
@@ -21,14 +21,9 @@ export default function DashboardPage() {
   const isStaff = hasAnyRole(['STAFF']);
   const isAdmin = hasAnyRole(['ADMIN', 'SUPERADMIN']);
   
-  useEffect(() => {
-    if (role) {
-      fetchDashboardData();
-    }
-  }, [role]);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
+      setLoading(true);
       const [reportsRes, announcementsRes] = await Promise.all([
         fetch('/api/reports'),
         fetch('/api/announcements')
@@ -48,7 +43,13 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (role) {
+      fetchDashboardData();
+    }
+  }, [role, fetchDashboardData]);
   
   // Handle null role - user not authenticated or role not set
   if (role === null || loading) {

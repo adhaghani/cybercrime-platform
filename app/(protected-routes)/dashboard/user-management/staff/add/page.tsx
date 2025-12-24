@@ -13,7 +13,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { passwordComplexity, StaffEmailRegex } from '@/lib/constant';
+import { passwordComplexity, StaffEmailRegex,StaffIDRegex } from '@/lib/constant';
 
 interface Supervisor {
   accountId: string;
@@ -29,6 +29,7 @@ const staffSchema = z.object({
   role: z.enum(["STAFF", "SUPERVISOR", "ADMIN", "SUPERADMIN"] as const),
   department: z.string().min(1, "Department is required").max(100, "Department is too long"),
   position: z.string().min(1, "Position is required").max(100, "Position is too long"),
+  staffID: z.string().regex(StaffIDRegex, "Invalid Staff ID").or(z.literal("")),
   supervisorId: z.string().optional().or(z.literal("")),
 });
 
@@ -50,6 +51,7 @@ export default function AddStaffPage() {
       role: 'STAFF',
       department: '',
       position: '',
+      staffID: '',
       supervisorId: '',
     },
   });
@@ -121,6 +123,7 @@ export default function AddStaffPage() {
           role: data.role,
           department: data.department,
           position: data.position,
+          staffID: data.staffID || null,
           supervisorId: data.supervisorId || null,
         }),
       });
@@ -242,7 +245,16 @@ export default function AddStaffPage() {
                     <p className="text-sm text-destructive">{form.formState.errors.role.message}</p>
                   )}
                 </div>
-
+                <div className="space-y-2">
+                  <Label htmlFor="staffID">Staff ID *</Label>
+                  <Input
+                    id="staffID"
+                    {...form.register("staffID")}
+                  />
+                  {form.formState.errors.staffID && (
+                    <p className="text-sm text-destructive">{form.formState.errors.staffID.message}</p>
+                  )}
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="department">Department *</Label>
                   <Input
