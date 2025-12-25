@@ -94,9 +94,15 @@ export interface LoginCredentials {
 }
 
 export interface SignUpData {
+  name: string;
   email: string;
   password: string;
-  full_name?: string;
+  contact_number?: string;
+  account_type?: string;
+  studentID?: string;
+  program?: string;
+  semester?: number;
+  year_of_study?: number;
 }
 
 export interface AuthResponse {
@@ -110,99 +116,92 @@ export type UserProfile = Student | Staff;
  * Login with email and password
  */
 export async function login(credentials: LoginCredentials): Promise<AuthResponse> {
-  // TODO: Replace with actual backend API call when auth endpoints are ready
-  // const response = await apiClient.post<AuthResponse>('/api/auth/login', credentials);
-  
-  // Mock implementation for now
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (credentials.email && credentials.password) {
-        // Mock successful login
-        
-        const mockUser: Staff = {
-          accountId: '1',
-          email: credentials.email,
-          name: 'John Doe',
-          contactNumber: '012-3456789',
-          accountType: 'STAFF',
-          staffId: 'S12345',
-          role: 'SUPERADMIN',
-          department: 'IT Department',
-          position: 'System Administrator',
-          // supervisorId: undefined,
-          // studentId: '2023123456',
-          // program: 'Computer Science',
-          // semester: 4,
-          // yearOfStudy: 2,
-          passwordHash: '',
-          createdAt: '',
-          updatedAt: ''
-        };
+  if (USE_MOCK_AUTH) {
+    // Mock authentication
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        if (credentials.email && credentials.password) {
+          const mockToken = 'mock-token-' + Date.now();
+          apiClient.setToken(mockToken);
+          
+          resolve({
+            token: mockToken,
+            user: {
+              accountId: '1',
+              email: credentials.email,
+              name: 'John Doe',
+              contactNumber: '012-3456789',
+              accountType: 'STUDENT',
+              studentId: '2023123456',
+              program: 'Computer Science',
+              semester: 4,
+              yearOfStudy: 2,
+              passwordHash: '',
+              createdAt: '',
+              updatedAt: ''
+            } as Student,
+          });
+        } else {
+          reject(new Error('Invalid email or password'));
+        }
+      }, 500);
+    });
+  }
 
-        const mockToken = btoa(JSON.stringify({ 
-          accountId: mockUser.accountId,
-          name: mockUser.name,
-          email: mockUser.email,
-          accountType: mockUser.accountType,
-          contactNumber: mockUser.contactNumber,
-          // studentId: mockUser.studentId,
-          // program: mockUser.program,
-          // semester: mockUser.semester,
-          // yearOfStudy: mockUser.yearOfStudy,
-          staffId: mockUser.staffId,
-          role: mockUser.role,
-          department: mockUser.department,
-          position: mockUser.position,
-          supervisorId: mockUser.supervisorId,
-          exp: Date.now() + 86400000 // 24 hours
-        }));
-
-        apiClient.setToken(mockToken);
-        
-        resolve({
-          token: mockToken,
-          user: mockUser,
-        });
-      } else {
-        reject({ message: 'Invalid credentials', status: 401 });
-      }
-    }, 500);
-  });
+  try {
+    const response = await apiClient.post<AuthResponse>('/api/auth/login', credentials);
+    
+    // Set token in API client
+    if (response.token) {
+      apiClient.setToken(response.token);
+    }
+    
+    return response;
+  } catch (error: any) {
+    console.error('Login error:', error);
+    throw new Error(error.message || 'Invalid email or password');
+  }
 }
 
 /**
  * Sign up new user
  */
 export async function signUp(data: SignUpData): Promise<{ message: string }> {
-  // TODO: Replace with actual backend API call when auth endpoints are ready
-  // const response = await apiClient.post<{ message: string }>('/api/auth/register', data);
-  
-  // Mock implementation for now
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (data.email && data.password) {
-        resolve({
-          message: 'Registration successful. Please check your email to verify your account.',
-        });
-      } else {
-        reject({ message: 'Invalid registration data', status: 400 });
-      }
-    }, 500);
-  });
+  if (USE_MOCK_AUTH) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({ message: 'Account created successfully' });
+      }, 500);
+    });
+  }
+
+  try {
+    const response = await apiClient.post<{ message: string }>('/api/auth/register', data);
+    return response;
+  } catch (error: any) {
+    console.error('Sign up error:', error);
+    throw new Error(error.message || 'Failed to create account');
+  }
 }
 
 /**
  * Logout user
  */
 export async function logout(): Promise<void> {
-  // TODO: Replace with actual backend API call when auth endpoints are ready
-  // await apiClient.post('/api/auth/logout');
-  
-  // Clear token
-  apiClient.clearToken();
-  
-  // Mock implementation
-  return Promise.resolve();
+  if (USE_MOCK_AUTH) {
+    apiClient.clearToken();
+    return Promise.resolve();
+  }
+
+  try {
+    await apiClient.post('/api/auth/logout');
+    apiClient.clearToken();
+  } catch (error: any) {
+    console.error('Logout error:', error);
+    // Still clear token even if API call fails
+    apiClient.clearToken();
+    throw error;
+  }
 }
 
 /**
@@ -215,55 +214,36 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
     return null;
   }
 
-  // TODO: Replace with actual backend API call when auth endpoints are ready
-  // const response = await apiClient.get<UserProfile>('/api/auth/me');
-  
-  // Mock implementation - decode token
-  try {
-    const decoded = JSON.parse(atob(token));
-    
-    // Check if token is expired
-    if (decoded.exp && decoded.exp < Date.now()) {
-      apiClient.clearToken();
-      return null;
-    }
+  if (USE_MOCK_AUTH) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        if (token.startsWith('mock-token-')) {
+          resolve({
+            accountId: '1',
+            email: 'student@student.uitm.edu.my',
+            name: 'Student User',
+            contactNumber: '0123456555',
+            accountType: 'STUDENT',
+            studentId: '2025160493',
+            program: 'Computer Science',
+            semester: 3,
+            yearOfStudy: 2,
+            passwordHash: '',
+            createdAt: '',
+            updatedAt: ''
+          } as Student);
+        } else {
+          resolve(null);
+        }
+      }, 200);
+    });
+  }
 
-    // Mock user data
-    // In a real app, we would fetch the full profile from the backend
-    // Here we reconstruct it from the token or return a default mock
-    if (decoded.accountType === 'STUDENT') {
-      return {
-          accountId: decoded.accountId || '1',
-          email: decoded.email || "email@john.com",
-          name: decoded.name || 'John Doe',
-          contactNumber: decoded.contactNumber || '012-3456789',
-          accountType: 'STUDENT',
-          studentId: decoded.studentId || '2023123456',
-          program: decoded.program || 'Computer Science',
-          semester: decoded.semester || 4,
-          yearOfStudy: decoded.yearOfStudy || 2,
-          passwordHash: '',
-          createdAt: '',
-          updatedAt: ''
-      } as Student;
-    } else {
-      return {
-          accountId: decoded.accountId || '1',
-          email: decoded.email || "john@gmail.com",
-          name: decoded.name || 'John Doe',
-          contactNumber: decoded.contactNumber || '012-3456789',
-          accountType: 'STAFF',
-          staffId: decoded.staffId || 'S12345',
-          role: decoded.role || 'SUPERADMIN',
-          department: decoded.department || 'IT Department',
-          position: decoded.position || 'System Administrator',
-          supervisorId: decoded.supervisorId,
-          passwordHash: '',
-          createdAt: '',
-          updatedAt: ''
-      } as Staff;
-    }
-  } catch {
+  try {
+    const response = await apiClient.get<UserProfile>('/api/auth/me');
+    return response;
+  } catch (error) {
+    console.error("Error fetching current user:", error);
     apiClient.clearToken();
     return null;
   }
@@ -273,40 +253,40 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
  * Request password reset
  */
 export async function requestPasswordReset(email: string): Promise<{ message: string }> {
-  // TODO: Replace with actual backend API call when auth endpoints are ready
-  // const response = await apiClient.post<{ message: string }>('/api/auth/forgot-password', { email });
-  
-  // Mock implementation
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (email) {
-        resolve({
-          message: 'Password reset email sent. Please check your inbox.',
-        });
-      } else {
-        reject({ message: 'Invalid email address', status: 400 });
-      }
-    }, 500);
-  });
+  if (USE_MOCK_AUTH) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({ message: 'Password reset email sent' });
+      }, 500);
+    });
+  }
+
+  try {
+    const response = await apiClient.post<{ message: string }>('/api/auth/forgot-password', { email });
+    return response;
+  } catch (error: any) {
+    console.error('Password reset error:', error);
+    throw new Error(error.message || 'Failed to send reset email');
+  }
 }
 
 /**
  * Update password
  */
 export async function updatePassword(newPassword: string): Promise<{ message: string }> {
-  // TODO: Replace with actual backend API call when auth endpoints are ready
-  // const response = await apiClient.post<{ message: string }>('/api/auth/update-password', { password: newPassword });
-  
-  // Mock implementation
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (newPassword && newPassword.length >= 8) {
-        resolve({
-          message: 'Password updated successfully.',
-        });
-      } else {
-        reject({ message: 'Password must be at least 8 characters', status: 400 });
-      }
-    }, 500);
-  });
+  if (USE_MOCK_AUTH) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({ message: 'Password updated successfully' });
+      }, 500);
+    });
+  }
+
+  try {
+    const response = await apiClient.post<{ message: string }>('/api/auth/update-password', { password: newPassword });
+    return response;
+  } catch (error: any) {
+    console.error('Update password error:', error);
+    throw new Error(error.message || 'Failed to update password');
+  }
 }

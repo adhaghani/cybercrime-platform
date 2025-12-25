@@ -17,7 +17,11 @@ router.post('/register', async (req, res) => {
       name, email, password, contact_number, account_type,
       studentID, program, semester, year_of_study
     } = req.body;
-    
+    console.log('📥 Received registration data:', req.body);
+    console.log('📝 Extracted fields:', { 
+      name, email, password: '***', contact_number, account_type,
+      studentID, program, semester, year_of_study 
+    });
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Name, email, and password are required' });
     }

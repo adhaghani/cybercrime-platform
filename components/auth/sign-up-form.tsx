@@ -26,6 +26,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { passwordComplexity, StudentEmailRegex, StudentIDRegex } from "@/lib/constant";
+import { toast } from "sonner"; // Add this import
 
 // Step 1 schema
 const step1Schema = z.object({
@@ -90,7 +91,7 @@ export function SignUpForm({
   });
 
   const form2 = useForm<Step2Data>({
-    resolver: zodResolver(step2Schema),
+    resolver: zodResolver(step2Schema) as any,
     defaultValues: {
       studentID: "",
       program: "",
@@ -126,28 +127,34 @@ export function SignUpForm({
     try {
       setIsLoading(true);
 
-      await signUp({
+      // Prepare data matching backend expectations
+      const signUpData = {
+        name: step1Data.name,
+        email: step1Data.email,
+        password: data.password,
+        contact_number: step1Data.contact_number,
+        account_type: "STUDENT",
         studentID: step2Data.studentID,
         program: step2Data.program,
         semester: step2Data.semester,
         year_of_study: step2Data.year_of_study,
-        name: step1Data.name,
-        email: step1Data.email,
-        contact_number: step1Data.contact_number,
-        password: data.password,
-        account_type: "STUDENT",
-      });
+      };
+
+      console.log("📝 Step 1 Data:", step1Data);
+      console.log("📝 Step 2 Data:", step2Data);
+      console.log("📝 Step 3 Data:", data);
+      console.log("🚀 Sending to backend:", signUpData);
+      console.log("🔗 API URL should be: http://localhost:3001/api/auth/register"); // PORT 5000!
+
+      const result = await signUp(signUpData);
+      console.log("✅ Backend response:", result);
       
+      toast.success("Account created successfully!");
       router.push("/auth/login");
-    } catch (error: unknown) {
-      // Reset to step 1 on error
-      setError(error instanceof Error ? error.message : "An error occurred");
-      setStep(1);
-      setStep1Data(null);
-      setStep2Data(null);
-      form1.reset();
-      form2.reset();
-      form3.reset();
+    } catch (error: any) {
+      console.error("❌ Sign up error:", error);
+      console.error("❌ Error details:", error.response || error);
+      setError(error.message || "An error occurred during registration");
     } finally {
       setIsLoading(false);
     }
