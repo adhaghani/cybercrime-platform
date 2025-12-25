@@ -34,33 +34,33 @@ export type ResolutionType = 'RESOLVED' | 'ESCALATED' | 'DISMISSED' | 'TRANSFERR
 
 // 1. Account Table
 export interface Account {
-  accountId: string;
-  name: string;
-  email: string;
-  passwordHash: string;
-  contactNumber: string;
-  accountType: AccountType;
-  createdAt: string;
-  updatedAt: string;
+  ACCOUNT_ID: string;
+  NAME: string;
+  EMAIL: string;
+  PASSWORD_HASH: string;
+  CONTACT_NUMBER: string;
+  ACCOUNT_TYPE: AccountType;
+  CREATED_AT: string;
+  UPDATED_AT: string;
 }
 
 // 2. Student Table
 export interface Student extends Account {
-  studentId: string;
-  program: string;
-  semester: number;
-  yearOfStudy: number;
-  avatarUrl?: string;
+  STUDENT_ID: string;
+  PROGRAM: string;
+  SEMESTER: number;
+  YEAR_OF_STUDY: number;
+  AVATAR_URL?: string;
 }
 
 // 3. Staff Table
 export interface Staff extends Account {
-  staffId: string;
-  role: Role;
-  department: string;
-  position: string;
-  supervisorId?: string; // FK → staff.account_id (self-referencing)
-  avatarUrl?: string;
+  STAFF_ID: string;
+  ROLE: Role;
+  DEPARTMENT: string;
+  POSITION: string;
+  SUPERVISOR_ID?: string; // FK → staff.account_id (self-referencing)
+  AVATAR_URL?: string;
 }
 
 // 4. Report Table

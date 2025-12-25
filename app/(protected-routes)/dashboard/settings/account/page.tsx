@@ -17,31 +17,30 @@ import {  Mail, Phone, Shield, BadgeCheck, GraduationCap, Briefcase, Building2, 
 
 export default function AccountPage() {
   const { claims } = useAuth();
-  const role = claims?.role;
-  const metadata = claims?.user_metadata;
+  const role = claims?.ROLE;
 
   // Common fields
   const user = {
-    name: metadata?.name || "User",
-    email: claims?.email || "user@example.com",
-    role: role || "USER",
-    avatarUrl: metadata?.avatarUrl || "",
-    contactNumber: (metadata?.contactNumber as string) || "Not set",
+    NAME: claims?.NAME || "User",
+    EMAIL: claims?.EMAIL || "user@example.com",
+    ROLE: role || "USER",
+    AVATAR_URL: claims?.AVATAR_URL || "",
+    CONTACT_NUMBER: (claims?.CONTACT_NUMBER as string) || "Not set",
   };
 
   // Student specific
   const studentInfo = role === 'STUDENT' ? {
-    studentId: metadata?.studentId as string,
-    program: metadata?.program as string,
-    semester: metadata?.semester as number,
-    yearOfStudy: metadata?.yearOfStudy as number,
+    studentId: claims?.STUDENT_ID as string,
+    program: claims?.PROGRAM as string,
+    semester: claims?.SEMESTER as number,
+    yearOfStudy: claims?.YEAR_OF_STUDY as number,
   } : null;
 
   // Staff specific
   const staffInfo = (role === 'STAFF' || role === 'ADMIN' || role === 'SUPERADMIN') ? {
-    staffId: metadata?.staffId as string,
-    department: metadata?.department as string,
-    position: metadata?.position as string,
+    staffId: claims?.STAFF_ID as string,
+    department: claims?.DEPARTMENT as string,
+    position: claims?.POSITION as string,
   } : null;
 
   return (
@@ -58,9 +57,9 @@ export default function AccountPage() {
         <Card className="md:col-span-2">
           <CardHeader className="flex flex-row items-center gap-4 space-y-0">
             <Avatar className="h-20 w-20">
-              <AvatarImage src={user.avatarUrl} alt={user.name} />
+              <AvatarImage src={user.AVATAR_URL} alt={user.NAME} />
               <AvatarFallback className="text-lg">
-                {user.name
+                {user.NAME
                   .split(" ")
                   .map((n) => n[0])
                   .join("")
@@ -69,10 +68,10 @@ export default function AccountPage() {
               </AvatarFallback>
             </Avatar>
             <div className="space-y-1">
-              <CardTitle className="text-2xl">{user.name}</CardTitle>
+              <CardTitle className="text-2xl">{user.NAME}</CardTitle>
               <CardDescription className="flex items-center gap-1">
                 <Shield className="h-3 w-3" />
-                {user.role}
+                {user.ROLE}
               </CardDescription>
             </div>
           </CardHeader>
@@ -82,7 +81,7 @@ export default function AccountPage() {
                 <Mail className="h-4 w-4" />
                 Email
               </div>
-              <div className="text-sm">{user.email}</div>
+              <div className="text-sm">{user.EMAIL}</div>
             </div>
             
             <div className="grid gap-1">
@@ -90,7 +89,7 @@ export default function AccountPage() {
                 <Phone className="h-4 w-4" />
                 Contact Number
               </div>
-              <div className="text-sm">{user.contactNumber}</div>
+              <div className="text-sm">{user.CONTACT_NUMBER}</div>
             </div>
 
             <div className="grid gap-1">

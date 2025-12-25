@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { exec } = require('../database/connection');
 const { authenticateToken } = require('../middleware/auth');
+const { toPlainRows } = require('../helper/toPlainRows');
 
 const router = express.Router();
 
@@ -78,7 +79,7 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    const account = result.rows[0];
+    const [account] = toPlainRows(result.rows);
     
     // Verify password
     const validPassword = await bcrypt.compare(password, account.PASSWORD_HASH);
@@ -95,25 +96,27 @@ router.post('/login', async (req, res) => {
         { id: account.ACCOUNT_ID }
       );
       if (studentData.rows.length > 0) {
-        userDetails = studentData.rows[0];
+        const [student] = toPlainRows(studentData.rows);
+        userDetails = student;
       }
     } else if (account.ACCOUNT_TYPE === 'STAFF') {
       const staffData = await exec(
-        `SELECT ROLE, DEPARTMENT, POSITION FROM STAFF WHERE ACCOUNT_ID = :id`,
+        `SELECT STAFF_ID, ROLE, DEPARTMENT, POSITION FROM STAFF WHERE ACCOUNT_ID = :id`,
         { id: account.ACCOUNT_ID }
       );
       if (staffData.rows.length > 0) {
-        userDetails = staffData.rows[0];
+        const [staff] = toPlainRows(staffData.rows);
+        userDetails = staff;
       }
     }
 
     // Generate JWT token
     const token = jwt.sign(
       { 
-        accountId: account.ACCOUNT_ID,
-        email: account.EMAIL,
-        accountType: account.ACCOUNT_TYPE,
-        role: userDetails.ROLE || account.ACCOUNT_TYPE
+        ACCOUNT_ID: account.ACCOUNT_ID,
+        EMAIL: account.EMAIL,
+        ACCOUNT_TYPE: account.ACCOUNT_TYPE,
+        ROLE: userDetails.ROLE || account.ACCOUNT_TYPE
       },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
@@ -122,11 +125,11 @@ router.post('/login', async (req, res) => {
     res.json({
       token,
       user: {
-        accountId: account.ACCOUNT_ID,
-        name: account.NAME,
-        email: account.EMAIL,
-        contactNumber: account.CONTACT_NUMBER,
-        accountType: account.ACCOUNT_TYPE,
+        ACCOUNT_ID: account.ACCOUNT_ID,
+        NAME: account.NAME,
+        EMAIL: account.EMAIL,
+        CONTACT_NUMBER: account.CONTACT_NUMBER,
+        ACCOUNT_TYPE: account.ACCOUNT_TYPE,
         ...userDetails
       }
     });
@@ -149,7 +152,7 @@ router.get('/me', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const account = result.rows[0];
+    const [account] = toPlainRows(result.rows);
     let userDetails = {};
 
     if (account.ACCOUNT_TYPE === 'STUDENT') {
@@ -158,15 +161,17 @@ router.get('/me', authenticateToken, async (req, res) => {
         { id: account.ACCOUNT_ID }
       );
       if (studentData.rows.length > 0) {
-        userDetails = studentData.rows[0];
+        const [student] = toPlainRows(studentData.rows);
+        userDetails = student;
       }
     } else if (account.ACCOUNT_TYPE === 'STAFF') {
       const staffData = await exec(
-        `SELECT ROLE, DEPARTMENT, POSITION FROM STAFF WHERE ACCOUNT_ID = :id`,
+        `SELECT STAFF_ID, ROLE, DEPARTMENT, POSITION FROM STAFF WHERE ACCOUNT_ID = :id`,
         { id: account.ACCOUNT_ID }
       );
       if (staffData.rows.length > 0) {
-        userDetails = staffData.rows[0];
+        const [staff] = toPlainRows(staffData.rows);
+        userDetails = staff;
       }
     }
 

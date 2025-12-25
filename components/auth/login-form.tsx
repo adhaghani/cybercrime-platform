@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 "use client";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -64,27 +64,27 @@ export function LoginForm({
         password: value.password,
       });
 
-      // Set user claims
+      // Set user claims  
       setClaims({
-        sub: user.accountId,
-        email: user.email,
-        user_metadata: {
-          name: user.name || "",
-          contactNumber: user.contactNumber || "",
-          ...(('studentId' in user) ? {
-            studentId: user.studentId,
-            program: user.program,
-            semester: user.semester,
-            yearOfStudy: user.yearOfStudy,
-          } : {
-            staffId: user.staffId,
-            department: user.department,
-            position: user.position,
-          })
-        },
-        role: 'role' in user ? user.role : user.accountType as any,
-        created_at: user.createdAt,
-        updated_at: user.updatedAt,
+        ACCOUNT_ID: user.ACCOUNT_ID,
+        EMAIL: user.EMAIL,
+        NAME: user.NAME,
+        CONTACT_NUMBER: user.CONTACT_NUMBER,
+        AVATAR_URL: user.AVATAR_URL,
+        ACCOUNT_TYPE: user.ACCOUNT_TYPE,
+        ...(( "STUDENT_ID" in user) ? {
+          STUDENT_ID: user.STUDENT_ID,
+          PROGRAM: user.PROGRAM,
+          SEMESTER: user.SEMESTER,
+          YEAR_OF_STUDY: user.YEAR_OF_STUDY,
+        } : {
+          STAFF_ID: user.STAFF_ID,
+          DEPARTMENT: user.DEPARTMENT,
+          POSITION: user.POSITION,
+          ROLE: user.ROLE,
+        }),
+        CREATED_AT: user.CREATED_AT,
+        UPDATED_AT: user.UPDATED_AT,
       });
 
       // Get redirect URL from searchParams or default to dashboard

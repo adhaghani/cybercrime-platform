@@ -537,13 +537,13 @@ const getNavSecondaryByRole = (role: string | undefined) => {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { claims } = useAuth()
   const user = {
-    name: (claims?.user_metadata?.name as string) || "User",
-    email: claims?.email || "",
-    avatar: (claims?.user_metadata?.avatarUrl as string) || "/default-avatar.png",
+    NAME: (claims?.NAME as string) || "User",
+    EMAIL: claims?.EMAIL || "",
+    AVATAR_URL: (claims?.AVATAR_URL as string) || "/default-avatar.png",
   }
 
-  const navMain = getNavMainByRole(claims?.role);
-  const navSecondary = getNavSecondaryByRole(claims?.role);
+  const navMain = getNavMainByRole(claims?.ROLE);
+  const navSecondary = getNavSecondaryByRole(claims?.ROLE);
 
   return (
     <Sidebar
