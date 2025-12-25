@@ -6,6 +6,88 @@
 import { apiClient } from './client';
 import { Staff, Student } from '@/lib/types';
 
+// Toggle between mock and real API
+const USE_MOCK_AUTH = false;
+
+// Mock users for testing
+const MOCK_USERS = {
+  superadmin: {
+    email: 'superadmin@staff.uitm.edu.my',
+    password: 'SuperAdmin123!',
+    user: {
+      accountId: '9999',
+      name: 'Super Admin',
+      email: 'superadmin@staff.uitm.edu.my',
+      contactNumber: '0123456789',
+      accountType: 'STAFF',
+      staffId: '99999999',
+      role: 'SUPERADMIN',
+      department: 'IT Security',
+      position: 'Chief Security Officer',
+    } as Staff,
+  },
+  admin: {
+    email: 'admin@staff.uitm.edu.my',
+    password: 'Admin123!',
+    user: {
+      accountId: '8888',
+      name: 'Admin User',
+      email: 'admin@staff.uitm.edu.my',
+      contactNumber: '0123456788',
+      accountType: 'STAFF',
+      staffId: '88888888',
+      role: 'ADMIN',
+      department: 'Administration',
+      position: 'Administrator',
+    } as Staff,
+  },
+  supervisor: {
+    email: 'supervisor@staff.uitm.edu.my',
+    password: 'Supervisor123!',
+    user: {
+      accountId: '7777',
+      name: 'Supervisor User',
+      email: 'supervisor@staff.uitm.edu.my',
+      contactNumber: '0123456777',
+      accountType: 'STAFF',
+      staffId: '77777777',
+      role: 'SUPERVISOR',
+      department: 'Security',
+      position: 'Security Supervisor',
+    } as Staff,
+  },
+  staff: {
+    email: 'staff@staff.uitm.edu.my',
+    password: 'Staff123!',
+    user: {
+      accountId: '6666',
+      name: 'Staff User',
+      email: 'staff@staff.uitm.edu.my',
+      contactNumber: '0123456666',
+      accountType: 'STAFF',
+      staffId: '66666666',
+      role: 'STAFF',
+      department: 'Security',
+      position: 'Security Officer',
+    } as Staff,
+  },
+  student: {
+    email: 'student@student.uitm.edu.my',
+    password: 'Student123!',
+    user: {
+      accountId: '5555',
+      name: 'Student User',
+      email: 'student@student.uitm.edu.my',
+      contactNumber: '0123456555',
+      accountType: 'STUDENT',
+      studentId: '2025160493',
+      program: 'Computer Science',
+      semester: 3,
+      yearOfStudy: 2,
+    } as Student,
+  },
+};
+
 export interface LoginCredentials {
   email: string;
   password: string;

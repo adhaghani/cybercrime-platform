@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { apiClient } from "@/lib/api/client";
 
 const crimeReportSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters").max(200, "Title is too long"),
@@ -27,11 +28,13 @@ const crimeReportSchema = z.object({
   evidenceDetails: z.string().max(1000, "Evidence details are too long").optional().or(z.literal("")),
 });
 
+
 type CrimeReportFormValues = z.infer<typeof crimeReportSchema>;
 
 export default function SubmitCrimeReportPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
 
   const form = useForm<CrimeReportFormValues>({
     resolver: zodResolver(crimeReportSchema),
@@ -48,39 +51,97 @@ export default function SubmitCrimeReportPage() {
     },
   });
 
+  useEffect(() => {
+    // Debug: Check where token is stored
+    console.log("=== DEBUG TOKEN STORAGE ===");
+    
+    // Check apiClient
+    const token = apiClient.getToken ? apiClient.getToken() : null;
+    console.log("Token from apiClient:", token);
+    
+    // Check localStorage
+    console.log("LocalStorage token:", localStorage.getItem('token'));
+    console.log("LocalStorage access_token:", localStorage.getItem('access_token'));
+    
+    // Check all localStorage items
+    console.log("All localStorage items:");
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      console.log(`  ${key}:`, localStorage.getItem(key || ''));
+    }
+  }, []);
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const selectedFiles = Array.from(e.target.files);
+      setFiles(selectedFiles);
+    }
+  };
+
   const onSubmit = async (data: CrimeReportFormValues) => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/reports', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'CRIME',
-          title: data.title,
-          description: data.description,
-          location: data.location,
-          crime_category: data.crimeCategory,
-          suspect_description: data.suspectDescription,
-          victim_involved: data.victimInvolved,
-          weapon_involved: data.weaponInvolved,
-          injury_level: data.injuryLevel,
-          evidence_details: data.evidenceDetails,
-        }),
-      });
-      
-      if (!response.ok) throw new Error('Failed to submit report');
-      
-      toast.success("Crime report submitted successfully!");
-      router.push("/dashboard/crime/my-reports");
-    } catch (error) {
-      console.error("Error submitting crime report:", error);
-      toast.error("Failed to submit report. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+      console.log("Form data:", data);
+      let token = null;
+      if (apiClient.getToken) {
+        token = apiClient.getToken();
+      } else {
+        // Fallback to localStorage
+        token = localStorage.getItem('token') || 
+                localStorage.getItem('access_token') ||
+                sessionStorage.getItem('token');
+      }
+    console.log("Auth token found:", !!token);
+    console.log("Token value:", token);
 
+    if (!token) {
+      toast.error("Please login first");
+      router.push("/login");
+      return;
+    }
+      
+      const reportData = {
+        type: 'CRIME',
+        title: data.title,
+        description: data.description,
+        location: data.location,
+        crime_category: data.crimeCategory,
+        suspect_description: data.suspectDescription || null,
+        victim_involved: data.victimInvolved || null,
+        weapon_involved: data.weaponInvolved || null,
+        injury_level: data.injuryLevel === "" ? null : data.injuryLevel,
+        evidence_details: data.evidenceDetails || null,
+      };
+      console.log("Sending to API:", reportData);
+    
+    const response = await fetch('http://localhost:5000/api/reports', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      body: JSON.stringify(reportData),
+    });
+    
+    console.log("Response status:", response.status);
+    
+    const responseData = await response.json();
+    console.log("Response data:", responseData);
+    
+    if (!response.ok) {
+      throw new Error(responseData.error || 'Failed to submit report');
+    }
+    
+    toast.success("Crime report submitted successfully!");
+    router.push("/dashboard/crime/my-reports");
+  } catch (error: any) {
+    console.error("Error submitting crime report:", error);
+    toast.error(error.message || "Failed to submit report. Please try again.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   return (
     <div className="space-y-6 max-w-4xl mx-auto w-full">
       <div className="flex items-center gap-4">
