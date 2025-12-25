@@ -5,8 +5,6 @@ import {
   BookOpen,
   Bot,
   Command,
-  Frame,
-  LifeBuoy,
   SquareTerminal,
   Users,
   FileText,
@@ -15,7 +13,7 @@ import {
 import { useAuth } from "@/lib/context/auth-provider"
 import { NavMain } from "@/components/dashboard/nav-main"
 import { NavSecondary } from "@/components/dashboard/nav-secondary"
-import { NavUser } from "@/components/dashboard/nav-user"
+
 import {
   Sidebar,
   SidebarContent,
@@ -485,13 +483,8 @@ const getNavMainByRole = (role: string | undefined) => {
 /**
  * Get secondary navigation items based on user role
  */
-const getNavSecondaryByRole = (role: string | undefined) => {
+const getNavSecondaryByRole = () => {
   const commonSecondary = [
-    {
-      title: "Get Support",
-      url: "#",
-      icon: LifeBuoy,
-    },
     {
       title: "App Tutorial",
       url: "#",
@@ -499,54 +492,18 @@ const getNavSecondaryByRole = (role: string | undefined) => {
     },
   ];
 
-  // Admin-specific secondary nav
-  if (role === 'ADMIN') {
-    return [
-      {
-        title: "System Reports",
-        url: "/dashboard/system-report",
-        icon: FileText,
-      },
-      ...commonSecondary,
-    ];
-  }
-
-  // Staff-specific secondary nav
-  if (role === 'STAFF') {
-    return [
-      {
-        title: "My Assignments",
-        url: "#",
-        icon: Frame,
-      },
-      ...commonSecondary,
-    ];
-  }
-
   // Student/User secondary nav
-  return [
-    {
-      title: "My Reports",
-      url: "#",
-      icon: Frame,
-    },
-    ...commonSecondary,
-  ];
+  return commonSecondary;
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { claims } = useAuth()
-  const user = {
-    NAME: (claims?.NAME as string) || "User",
-    EMAIL: claims?.EMAIL || "",
-    AVATAR_URL: (claims?.AVATAR_URL as string) || "/default-avatar.png",
-  }
-
   const navMain = getNavMainByRole(claims?.ROLE);
-  const navSecondary = getNavSecondaryByRole(claims?.ROLE);
+  const navSecondary = getNavSecondaryByRole();
 
   return (
     <Sidebar
+    collapsible="offcanvas"
       className="top-12 h-[calc(100vh-3rem)] shrink-0" 
       {...props}
     >
@@ -568,10 +525,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navMain} />
-        <NavSecondary items={navSecondary} className="mt-auto" />
+        
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} />
+        <NavSecondary items={navSecondary} className="mb-4" />
       </SidebarFooter>
     </Sidebar>
   )

@@ -9,10 +9,18 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import Link from "next/link";
+import { Staff } from "@/lib/types";
+import { ViewUserDetailDialog } from "@/components/users/viewUserDetailDialog";
+import { DemoteAdminDialog } from "@/components/users/demoteAdminDialog";
+import { DeleteUserDialog } from "@/components/users/deleteUserDialog";
+import { useHasAnyRole } from "@/hooks/use-user-role";
+import { useAuth } from "@/lib/context/auth-provider";
 import { 
   ArrowLeft, Search, MoreVertical, Mail, Phone, 
   ShieldCheck, UserX, Shield, ShieldAlert, Plus,
-  UserCheck
+  UserCheck,
+  UsersIcon
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -22,12 +30,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import Link from "next/link";
-import { Staff } from "@/lib/types";
-import { ViewUserDetailDialog } from "@/components/users/viewUserDetailDialog";
-import { DemoteAdminDialog } from "@/components/users/demoteAdminDialog";
-import { DeleteUserDialog } from "@/components/users/deleteUserDialog";
-import { useAuth } from "@/lib/context/auth-provider";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
 
 const ITEMS_PER_PAGE = 10;
 
@@ -46,6 +56,8 @@ export default function AdministratorPage() {
 
   const { claims } = useAuth();
   const ACCOUNT_ID = claims?.ACCOUNT_ID || null;
+  const hasAnyRole = useHasAnyRole();
+  const isAdmin = hasAnyRole([ 'ADMIN', 'SUPERADMIN']);
   useEffect(() => {
     const fetchAdministrators = async () => {
       try {
@@ -180,7 +192,7 @@ export default function AdministratorPage() {
       </div>
 
       {/* Administrators Table */}
-      <Card>
+      {administrators.length > 0 ? (<Card>
         <CardHeader>
           <CardTitle>Administrator List ({filteredAdministrators.length})</CardTitle>
         </CardHeader>
@@ -281,7 +293,28 @@ export default function AdministratorPage() {
             </div>
           )}
         </CardContent>
-      </Card>
+      </Card>) : (
+    <Empty>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <UsersIcon />
+        </EmptyMedia>
+        <EmptyTitle>No Administrator Yet</EmptyTitle>
+        <EmptyDescription>
+          The system currently has no administrators. Administrators have elevated privileges to manage users and system settings.
+        </EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent>
+        {isAdmin &&<div className="flex gap-2">
+          <Button asChild>
+            <Link href="/dashboard/user-management/staff/add">Add Admin</Link>
+            </Button>
+        </div>}
+      </EmptyContent>
+    </Empty>
+      )}
+
+      
 
       {/* Pagination Controls */}
       {filteredAdministrators.length > 0 && (

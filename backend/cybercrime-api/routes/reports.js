@@ -28,7 +28,7 @@ router.get('/', authenticateToken, async (req, res) => {
 
     const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
     
-    const sql = `SELECT REPORT_ID, SUBMITTED_BY, TITLE, TYPE, LOCATION, STATUS, SUBMITTED_AT, UPDATED_AT 
+    const sql = `SELECT REPORT_ID, SUBMITTED_BY, TITLE, DESCRIPTION, TYPE, LOCATION, STATUS, SUBMITTED_AT, UPDATED_AT 
                  FROM REPORT ${whereClause} ORDER BY SUBMITTED_AT DESC`;
     
     const result = await exec(sql, binds);

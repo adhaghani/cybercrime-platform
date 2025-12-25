@@ -65,26 +65,27 @@ export interface Staff extends Account {
 
 // 4. Report Table
 export interface Report {
-  reportId: string;
-  submittedBy: string; // FK → student.account_id
-  title: string;
-  description: string;
-  location: string;
-  status: ReportStatus;
-  type: ReportType;
-  attachmentPath?: string;
-  submittedAt: string;
-  updatedAt: string;
+  REPORT_ID: string;
+  SUBMITTED_BY: string; // FK → student.account_id
+  TITLE: string;
+  DESCRIPTION: string;
+  LOCATION: string;
+  STATUS: ReportStatus;
+  TYPE: ReportType;
+  ATTACHMENT_PATH?: string;
+  SUBMITTED_AT: string;
+  UPDATED_AT: string;
 }
 
 // 5. Report Assignment Table
 export interface ReportAssignment {
-  assignmentId: string;
-  accountId: string; // FK → staff.account_id
-  reportId: string; // FK → report.report_id
-  assignedAt: string;
-  actionTaken?: string;
-  additionalFeedback?: string;
+  ASSIGNMENT_ID: string;
+  ACCOUNT_ID: string; // FK → staff.account_id
+  REPORT_ID: string; // FK → report.report_id
+  ASSIGNED_AT: string;
+  ACTION_TAKEN?: string;
+  ADDITIONAL_FEEDBACK?: string;
+  UPDATED_AT?: string;
 }
 
 // 6. Emergency Info Table
@@ -134,19 +135,19 @@ export interface Announcement {
 
 // 9. Crime Table
 export interface Crime extends Report{
-  crimeCategory: CrimeCategory;
-  suspectDescription?: string;
-  victimInvolved?: string;
-  injuryLevel?: string;
-  weaponInvolved?: string;
-  evidenceDetails?: string;
+  CRIME_CATEGORY: CrimeCategory;
+  SUSPECT_DESCRIPTION?: string;
+  VICTIM_INVOLVED?: string;
+  INJURY_LEVEL?: string;
+  WEAPON_INVOLVED?: string;
+  EVIDENCE_DETAILS?: string;
 }
 
 // 10. Facility Table
 export interface Facility extends Report{
-  facilityType: FacilityType;
-  severityLevel: SeverityLevel;
-  affectedEquipment?: string;
+  FACILITY_TYPE: FacilityType;
+  SEVERITY_LEVEL: SeverityLevel;
+  AFFECTED_EQUIPMENT?: string;
 }
 
 // 11. UiTM Auxiliary Police Table
@@ -157,13 +158,13 @@ export interface UiTMAuxiliaryPolice extends EmergencyInfo {
 
 // 12. Resolution Table
 export interface Resolution {
-  resolutionId: string;
-  reportId: string; // FK → report.report_id
-  resolvedBy: string; // FK → staff.account_id
-  resolutionType: ResolutionType;
-  resolutionSummary: string;
-  evidencePath?: string;
-  resolvedAt: string;
+  RESOLUTION_ID: string;
+  REPORT_ID: string; // FK → report.report_id
+  RESOLVED_BY: string; // FK → staff.account_id
+  RESOLUTION_TYPE: ResolutionType;
+  RESOLUTION_SUMMARY: string;
+  EVIDENCE_PATH?: string;
+  RESOLVED_AT: string;
 }
 
 // ============================================================================

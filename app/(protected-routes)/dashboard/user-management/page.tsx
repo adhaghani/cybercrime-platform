@@ -1,7 +1,6 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Users, GraduationCap, Briefcase, ShieldCheck, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
@@ -71,7 +70,7 @@ export default function UserManagementPage() {
       </div>
 
       {/* Quick Access Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
         <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
           <Link href="/dashboard/user-management/all-user">
             <CardHeader>

@@ -32,6 +32,7 @@ const emergencyRoutes = require('./routes/emergency');
 const policeRoutes = require('./routes/police');
 const generatedReportsRoutes = require('./routes/generated-reports');
 const dashboardRoutes = require('./routes/dashboard');
+const resolutionsRoutes = require('./routes/resolutions');
 
 // Mount routes
 app.use('/api/auth', authRoutes);
@@ -47,6 +48,7 @@ app.use('/api/emergency', emergencyRoutes);
 app.use('/api/police', policeRoutes);
 app.use('/api/generated-reports', generatedReportsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/resolutions', resolutionsRoutes);
 
 // Test endpoint
 app.get('/api/test', (req, res) => {

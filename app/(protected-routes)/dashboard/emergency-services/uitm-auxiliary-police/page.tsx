@@ -5,11 +5,20 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Pencil, MapPin, Search, Mail, Clock, Loader2 } from "lucide-react";
+import { Pencil, MapPin, Search, Mail, Clock, Loader2, Shield } from "lucide-react";
 import { useHasAnyRole } from "@/hooks/use-user-role";
 import Link from "next/link";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { UiTMAuxiliaryPolice } from "@/lib/types";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
+
 const ITEMS_PER_PAGE = 9;
 
 export default function UitmAuxiliaryPolicePage() {
@@ -140,9 +149,24 @@ export default function UitmAuxiliaryPolicePage() {
       )}
       {
         policeStations.length === 0 && (
-          <div className="text-center py-12 text-muted-foreground">
-            No UiTM Auxiliary Police stations found.
-          </div>
+    <Empty>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Shield />
+        </EmptyMedia>
+        <EmptyTitle>No UiTM Auxiliary Police Data Yet</EmptyTitle>
+        <EmptyDescription>
+          The system currently has no records of UiTM Auxiliary Police units.
+        </EmptyDescription>
+      </EmptyHeader>
+      {isAuthorizedForEdit() && <EmptyContent>
+        <div className="flex gap-2">
+          <Button>
+            <Link href="/dashboard/emergency-services/add">Add UiTM Auxiliary Police Unit</Link>
+            </Button>
+        </div>
+      </EmptyContent>}
+    </Empty>
         )
       }
       {policeStations.length !== 0 && filteredStations.length === 0 && (

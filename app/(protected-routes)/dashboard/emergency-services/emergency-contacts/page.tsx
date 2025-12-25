@@ -10,6 +10,14 @@ import { useHasAnyRole } from "@/hooks/use-user-role";
 import Link from "next/link";
 import { EmergencyInfo } from "@/lib/types";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
 
 const ITEMS_PER_PAGE = 9;
 
@@ -163,9 +171,24 @@ export default function EmergencyContactsPage() {
       )}
       {
         contacts.length === 0 && (
-          <div className="text-center py-12 text-muted-foreground">
-            No emergency contacts found.
-          </div>
+    <Empty>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Flame />
+        </EmptyMedia>
+        <EmptyTitle>No Emergency Contacts Data Yet</EmptyTitle>
+        <EmptyDescription>
+          The system currently has no records of Emergency Contacts.
+        </EmptyDescription>
+      </EmptyHeader>
+      {isAuthorizedForEdit() && <EmptyContent>
+        <div className="flex gap-2">
+          <Button>
+            <Link href="/dashboard/emergency-services/add">Add Emergency Contact</Link>
+            </Button>
+        </div>
+      </EmptyContent>}
+    </Empty>
         )
       }
       {contacts.length !== 0 && filteredContacts.length === 0 && (

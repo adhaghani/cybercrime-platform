@@ -12,12 +12,13 @@ export default function ProtectedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <ProtectedLayoutContent>    <div className="w-full">
+  return <ProtectedLayoutContent>
+    <div className="w-full">
       <SidebarProvider className="flex flex-col">
         <SiteHeader />
         <div className="flex flex-1">
           <AppSidebar />
-          <SidebarInset className="p-4">
+          <SidebarInset>
             {children}
           </SidebarInset>
         </div>
