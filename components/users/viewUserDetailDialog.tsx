@@ -30,6 +30,7 @@ interface UserDetail {
   YEAR_OF_STUDY?: number;
   // Staff fields
   STAFF_ID?: string;
+  SUPERVISOR_ID?: string;
   ROLE?: string;
   DEPARTMENT?: string;
   POSITION?: string;
@@ -209,6 +210,13 @@ export function ViewUserDetailDialog({ accountId, open, onOpenChange }: ViewUser
                         <p className="text-sm font-medium">{user.POSITION}</p>
                       </div>
                     </div>
+                    {user.SUPERVISOR_ID !== null && (<div className="flex items-center gap-3">
+                      <Briefcase className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Supervisor ID</p>
+                        <p className="text-sm font-medium">{user.SUPERVISOR_ID}</p>
+                      </div>
+                    </div>)}
                   </div>
                 </div>
                 <Separator />

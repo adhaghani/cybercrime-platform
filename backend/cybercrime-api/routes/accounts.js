@@ -161,7 +161,14 @@ router.get('/:id', async (req, res) => {
               a.CONTACT_NUMBER,
               a.ACCOUNT_TYPE,
               s.STUDENT_ID,
+              s.PROGRAM,
+              s.SEMESTER,
+              s.YEAR_OF_STUDY,
+              f.SUPERVISOR_ID,
               f.STAFF_ID,
+              f.ROLE,
+              f.DEPARTMENT,
+              f.POSITION,
               a.CREATED_AT,
               a.UPDATED_AT
        FROM ACCOUNT a
@@ -187,8 +194,15 @@ router.get('/:id', async (req, res) => {
     };
     if (row.ACCOUNT_TYPE === 'STUDENT' && row.STUDENT_ID) {
       account.STUDENT_ID = row.STUDENT_ID;
+      account.PROGRAM = row.PROGRAM;
+      account.SEMESTER = row.SEMESTER;
+      account.YEAR_OF_STUDY = row.YEAR_OF_STUDY;
     } else if (row.ACCOUNT_TYPE === 'STAFF' && row.STAFF_ID) {
       account.STAFF_ID = row.STAFF_ID;
+      account.ROLE = row.ROLE;
+      account.DEPARTMENT = row.DEPARTMENT;
+      account.POSITION = row.POSITION;
+      account.SUPERVISOR_ID = row.SUPERVISOR_ID;
     }
     res.json(account);
   } catch (err) {
