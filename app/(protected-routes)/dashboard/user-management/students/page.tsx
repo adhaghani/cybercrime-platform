@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   ArrowLeft, Search, Filter, MoreVertical, Mail, Phone, 
-  GraduationCap, BookOpen, Edit, UserX, FileText
+  GraduationCap, BookOpen, UserX, FileText
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -25,6 +25,7 @@ import {
 import Link from "next/link";
 import { Student } from "@/lib/types";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import { UITM_PROGRAMS } from "@/lib/constant";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -44,7 +45,7 @@ export default function StudentsPage() {
         const response = await fetch('/api/students');
         if (!response.ok) throw new Error('Failed to fetch students');
         const data = await response.json();
-        setStudents(data);
+        setStudents(data.students);
       } catch (error) {
         console.error('Error fetching students:', error);
       } finally {
@@ -55,20 +56,20 @@ export default function StudentsPage() {
   }, []);
 
   // Get unique programs for filter
-  const programs = Array.from(new Set(students.map(s => s.program)));
+  const programs = UITM_PROGRAMS;
 
-  const filteredStudents = students.filter((student) => {
+  const filteredStudents = students.length > 0 ? students.filter((student) => {
     const matchesSearch = 
-      student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.studentId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.program.toLowerCase().includes(searchQuery.toLowerCase());
+      student.NAME.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.EMAIL.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.STUDENT_ID.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.PROGRAM.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesYear = yearFilter === "ALL" || student.yearOfStudy.toString() === yearFilter;
-    const matchesProgram = programFilter === "ALL" || student.program === programFilter;
+    const matchesYear = yearFilter === "ALL" || student.YEAR_OF_STUDY.toString() === yearFilter;
+    const matchesProgram = programFilter === "ALL" || student.PROGRAM === programFilter;
 
     return matchesSearch && matchesYear && matchesProgram;
-  });
+  }) : [];
 
   // Pagination
   const totalPages = Math.ceil(filteredStudents.length / ITEMS_PER_PAGE);
@@ -177,42 +178,42 @@ export default function StudentsPage() {
             </TableHeader>
             <TableBody>
               {paginatedStudents.map((student) => (
-                <TableRow key={student.accountId}>
+                <TableRow key={student.STUDENT_ID}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
-                        <AvatarImage src={student.avatarUrl} />
-                        <AvatarFallback>{getInitials(student.name)}</AvatarFallback>
+                        <AvatarImage src={student.AVATAR_URL} />
+                        <AvatarFallback>{getInitials(student.NAME)}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="font-medium">{student.name}</div>
+                        <div className="font-medium">{student.NAME}</div>
                         <div className="text-sm text-muted-foreground flex items-center gap-1">
                           <Mail className="h-3 w-3" />
-                          {student.email}
+                          {student.EMAIL}
                         </div>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell className="font-mono text-sm">
-                    {student.studentId}
+                    {student.STUDENT_ID}
                   </TableCell>
                   <TableCell>
-                    <div className="font-medium text-sm">{student.program}</div>
+                    <div className="font-medium text-sm">{student.PROGRAM}</div>
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Badge className={getYearBadgeColor(student.yearOfStudy)}>
-                        Year {student.yearOfStudy}
+                      <Badge className={getYearBadgeColor(student.YEAR_OF_STUDY)}>
+                        Year {student.YEAR_OF_STUDY}
                       </Badge>
                       <Badge variant="outline">
-                        Sem {student.semester}
+                        Sem {student.SEMESTER}
                       </Badge>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1 text-sm">
                       <Phone className="h-3 w-3" />
-                      {student.contactNumber}
+                      {student.CONTACT_NUMBER}
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
@@ -226,21 +227,12 @@ export default function StudentsPage() {
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit Profile
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
                           <FileText className="h-4 w-4 mr-2" />
                           View Reports
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <GraduationCap className="h-4 w-4 mr-2" />
-                          Academic Details
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
                         <DropdownMenuItem className="text-destructive">
                           <UserX className="h-4 w-4 mr-2" />
-                          Suspend Account
+                          Delete Account
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

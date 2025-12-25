@@ -10,10 +10,39 @@ const router = express.Router();
 router.get('/', optionalAuth, async (req, res) => {
   try {
     const result = await exec(
-      `SELECT ACCOUNT_ID, NAME, EMAIL, CONTACT_NUMBER, ACCOUNT_TYPE, CREATED_AT, UPDATED_AT 
-       FROM ACCOUNT ORDER BY CREATED_AT DESC`
+      `SELECT a.ACCOUNT_ID,
+              a.NAME,
+              a.EMAIL,
+              a.CONTACT_NUMBER,
+              a.ACCOUNT_TYPE,
+              s.STUDENT_ID,
+              f.STAFF_ID,
+              a.CREATED_AT,
+              a.UPDATED_AT
+       FROM ACCOUNT a
+       LEFT JOIN STUDENT s ON s.ACCOUNT_ID = a.ACCOUNT_ID
+       LEFT JOIN STAFF f ON f.ACCOUNT_ID = a.ACCOUNT_ID
+       ORDER BY a.CREATED_AT DESC`
     );
-    res.json(result.rows);
+
+    const accounts = result.rows.map(row => {
+      const account = {
+        ACCOUNT_ID: row.ACCOUNT_ID,
+        NAME: row.NAME,
+        EMAIL: row.EMAIL,
+        CONTACT_NUMBER: row.CONTACT_NUMBER,
+        ACCOUNT_TYPE: row.ACCOUNT_TYPE,
+        CREATED_AT: row.CREATED_AT,
+        UPDATED_AT: row.UPDATED_AT
+      };
+      if (row.ACCOUNT_TYPE === 'STUDENT' && row.STUDENT_ID) {
+        account.STUDENT_ID = row.STUDENT_ID;
+      } else if (row.ACCOUNT_TYPE === 'STAFF' && row.STAFF_ID) {
+        account.STAFF_ID = row.STAFF_ID;
+      }
+      return account;
+    });
+    res.json(accounts);
   } catch (err) {
     console.error('Get accounts error:', err);
     res.status(500).json({ error: 'Failed to get accounts', details: err.message });
@@ -126,8 +155,19 @@ router.post('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const result = await exec(
-      `SELECT ACCOUNT_ID, NAME, EMAIL, CONTACT_NUMBER, ACCOUNT_TYPE, CREATED_AT, UPDATED_AT 
-       FROM ACCOUNT WHERE ACCOUNT_ID = :id`,
+      `SELECT a.ACCOUNT_ID,
+              a.NAME,
+              a.EMAIL,
+              a.CONTACT_NUMBER,
+              a.ACCOUNT_TYPE,
+              s.STUDENT_ID,
+              f.STAFF_ID,
+              a.CREATED_AT,
+              a.UPDATED_AT
+       FROM ACCOUNT a
+       LEFT JOIN STUDENT s ON s.ACCOUNT_ID = a.ACCOUNT_ID
+       LEFT JOIN STAFF f ON f.ACCOUNT_ID = a.ACCOUNT_ID
+       WHERE a.ACCOUNT_ID = :id`,
       { id: req.params.id }
     );
 
@@ -135,7 +175,22 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Account not found' });
     }
 
-    res.json(result.rows[0]);
+    const row = result.rows[0];
+    const account = {
+      ACCOUNT_ID: row.ACCOUNT_ID,
+      NAME: row.NAME,
+      EMAIL: row.EMAIL,
+      CONTACT_NUMBER: row.CONTACT_NUMBER,
+      ACCOUNT_TYPE: row.ACCOUNT_TYPE,
+      CREATED_AT: row.CREATED_AT,
+      UPDATED_AT: row.UPDATED_AT
+    };
+    if (row.ACCOUNT_TYPE === 'STUDENT' && row.STUDENT_ID) {
+      account.STUDENT_ID = row.STUDENT_ID;
+    } else if (row.ACCOUNT_TYPE === 'STAFF' && row.STAFF_ID) {
+      account.STAFF_ID = row.STAFF_ID;
+    }
+    res.json(account);
   } catch (err) {
     console.error('Get account error:', err);
     res.status(500).json({ error: 'Failed to get account', details: err.message });

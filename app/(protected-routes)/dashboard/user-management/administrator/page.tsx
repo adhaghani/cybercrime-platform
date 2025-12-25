@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { 
   ArrowLeft, Search, MoreVertical, Mail, Phone, 
-  ShieldCheck,  Edit, UserX, Shield, ShieldAlert, Plus
+  ShieldCheck, UserX, Shield, ShieldAlert, Plus
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -38,7 +38,7 @@ export default function AdministratorPage() {
         const response = await fetch('/api/staff?role=ADMIN');
         if (!response.ok) throw new Error('Failed to fetch administrators');
         const data = await response.json();
-        setAdministrators(data);
+        setAdministrators(data.staff);
       } catch (error) {
         console.error('Error fetching administrators:', error);
       } finally {
@@ -48,16 +48,16 @@ export default function AdministratorPage() {
     fetchAdministrators();
   }, []);
 
-  const filteredAdministrators = administrators.filter((admin) => {
+  const filteredAdministrators = administrators.length > 0 ? administrators.filter((admin) => {
     const matchesSearch = 
-      admin.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      admin.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      admin.staffId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      admin.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      admin.position.toLowerCase().includes(searchQuery.toLowerCase());
+      admin.NAME.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      admin.EMAIL.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      admin.STAFF_ID.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      admin.DEPARTMENT.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      admin.POSITION.toLowerCase().includes(searchQuery.toLowerCase());
 
     return matchesSearch;
-  });
+  }) : [];
 
   // Pagination
   const totalPages = Math.ceil(filteredAdministrators.length / ITEMS_PER_PAGE);
@@ -79,11 +79,6 @@ export default function AdministratorPage() {
     }
   };
 
-  const handleResetPassword = (adminId: string) => {
-    // TODO: API call to reset password
-    console.log("Resetting password for admin:", adminId);
-    alert("Password reset link will be sent to the administrator's email");
-  };
 
   if(loading){
     return (
@@ -164,18 +159,18 @@ export default function AdministratorPage() {
             </TableHeader>
             <TableBody>
               {paginatedAdministrators.map((admin) => (
-                <TableRow key={admin.accountId}>
+                <TableRow key={admin.ACCOUNT_ID}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
-                        <AvatarImage src={admin.avatarUrl} />
+                        <AvatarImage src={admin.AVATAR_URL} />
                         <AvatarFallback className="bg-purple-500/10 text-purple-500">
-                          {getInitials(admin.name)}
+                          {getInitials(admin.NAME)}
                         </AvatarFallback>
                       </Avatar>
                       <div>
                         <div className="font-medium flex items-center gap-2">
-                          {admin.name}
+                          {admin.NAME}
                           <Badge variant="outline" className="text-purple-500 border-purple-500/50">
                             <Shield className="h-3 w-3 mr-1" />
                             Admin
@@ -183,26 +178,26 @@ export default function AdministratorPage() {
                         </div>
                         <div className="text-sm text-muted-foreground flex items-center gap-1">
                           <Mail className="h-3 w-3" />
-                          {admin.email}
+                          {admin.EMAIL}
                         </div>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell className="font-mono text-sm">
-                    {admin.staffId}
+                    {admin.STAFF_ID}
                   </TableCell>
                   <TableCell>
-                    <Badge className={getDepartmentColor(admin.department)}>
-                      {admin.department}
+                    <Badge className={getDepartmentColor(admin.DEPARTMENT)}>
+                      {admin.DEPARTMENT}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="font-medium text-sm">{admin.position}</div>
+                    <div className="font-medium text-sm">{admin.POSITION}</div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1 text-sm">
                       <Phone className="h-3 w-3" />
-                      {admin.contactNumber}
+                      {admin.CONTACT_NUMBER}
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
@@ -215,25 +210,18 @@ export default function AdministratorPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit Profile
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Shield className="h-4 w-4 mr-2" />
-                          View Permissions
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleResetPassword(admin.accountId)}>
-                          <ShieldCheck className="h-4 w-4 mr-2" />
-                          Reset Password
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
                         <DropdownMenuItem 
-                          onClick={() => handleRevokeAdmin(admin.accountId)}
-                          className="text-destructive"
+                          onClick={() => handleRevokeAdmin(admin.ACCOUNT_ID)}
                         >
                           <UserX className="h-4 w-4 mr-2" />
                           Revoke Admin Access
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                        className="text-destructive"
+                          // onClick={() => handleResetPassword(admin.ACCOUNT_ID)}
+                        >
+                          <ShieldAlert className="h-4 w-4 mr-2" />
+                          Delete Account
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

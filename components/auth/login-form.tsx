@@ -29,7 +29,13 @@ import { useForm } from "react-hook-form";
 import { passwordComplexity,  StaffEmailRegex, StudentEmailRegex } from "@/lib/constant";
 import { toast } from "sonner";
 const formSchema = z.object({
-  email: z.string().email("Invalid email address").regex(StudentEmailRegex, "Need to use UiTM Student email"),
+  email: z
+    .string()
+    .email("Invalid email address")
+    .refine(
+      (email) => StudentEmailRegex.test(email) || StaffEmailRegex.test(email),
+      "Need to use UiTM email"
+    ),
   password: z
     .string()
     .min(8, "invalid password")

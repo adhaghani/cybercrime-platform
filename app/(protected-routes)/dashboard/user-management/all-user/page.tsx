@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   ArrowLeft, Search, Filter, MoreVertical, Mail, Phone, 
-  UserCheck, UserX, Edit, Trash2 
+  UserCheck, Trash2 
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -28,7 +28,7 @@ import { PaginationControls } from "@/components/ui/pagination-controls";
 
 const ITEMS_PER_PAGE = 10;
 
-type RoleFilter = "ALL" | "STUDENT" | "STAFF" | "ADMIN";
+type RoleFilter = "ALL" | "STUDENT" | "STAFF";
 
 export default function AllUsersPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -40,7 +40,7 @@ export default function AllUsersPage() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch('/api/users');
+        const response = await fetch('/api/accounts');
         if (!response.ok) throw new Error('Failed to fetch users');
         const data = await response.json();
         setUsers(data);
@@ -55,12 +55,12 @@ export default function AllUsersPage() {
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch = 
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ("studentId" in user && user.studentId.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      ("staffId" in user && user.staffId.toLowerCase().includes(searchQuery.toLowerCase()));
+      user.NAME.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.EMAIL.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ("STUDENT_ID" in user && user.STUDENT_ID.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      ("STAFF_ID" in user && user.STAFF_ID.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    const matchesRole = roleFilter === "ALL" || ("role" in user && user.role === roleFilter) || (roleFilter === "STUDENT" && user.accountType === "STUDENT");
+    const matchesRole = roleFilter === "ALL" || ("ROLE" in user && user.ROLE === roleFilter) || user.ACCOUNT_TYPE === "STUDENT";
 
     return matchesSearch && matchesRole;
   });
@@ -75,12 +75,6 @@ export default function AllUsersPage() {
   const handleFilterChange = (callback: () => void) => {
     callback();
     setCurrentPage(1);
-  };
-
-  const handleDeactivate = (userId: string) => {
-    // TODO: API call to deactivate user
-    console.log("Deactivating user:", userId);
-    alert("User deactivation functionality will be implemented with backend API");
   };
 
   const handleDelete = (userId: string) => {
@@ -162,56 +156,40 @@ export default function AllUsersPage() {
                 <TableHead>ID</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Contact</TableHead>
-                <TableHead>Details</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginatedUsers.map((user) => (
-                <TableRow key={user.accountId}>
+                <TableRow key={user.ACCOUNT_ID}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
-                        <AvatarImage src={user.avatarUrl} />
-                        <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                        <AvatarImage src={user.AVATAR_URL} />
+                        <AvatarFallback>{getInitials(user.NAME)}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="font-medium">{user.name}</div>
+                        <div className="font-medium">{user.NAME}</div>
                         <div className="text-sm text-muted-foreground flex items-center gap-1">
                           <Mail className="h-3 w-3" />
-                          {user.email}
+                          {user.EMAIL}
                         </div>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell className="font-mono text-sm">
-                    {"studentId" in user ? user.studentId : user.staffId}
+                    {"STUDENT_ID" in user ? user.STUDENT_ID : user.STAFF_ID}
                   </TableCell>
                   <TableCell>
-                    <Badge className={getRoleBadgeColor("role" in user ? user.role : user.accountType)}>
-                      {"role" in user ? user.role : user.accountType}
+                    <Badge className={getRoleBadgeColor("ROLE" in user ? user.ROLE : user.ACCOUNT_TYPE)}>
+                      {"ROLE" in user ? user.ROLE : user.ACCOUNT_TYPE}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1 text-sm">
                       <Phone className="h-3 w-3" />
-                      {user.contactNumber}
+                      {user.CONTACT_NUMBER}
                     </div>
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {"program" in user ? (
-                      <div>
-                        <div className="font-medium">{user.program}</div>
-                        <div className="text-muted-foreground">
-                          Sem {user.semester} • Year {user.yearOfStudy}
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        <div className="font-medium">{user.department}</div>
-                        <div className="text-muted-foreground">{user.position}</div>
-                      </div>
-                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -224,20 +202,11 @@ export default function AllUsersPage() {
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit Profile
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
                           <UserCheck className="h-4 w-4 mr-2" />
                           View Details
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleDeactivate(user.accountId)}>
-                          <UserX className="h-4 w-4 mr-2" />
-                          Deactivate
-                        </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => handleDelete(user.accountId)}
+                          onClick={() => handleDelete(user.ACCOUNT_ID)}
                           className="text-destructive"
                         >
                           <Trash2 className="h-4 w-4 mr-2" />

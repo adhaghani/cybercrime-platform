@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   ArrowLeft, Search, MoreVertical, Mail, Phone, 
-  Briefcase, Building2, Edit, UserX, Shield, Loader2, UserPlus,
+  Briefcase, Building2, UserX, Shield, Loader2, UserPlus,
   ShieldCheck
 } from "lucide-react";
 import {
@@ -54,17 +54,17 @@ export default function StaffManagementPage() {
     }
   };
   // Get unique departments for filter
-  const departments = Array.from(new Set(staffMembers.map(s => s.department)));
+  const departments = Array.from(new Set(staffMembers.map(s => s.DEPARTMENT)));
 
   const filteredStaff = staffMembers.filter((member) => {
     const matchesSearch = 
-      member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.position.toLowerCase().includes(searchQuery.toLowerCase());
+      member.NAME.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      member.EMAIL.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      member.DEPARTMENT.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      member.POSITION.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesDepartment = departmentFilter === "ALL" || member.department === departmentFilter;
-    const matchesRole = roleFilter === "ALL" || member.role === roleFilter;
+    const matchesDepartment = departmentFilter === "ALL" || member.DEPARTMENT === departmentFilter;
+    const matchesRole = roleFilter === "ALL" || member.ROLE === roleFilter;
 
     return matchesSearch && matchesDepartment && matchesRole;
   });
@@ -190,37 +190,37 @@ export default function StaffManagementPage() {
             </TableHeader>
             <TableBody>
               {paginatedStaff.map((member) => (
-                <TableRow key={member.accountId}>
+                <TableRow key={member.ACCOUNT_ID}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
-                        <AvatarImage src={member.avatarUrl} />
-                        <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
+                        <AvatarImage src={member.AVATAR_URL} />
+                        <AvatarFallback>{getInitials(member.NAME)}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="font-medium">{member.name}</div>
+                        <div className="font-medium">{member.NAME}</div>
                         <div className="text-sm text-muted-foreground flex items-center gap-1">
                           <Mail className="h-3 w-3" />
-                          {member.email}
+                          {member.EMAIL}
                         </div>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell className="font-mono text-sm">
-                    {member.staffId}
+                    {member.STAFF_ID}
                   </TableCell>
                   <TableCell>
-                    <Badge className={getDepartmentColor(member.department)}>
-                      {member.department}
+                    <Badge className={getDepartmentColor(member.DEPARTMENT)}>
+                      {member.DEPARTMENT}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="font-medium text-sm">{member.position}</div>
+                    <div className="font-medium text-sm">{member.POSITION}</div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1 text-sm">
                       <Phone className="h-3 w-3" />
-                      {member.contactNumber}
+                      {member.CONTACT_NUMBER}
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
@@ -234,21 +234,17 @@ export default function StaffManagementPage() {
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit Profile
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
                           <Briefcase className="h-4 w-4 mr-2" />
                           View Assignments
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handlePromoteToAdmin(member.accountId)}>
+                        <DropdownMenuItem onClick={() => handlePromoteToAdmin(member.ACCOUNT_ID)}>
                           <Shield className="h-4 w-4 mr-2" />
                           Promote to Admin
                         </DropdownMenuItem>
                         <DropdownMenuItem className="text-destructive">
                           <UserX className="h-4 w-4 mr-2" />
-                          Suspend Account
+                          Delete Account
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
