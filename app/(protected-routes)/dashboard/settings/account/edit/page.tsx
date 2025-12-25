@@ -48,7 +48,7 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 export default function SettingsProfilePage() {
   const { claims, setClaims } = useAuth();
   const router = useRouter();
-  const role = claims?.role;
+  const role = claims?.ROLE;
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -68,13 +68,13 @@ export default function SettingsProfilePage() {
   useEffect(() => {
     if (claims) {
       form.reset({
-        name: claims.user_metadata?.name || "",
-        contactNumber: (claims.user_metadata?.contactNumber as string) || "",
-        program: (claims.user_metadata?.program as string) || "",
-        semester: claims.user_metadata?.semester?.toString() || "",
-        yearOfStudy: claims.user_metadata?.yearOfStudy?.toString() || "",
-        department: (claims.user_metadata?.department as string) || "",
-        position: (claims.user_metadata?.position as string) || "",
+        name: claims?.NAME || "",
+        contactNumber: (claims?.CONTACT_NUMBER as string) || "",
+        program: (claims?.PROGRAM as string) || "",
+        semester: claims?.SEMESTER?.toString() || "",
+        yearOfStudy: claims?.YEAR_OF_STUDY?.toString() || "",
+        department: (claims?.DEPARTMENT as string) || "",
+        position: (claims?.POSITION as string) || "",
       });
     }
   }, [claims, form]);
@@ -83,7 +83,7 @@ export default function SettingsProfilePage() {
     // Update via API
     const updateAccount = async () => {
       try {
-        const accountId = claims?.sub;
+        const accountId = claims?.ACCOUNT_ID;
         if (!accountId) return;
 
         const response = await fetch(`/api/accounts/${accountId}`, {
@@ -93,11 +93,13 @@ export default function SettingsProfilePage() {
             name: data.name,
             contact_number: data.contactNumber,
             ...(role === 'STUDENT' ? {
+              student_id: claims?.STUDENT_ID,
               program: data.program,
               semester: data.semester ? parseInt(data.semester) : undefined,
               year_of_study: data.yearOfStudy ? parseInt(data.yearOfStudy) : undefined,
             } : {}),
-            ...((role === 'STAFF' || role === 'ADMIN' || role === 'SUPERADMIN') ? {
+            ...((role === 'STAFF' || role === 'SUPERVISOR' || role === 'ADMIN' || role === 'SUPERADMIN') ? {
+              staff_id: claims?.STAFF_ID,
               department: data.department,
               position: data.position,
             } : {}),
@@ -110,20 +112,21 @@ export default function SettingsProfilePage() {
         if (claims) {
           const updatedClaims = {
             ...claims,
-            user_metadata: {
-              ...claims.user_metadata,
-              name: data.name,
-              contactNumber: data.contactNumber,
-              ...(role === 'STUDENT' ? {
-                program: data.program,
-                semester: data.semester ? parseInt(data.semester) : undefined,
-                yearOfStudy: data.yearOfStudy ? parseInt(data.yearOfStudy) : undefined,
-              } : {}),
-              ...((role === 'STAFF' || role === 'ADMIN' || role === 'SUPERADMIN') ? {
-                department: data.department,
-                position: data.position,
-              } : {}),
-            },
+            NAME: data.name,
+            CONTACT_NUMBER: data.contactNumber,
+            ...(role === 'STUDENT' ? {
+              STUDENT_ID: claims?.STUDENT_ID,
+              PROGRAM: data.program,
+              SEMESTER: data.semester ? parseInt(data.semester) : claims.SEMESTER,
+              YEAR_OF_STUDY: data.yearOfStudy ? parseInt(data.yearOfStudy) : claims.YEAR_OF_STUDY,
+            } : {}),
+            ...((role === 'STAFF' || role === 'SUPERVISOR' || role === 'ADMIN' || role === 'SUPERADMIN') ? {
+              STAFF_ID: claims?.STAFF_ID,
+              DEPARTMENT: data.department,
+              POSITION: data.position,
+            } : {}),
+            
+            
           };
           setClaims(updatedClaims);
         }

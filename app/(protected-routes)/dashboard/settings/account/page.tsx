@@ -17,19 +17,20 @@ import {  Mail, Phone, Shield, BadgeCheck, GraduationCap, Briefcase, Building2, 
 
 export default function AccountPage() {
   const { claims } = useAuth();
-  const role = claims?.ROLE;
-
+  const role = claims?.ROLE || "STUDENT";
+  const ACCOUNT_TYPE = claims?.ACCOUNT_TYPE;
+  console.log(claims);
   // Common fields
   const user = {
     NAME: claims?.NAME || "User",
     EMAIL: claims?.EMAIL || "user@example.com",
-    ROLE: role || "USER",
+    ROLE: role || "STUDENT",
     AVATAR_URL: claims?.AVATAR_URL || "",
     CONTACT_NUMBER: (claims?.CONTACT_NUMBER as string) || "Not set",
   };
 
   // Student specific
-  const studentInfo = role === 'STUDENT' ? {
+  const studentInfo = ACCOUNT_TYPE === 'STUDENT' ? {
     studentId: claims?.STUDENT_ID as string,
     program: claims?.PROGRAM as string,
     semester: claims?.SEMESTER as number,
@@ -37,7 +38,7 @@ export default function AccountPage() {
   } : null;
 
   // Staff specific
-  const staffInfo = (role === 'STAFF' || role === 'ADMIN' || role === 'SUPERADMIN') ? {
+  const staffInfo = ACCOUNT_TYPE === 'STAFF' ? {
     staffId: claims?.STAFF_ID as string,
     department: claims?.DEPARTMENT as string,
     position: claims?.POSITION as string,

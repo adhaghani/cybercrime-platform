@@ -92,7 +92,7 @@ router.post('/login', async (req, res) => {
     let userDetails = {};
     if (account.ACCOUNT_TYPE === 'STUDENT') {
       const studentData = await exec(
-        `SELECT PROGRAM, SEMESTER, YEAR_OF_STUDY FROM STUDENT WHERE ACCOUNT_ID = :id`,
+        `SELECT STUDENT_ID, PROGRAM, SEMESTER, YEAR_OF_STUDY FROM STUDENT WHERE ACCOUNT_ID = :id`,
         { id: account.ACCOUNT_ID }
       );
       if (studentData.rows.length > 0) {
@@ -157,7 +157,7 @@ router.get('/me', authenticateToken, async (req, res) => {
 
     if (account.ACCOUNT_TYPE === 'STUDENT') {
       const studentData = await exec(
-        `SELECT PROGRAM, SEMESTER, YEAR_OF_STUDY FROM STUDENT WHERE ACCOUNT_ID = :id`,
+        `SELECT STUDENT_ID, PROGRAM, SEMESTER, YEAR_OF_STUDY FROM STUDENT WHERE ACCOUNT_ID = :id`,
         { id: account.ACCOUNT_ID }
       );
       if (studentData.rows.length > 0) {

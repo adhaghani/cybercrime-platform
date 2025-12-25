@@ -26,10 +26,10 @@ import { useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { passwordComplexity,  StaffEmailRegex } from "@/lib/constant";
+import { passwordComplexity,  StaffEmailRegex, StudentEmailRegex } from "@/lib/constant";
 import { toast } from "sonner";
 const formSchema = z.object({
-  email: z.string().email("Invalid email address").regex(StaffEmailRegex, "Need to use UiTM Student email"),
+  email: z.string().email("Invalid email address").regex(StudentEmailRegex, "Need to use UiTM Student email"),
   password: z
     .string()
     .min(8, "invalid password")
