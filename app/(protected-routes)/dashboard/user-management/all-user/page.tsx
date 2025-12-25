@@ -25,6 +25,8 @@ import {
 import Link from "next/link";
 import {  Student, Staff } from "@/lib/types";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import { DeleteUserDialog } from "@/components/users/deleteUserDialog";
+import { ViewUserDetailDialog } from "@/components/users/viewUserDetailDialog";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -36,6 +38,11 @@ export default function AllUsersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [users, setUsers] = useState<(Student | Staff)[]>([]);
   const [loading, setLoading] = useState(true);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [openViewDialog, setOpenViewDialog] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedUserName, setSelectedUserName] = useState<string>("");
+  const [selectedUserEmail, setSelectedUserEmail] = useState<string>("");
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -77,13 +84,32 @@ export default function AllUsersPage() {
     setCurrentPage(1);
   };
 
-  const handleDelete = (userId: string) => {
-    if (confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
-      // TODO: API call to delete user
-      console.log("Deleting user:", userId);
-      alert("User deletion functionality will be implemented with backend API");
+  const handleViewDetails = (accountId: string) => {
+    setSelectedUserId(accountId);
+    setOpenViewDialog(true);
+  };
+
+  const handleDeleteUser = (accountId: string, userName: string, userEmail: string) => {
+    setSelectedUserId(accountId);
+    setSelectedUserName(userName);
+    setSelectedUserEmail(userEmail);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleRefreshUsers = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/accounts');
+      if (!response.ok) throw new Error('Failed to fetch users');
+      const data = await response.json();
+      setUsers(data);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    } finally {
+      setLoading(false);
     }
   };
+  
 
   if (loading) {
     return (
@@ -201,13 +227,13 @@ export default function AllUsersPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewDetails(user.ACCOUNT_ID)}>
                           <UserCheck className="h-4 w-4 mr-2" />
                           View Details
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => handleDelete(user.ACCOUNT_ID)}
                           className="text-destructive"
+                          onClick={() => handleDeleteUser(user.ACCOUNT_ID, user.NAME, user.EMAIL)}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Delete User
@@ -227,6 +253,22 @@ export default function AllUsersPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Dialogs */}
+      <ViewUserDetailDialog
+        accountId={selectedUserId}
+        open={openViewDialog}
+        onOpenChange={setOpenViewDialog}
+      />
+      
+      <DeleteUserDialog
+        accountId={selectedUserId}
+        userName={selectedUserName}
+        userEmail={selectedUserEmail}
+        open={openDeleteDialog}
+        onOpenChange={setOpenDeleteDialog}
+        onSuccess={handleRefreshUsers}
+      />
     </div>
   );
 }

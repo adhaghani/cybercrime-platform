@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useAuth } from "@/lib/context/auth-provider";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,10 +14,14 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
-import {  Mail, Phone, Shield, BadgeCheck, GraduationCap, Briefcase, Building2, Calendar, Hash } from "lucide-react";
+import {  Mail, Phone, Shield, BadgeCheck, GraduationCap, Briefcase, Building2, Calendar, Hash, AlertTriangle } from "lucide-react";
+import { DeleteUserDialog } from "@/components/users/deleteUserDialog";
+import { useRouter } from "next/navigation";
 
 export default function AccountPage() {
   const { claims } = useAuth();
+  const router = useRouter();
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const role = claims?.ROLE || "STUDENT";
   const ACCOUNT_TYPE = claims?.ACCOUNT_TYPE;
   console.log(claims);
@@ -43,6 +48,11 @@ export default function AccountPage() {
     department: claims?.DEPARTMENT as string,
     position: claims?.POSITION as string,
   } : null;
+
+  const handleDeleteSuccess = () => {
+    // After successful deletion, redirect to login
+    router.push('/auth/login');
+  };
 
   return (
     <div className="space-y-6">
@@ -190,7 +200,47 @@ export default function AccountPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Danger Zone */}
+        <Card className="md:col-span-2 border-destructive/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Danger Zone
+            </CardTitle>
+            <CardDescription>
+              Irreversible and destructive actions
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-start justify-between rounded-lg border border-destructive/50 p-4">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Delete Account</p>
+                <p className="text-sm text-muted-foreground">
+                  Permanently delete your account and all associated data. This action cannot be undone.
+                </p>
+              </div>
+              <Button 
+                variant="destructive" 
+                onClick={() => setOpenDeleteDialog(true)}
+                className="ml-4 shrink-0"
+              >
+                Delete Account
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Delete Account Dialog */}
+      <DeleteUserDialog
+        accountId={claims?.ACCOUNT_ID as string || null}
+        userName={user.NAME}
+        userEmail={user.EMAIL}
+        open={openDeleteDialog}
+        onOpenChange={setOpenDeleteDialog}
+        onSuccess={handleDeleteSuccess}
+      />
     </div>
   );
 }

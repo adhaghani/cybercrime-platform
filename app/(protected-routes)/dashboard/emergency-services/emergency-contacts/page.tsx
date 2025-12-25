@@ -161,8 +161,14 @@ export default function EmergencyContactsPage() {
           totalItems={filteredContacts.length}
         />
       )}
-      
-      {filteredContacts.length === 0 && (
+      {
+        contacts.length === 0 && (
+          <div className="text-center py-12 text-muted-foreground">
+            No emergency contacts found.
+          </div>
+        )
+      }
+      {contacts.length !== 0 && filteredContacts.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">
           No results found for &quot;{searchQuery}&quot; in {activeTab === 'all' ? 'all categories' : activeTab}.
         </div>

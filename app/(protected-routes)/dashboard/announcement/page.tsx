@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getPriorityColor, getAnnouncementTypeColor } from "@/lib/utils/badge-helpers";
@@ -22,11 +22,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Bell, Plus, Search, MoreVertical, Eye, Edit, Trash2, Archive, Loader2 } from "lucide-react";
+import {Tabs, TabsList, TabsTrigger, TabsContent} from "@/components/ui/tabs";
 import Link from "next/link";
 import { Announcement } from "@/lib/types";
 import { useHasAnyRole } from "@/hooks/use-user-role";
 import { useState, useEffect } from "react";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import AnnouncementCard from "@/components/announcement/announcementCard";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -79,8 +81,8 @@ export default function AnnouncementsPage() {
     onPageChange: (page: number) => void;
   }) => {
     return (
-      <div className="space-y-4">
-        <Table>
+      <div className="space-y-4 ">
+        <Table className="overflow-hidden border shadow-md">
       <TableHeader>
         <TableRow>
           <TableHead>Title</TableHead>
@@ -208,47 +210,10 @@ export default function AnnouncementsPage() {
         )}
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total</CardTitle>
-            <Bell className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{announcements.length}</div>
-            <p className="text-xs text-muted-foreground">All announcements</p>
-          </CardContent>
-        </Card>
-        {/* <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Published</CardTitle>
-            <Bell className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-500">{publishedAnnouncements.length}</div>
-            <p className="text-xs text-muted-foreground">Active announcements</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Drafts</CardTitle>
-            <Bell className="h-4 w-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-500">{draftAnnouncements.length}</div>
-            <p className="text-xs text-muted-foreground">Pending publication</p>
-          </CardContent>
-        </Card> */}
-      </div>
 
-      {/* Search and Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>All Announcements</CardTitle>
-          <CardDescription>Browse and manage campus announcements</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+          <h4>All Announcements</h4>
+          <p>Browse and manage campus announcements</p>
+
           <div className="flex items-center gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -256,18 +221,57 @@ export default function AnnouncementsPage() {
                 placeholder="Search announcements..."
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                className="pl-10"
+                className="pl-10 max-w-2xl"
               />
             </div>
           </div>
-            <AnnouncementTable 
-                announcements={announcements}
-                currentPage={Page}
-                onPageChange={setPage}
-                totalPages={1}
-              />
-        </CardContent>
-      </Card>
+
+      <Tabs defaultValue="TABLE">
+        <TabsList defaultValue={"TABLE"} className="w-fit mb-4 bg-secondary/50 rounded-full p-1">
+          <TabsTrigger 
+            value="TABLE"
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full"
+          >
+            Table View
+          </TabsTrigger>
+          <TabsTrigger 
+            value="CARD"
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full"
+          >
+            Card View
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="TABLE">
+            <Card>
+                <CardContent>
+                  <AnnouncementTable 
+                    announcements={announcements}
+                    currentPage={Page}
+                    onPageChange={setPage}
+                    totalPages={1}
+                    />
+                </CardContent>
+            </Card>
+        </TabsContent>
+        <TabsContent value="CARD">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {announcements.length === 0 ? (
+              <div className="text-center text-muted-foreground col-span-full">
+                No announcements found
+              </div>
+            ) : (
+              announcements.map((announcement) => (
+                <AnnouncementCard 
+                  key={announcement.ANNOUNCEMENT_ID} 
+                  announcement={announcement} 
+                />
+              ))
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
+      {/* Search and Filters */}
+
     </div>
   );
 }

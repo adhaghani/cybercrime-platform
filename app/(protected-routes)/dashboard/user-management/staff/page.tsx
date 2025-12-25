@@ -12,7 +12,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   ArrowLeft, Search, MoreVertical, Mail, Phone, 
   Briefcase, Building2, UserX, Shield, Loader2, UserPlus,
-  ShieldCheck
+  ShieldCheck,
+  UserCheck
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -25,6 +26,11 @@ import {
 import Link from "next/link";
 import { Staff } from "@/lib/types";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import { ViewUserDetailDialog } from "@/components/users/viewUserDetailDialog";
+import { ViewStaffAssignmentDialog } from "@/components/users/viewStaffAssignmentDialog";
+import { PromoteStaffDialog } from "@/components/users/promoteStaffDialog";
+import { DeleteUserDialog } from "@/components/users/deleteUserDialog";
+import { useAuth } from "@/lib/context/auth-provider";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -35,6 +41,15 @@ export default function StaffManagementPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [staffMembers, setStaffMembers] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
+  const [openViewDialog, setOpenViewDialog] = useState(false);
+  const [openAssignmentsDialog, setOpenAssignmentsDialog] = useState(false);
+  const [openPromoteDialog, setOpenPromoteDialog] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
+  const [selectedStaffName, setSelectedStaffName] = useState<string>("");
+  const [selectedStaffEmail, setSelectedStaffEmail] = useState<string>("");
+  const {claims} = useAuth();
+  const ACCOUNT_ID = claims?.ACCOUNT_ID || null;
 
   useEffect(() => {
     fetchStaff();
@@ -81,10 +96,43 @@ export default function StaffManagementPage() {
     setCurrentPage(1);
   };
 
-  const handlePromoteToAdmin = (staffId: string) => {
-    // TODO: API call to promote staff to admin
-    console.log("Promoting staff to admin:", staffId);
-    alert("Promotion functionality will be implemented with backend API");
+  const handleViewDetails = (accountId: string) => {
+    setSelectedStaffId(accountId);
+    setOpenViewDialog(true);
+  };
+
+  const handleViewAssignments = (accountId: string, name: string) => {
+    setSelectedStaffId(accountId);
+    setSelectedStaffName(name);
+    setOpenAssignmentsDialog(true);
+  };
+
+  const handlePromoteToAdmin = (accountId: string, name: string) => {
+    setSelectedStaffId(accountId);
+    setSelectedStaffName(name);
+    setOpenPromoteDialog(true);
+  };
+
+  const handleDeleteAccount = (accountId: string, name: string, email: string) => {
+    setSelectedStaffId(accountId);
+    setSelectedStaffName(name);
+    setSelectedStaffEmail(email);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleRefreshStaff = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/staff');
+      if (response.ok) {
+        const data = await response.json();
+        setStaffMembers(data.staff || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch staff:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) {
@@ -233,16 +281,26 @@ export default function StaffManagementPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewDetails(member.ACCOUNT_ID)}>
+                          <UserCheck className="h-4 w-4 mr-2" />
+                          Staff Details
+                        </DropdownMenuItem>
+                        {ACCOUNT_ID !== member.ACCOUNT_ID && <>
+                        <DropdownMenuItem onClick={() => handleViewAssignments(member.ACCOUNT_ID, member.NAME)}>
                           <Briefcase className="h-4 w-4 mr-2" />
                           View Assignments
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handlePromoteToAdmin(member.ACCOUNT_ID)}>
+                        <DropdownMenuItem onClick={() => handlePromoteToAdmin(member.ACCOUNT_ID, member.NAME)}>
                           <Shield className="h-4 w-4 mr-2" />
                           Promote to Admin
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
+                        </>}
+                        <DropdownMenuSeparator />
+
+                        <DropdownMenuItem 
+                          className="text-destructive"
+                          onClick={() => handleDeleteAccount(member.ACCOUNT_ID, member.NAME, member.EMAIL)}
+                        >
                           <UserX className="h-4 w-4 mr-2" />
                           Delete Account
                         </DropdownMenuItem>
@@ -261,6 +319,35 @@ export default function StaffManagementPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+      {/* Dialogs */}
+      <ViewUserDetailDialog
+        accountId={selectedStaffId}
+        open={openViewDialog}
+        onOpenChange={setOpenViewDialog}
+      />
+
+      <ViewStaffAssignmentDialog
+        accountId={selectedStaffId}
+        staffName={selectedStaffName}
+        open={openAssignmentsDialog}
+        onOpenChange={setOpenAssignmentsDialog}
+      />
+
+      <PromoteStaffDialog
+        accountId={selectedStaffId}
+        staffName={selectedStaffName}
+        open={openPromoteDialog}
+        onOpenChange={setOpenPromoteDialog}
+        onSuccess={handleRefreshStaff}
+      />
+
+      <DeleteUserDialog
+        accountId={selectedStaffId}
+        userName={selectedStaffName}
+        userEmail={selectedStaffEmail}
+        open={openDeleteDialog}
+        onOpenChange={setOpenDeleteDialog}
+        onSuccess={handleRefreshStaff}
+      />    </div>
   );
 }

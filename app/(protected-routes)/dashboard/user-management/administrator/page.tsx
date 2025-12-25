@@ -11,7 +11,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { 
   ArrowLeft, Search, MoreVertical, Mail, Phone, 
-  ShieldCheck, UserX, Shield, ShieldAlert, Plus
+  ShieldCheck, UserX, Shield, ShieldAlert, Plus,
+  UserCheck
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -23,6 +24,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { Staff } from "@/lib/types";
+import { ViewUserDetailDialog } from "@/components/users/viewUserDetailDialog";
+import { DemoteAdminDialog } from "@/components/users/demoteAdminDialog";
+import { DeleteUserDialog } from "@/components/users/deleteUserDialog";
+import { useAuth } from "@/lib/context/auth-provider";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -31,7 +36,16 @@ export default function AdministratorPage() {
   const [administrators, setAdministrators] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [openViewDialog, setOpenViewDialog] = useState(false);
+  const [openDemoteDialog, setOpenDemoteDialog] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [selectedAdminId, setSelectedAdminId] = useState<string | null>(null);
+  const [selectedAdminName, setSelectedAdminName] = useState<string>("");
+  const [selectedAdminEmail, setSelectedAdminEmail] = useState<string>("");
+  const [selectedAdminRole, setSelectedAdminRole] = useState<string>("");
 
+  const { claims } = useAuth();
+  const ACCOUNT_ID = claims?.ACCOUNT_ID || null;
   useEffect(() => {
     const fetchAdministrators = async () => {
       try {
@@ -71,11 +85,36 @@ export default function AdministratorPage() {
     setCurrentPage(1);
   };
 
-  const handleRevokeAdmin = (adminId: string) => {
-    if (confirm("Are you sure you want to revoke admin privileges? This user will be demoted to regular staff.")) {
-      // TODO: API call to revoke admin privileges
-      console.log("Revoking admin privileges:", adminId);
-      alert("Admin revocation functionality will be implemented with backend API");
+  const handleViewDetails = (accountId: string) => {
+    setSelectedAdminId(accountId);
+    setOpenViewDialog(true);
+  };
+
+  const handleRevokeAdmin = (accountId: string, name: string, role: string) => {
+    setSelectedAdminId(accountId);
+    setSelectedAdminName(name);
+    setSelectedAdminRole(role);
+    setOpenDemoteDialog(true);
+  };
+
+  const handleDeleteAccount = (accountId: string, name: string, email: string) => {
+    setSelectedAdminId(accountId);
+    setSelectedAdminName(name);
+    setSelectedAdminEmail(email);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleRefreshAdministrators = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/staff?role=ADMIN');
+      if (!response.ok) throw new Error('Failed to fetch administrators');
+      const data = await response.json();
+      setAdministrators(data.staff);
+    } catch (error) {
+      console.error('Error fetching administrators:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -210,15 +249,20 @@ export default function AdministratorPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          onClick={() => handleRevokeAdmin(admin.ACCOUNT_ID)}
+                        <DropdownMenuItem onClick={() => handleViewDetails(admin.ACCOUNT_ID)}>
+                          <UserCheck className="h-4 w-4 mr-2" />
+                          Admin Details
+                        </DropdownMenuItem>
+                        {ACCOUNT_ID !== admin.ACCOUNT_ID && <DropdownMenuItem 
+                          onClick={() => handleRevokeAdmin(admin.ACCOUNT_ID, admin.NAME, admin.ROLE)}
                         >
                           <UserX className="h-4 w-4 mr-2" />
                           Revoke Admin Access
-                        </DropdownMenuItem>
+                        </DropdownMenuItem>}
+                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                        className="text-destructive"
-                          // onClick={() => handleResetPassword(admin.ACCOUNT_ID)}
+                          className="text-destructive"
+                          onClick={() => handleDeleteAccount(admin.ACCOUNT_ID, admin.NAME, admin.EMAIL)}
                         >
                           <ShieldAlert className="h-4 w-4 mr-2" />
                           Delete Account
@@ -247,6 +291,31 @@ export default function AdministratorPage() {
           onPageChange={setCurrentPage}
         />
       )}
+
+      {/* Dialogs */}
+      <ViewUserDetailDialog
+        accountId={selectedAdminId}
+        open={openViewDialog}
+        onOpenChange={setOpenViewDialog}
+      />
+
+      <DemoteAdminDialog
+        accountId={selectedAdminId}
+        adminName={selectedAdminName}
+        currentRole={selectedAdminRole}
+        open={openDemoteDialog}
+        onOpenChange={setOpenDemoteDialog}
+        onSuccess={handleRefreshAdministrators}
+      />
+
+      <DeleteUserDialog
+        accountId={selectedAdminId}
+        userName={selectedAdminName}
+        userEmail={selectedAdminEmail}
+        open={openDeleteDialog}
+        onOpenChange={setOpenDeleteDialog}
+        onSuccess={handleRefreshAdministrators}
+      />
     </div>
   );
 }

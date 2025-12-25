@@ -75,11 +75,11 @@ export default function UitmAuxiliaryPolicePage() {
         </p>
       </div>
 
-      <div className="relative">
+      <div className="relative ">
         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Search by campus or state..."
-          className="pl-8"
+          className="pl-8 max-w-xl"
           value={searchQuery}
           onChange={(e) => handleSearchChange(e.target.value)}
         />
@@ -138,8 +138,14 @@ export default function UitmAuxiliaryPolicePage() {
           totalItems={filteredStations.length}
         />
       )}
-      
-      {filteredStations.length === 0 && (
+      {
+        policeStations.length === 0 && (
+          <div className="text-center py-12 text-muted-foreground">
+            No UiTM Auxiliary Police stations found.
+          </div>
+        )
+      }
+      {policeStations.length !== 0 && filteredStations.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">
           No results found for &quot;{searchQuery}&quot;
         </div>

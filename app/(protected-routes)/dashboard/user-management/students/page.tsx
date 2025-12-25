@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, UserCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getInitials, getYearBadgeColor } from "@/lib/utils/badge-helpers";
@@ -26,6 +26,9 @@ import Link from "next/link";
 import { Student } from "@/lib/types";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { UITM_PROGRAMS } from "@/lib/constant";
+import { ViewUserDetailDialog } from "@/components/users/viewUserDetailDialog";
+import { ViewStudentReportDialog } from "@/components/users/viewStudentReportDialog";
+import { DeleteUserDialog } from "@/components/users/deleteUserDialog";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -38,6 +41,12 @@ export default function StudentsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
+  const [openViewDialog, setOpenViewDialog] = useState(false);
+  const [openReportsDialog, setOpenReportsDialog] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [selectedStudentName, setSelectedStudentName] = useState<string>("");
+  const [selectedStudentEmail, setSelectedStudentEmail] = useState<string>("");
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -81,6 +90,38 @@ export default function StudentsPage() {
   const handleFilterChange = (callback: () => void) => {
     callback();
     setCurrentPage(1);
+  };
+
+  const handleViewDetails = (accountId: string) => {
+    setSelectedStudentId(accountId);
+    setOpenViewDialog(true);
+  };
+
+  const handleViewReports = (accountId: string, name: string) => {
+    setSelectedStudentId(accountId);
+    setSelectedStudentName(name);
+    setOpenReportsDialog(true);
+  };
+
+  const handleDeleteAccount = (accountId: string, name: string, email: string) => {
+    setSelectedStudentId(accountId);
+    setSelectedStudentName(name);
+    setSelectedStudentEmail(email);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleRefreshStudents = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/students');
+      if (!response.ok) throw new Error('Failed to fetch students');
+      const data = await response.json();
+      setStudents(data.students);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) {
@@ -165,7 +206,7 @@ export default function StudentsPage() {
           )}
         </CardHeader>
         <CardContent>
-          <Table>
+          <Table className="overflow-hidden">
             <TableHeader>
               <TableRow>
                 <TableHead>Student</TableHead>
@@ -226,11 +267,19 @@ export default function StudentsPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewDetails(student.ACCOUNT_ID)}>
+                          <UserCheck className="h-4 w-4 mr-2" />
+                          Student Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewReports(student.ACCOUNT_ID, student.NAME)}>
                           <FileText className="h-4 w-4 mr-2" />
                           View Reports
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          className="text-destructive"
+                          onClick={() => handleDeleteAccount(student.ACCOUNT_ID, student.NAME, student.EMAIL)}
+                        >
                           <UserX className="h-4 w-4 mr-2" />
                           Delete Account
                         </DropdownMenuItem>
@@ -249,6 +298,29 @@ export default function StudentsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Dialogs */}
+      <ViewUserDetailDialog
+        accountId={selectedStudentId}
+        open={openViewDialog}
+        onOpenChange={setOpenViewDialog}
+      />
+
+      <ViewStudentReportDialog
+        accountId={selectedStudentId}
+        studentName={selectedStudentName}
+        open={openReportsDialog}
+        onOpenChange={setOpenReportsDialog}
+      />
+
+      <DeleteUserDialog
+        accountId={selectedStudentId}
+        userName={selectedStudentName}
+        userEmail={selectedStudentEmail}
+        open={openDeleteDialog}
+        onOpenChange={setOpenDeleteDialog}
+        onSuccess={handleRefreshStudents}
+      />
     </div>
   );
 }

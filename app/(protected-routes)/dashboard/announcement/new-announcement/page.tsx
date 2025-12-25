@@ -29,6 +29,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useAuth } from "@/lib/context/auth-provider";
 
 const announcementSchema = z.object({
   title: z.string().min(1, "Title is required").max(200, "Title must be less than 200 characters"),
@@ -53,6 +54,8 @@ export default function NewAnnouncementPage() {
   const router = useRouter();
   const [photoPreview, setPhotoPreview] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
+  const { claims } = useAuth();
+  const ACCOUNT_ID = claims?.ACCOUNT_ID || null;
 
   const form = useForm<z.infer<typeof announcementSchema>>({
     resolver: zodResolver(announcementSchema),
@@ -98,6 +101,7 @@ export default function NewAnnouncementPage() {
           audience: data.targetAudience,
           start_date: data.startDate,
           end_date: data.endDate,
+          created_by: ACCOUNT_ID,
           status,
         }),
       });

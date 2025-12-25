@@ -54,7 +54,7 @@ router.post('/', authenticateToken, async (req, res) => {
     `;
 
     const binds = {
-      created_by: req.user.accountId,
+      created_by: req.user.ACCOUNT_ID,
       title,
       message,
       audience: audience || 'ALL',
