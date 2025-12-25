@@ -21,7 +21,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, Plus, Search, MoreVertical, Eye, Edit, Trash2, Archive, Loader2 } from "lucide-react";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
+import { Bell, Plus, Search, MoreVertical, Eye, Edit, Trash2, Archive, Loader2, List } from "lucide-react";
 import {Tabs, TabsList, TabsTrigger, TabsContent} from "@/components/ui/tabs";
 import Link from "next/link";
 import { Announcement } from "@/lib/types";
@@ -29,6 +36,8 @@ import { useHasAnyRole } from "@/hooks/use-user-role";
 import { useState, useEffect } from "react";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import AnnouncementCard from "@/components/announcement/announcementCard";
+import DeleteAnnouncementDialog from "@/components/announcement/deleteAnnouncementDialog";
+import { toast } from "sonner";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -38,28 +47,80 @@ export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [Page, setPage] = useState(1)
+  const [Page, setPage] = useState(1);
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; id: string; title: string }>({ 
+    open: false, 
+    id: '', 
+    title: '' 
+  });
+
+  const fetchAnnouncements = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/announcements');
+      if (!response.ok) throw new Error('Failed to fetch announcements');
+      const data = await response.json();
+      setAnnouncements(data.announcements as Announcement[]);
+    } catch (error) {
+      console.error('Error fetching announcements:', error);
+      toast.error('Failed to fetch announcements');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchAnnouncements = async () => {
-      try {
-        const response = await fetch('/api/announcements');
-        if (!response.ok) throw new Error('Failed to fetch announcements');
-        const data = await response.json();
-        setAnnouncements(data.announcements as Announcement[]);
-      } catch (error) {
-        console.error('Error fetching announcements:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchAnnouncements();
   }, []);
 
   // Reset pagination when search changes
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
+    setPage(1);
   };
+
+  const handleArchive = async (announcementId: string) => {
+    try {
+      const response = await fetch(`/api/announcements/${announcementId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'ARCHIVED' }),
+      });
+
+      if (!response.ok) throw new Error('Failed to archive announcement');
+      
+      toast.success('Announcement archived successfully');
+      fetchAnnouncements();
+    } catch (error) {
+      console.error('Error archiving announcement:', error);
+      toast.error('Failed to archive announcement');
+    }
+  };
+
+  const handleDeleteClick = (id: string, title: string) => {
+    setDeleteDialog({ open: true, id, title });
+  };
+
+  const handleDeleteSuccess = () => {
+    fetchAnnouncements();
+  };
+
+  // Filter announcements based on search query
+  const filteredAnnouncements = announcements.filter((announcement) => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      announcement.TITLE.toLowerCase().includes(searchLower) ||
+      announcement.MESSAGE.toLowerCase().includes(searchLower) ||
+      announcement.TYPE.toLowerCase().includes(searchLower) ||
+      announcement.AUDIENCE.toLowerCase().includes(searchLower)
+    );
+  });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredAnnouncements.length / ITEMS_PER_PAGE);
+  const startIndex = (Page - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedAnnouncements = filteredAnnouncements.slice(startIndex, endIndex);
 
   if (loading) {
     return (
@@ -82,7 +143,7 @@ export default function AnnouncementsPage() {
   }) => {
     return (
       <div className="space-y-4 ">
-        <Table className="overflow-hidden border shadow-md">
+   <Table className="overflow-hidden border shadow-md">
       <TableHeader>
         <TableRow>
           <TableHead>Title</TableHead>
@@ -95,14 +156,8 @@ export default function AnnouncementsPage() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {announcements.length === 0 ? (
-          <TableRow>
-            <TableCell colSpan={hasManageAccess ? 7 : 6} className="text-center text-muted-foreground">
-              No announcements found
-            </TableCell>
-          </TableRow>
-        ) : (
-          announcements.map((announcement) => (
+
+          {announcements.map((announcement) => (
             <TableRow key={announcement.ANNOUNCEMENT_ID}>
               <TableCell>
                 <div className="flex items-center gap-2">
@@ -155,12 +210,15 @@ export default function AnnouncementsPage() {
                           Edit
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleArchive(announcement.ANNOUNCEMENT_ID)}>
                         <Archive className="h-4 w-4 mr-2" />
                         Archive
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-destructive">
+                      <DropdownMenuItem 
+                        className="text-destructive"
+                        onClick={() => handleDeleteClick(announcement.ANNOUNCEMENT_ID, announcement.TITLE)}
+                      >
                         <Trash2 className="h-4 w-4 mr-2" />
                         Delete
                       </DropdownMenuItem>
@@ -169,11 +227,11 @@ export default function AnnouncementsPage() {
                 </TableCell>
               )}
             </TableRow>
-          ))
-        )}
+          ))}
+        
       </TableBody>
-    </Table>
-    {totalPages > 1 && announcements.length > 0 && (
+    </Table> 
+    {totalPages > 1 && (
       <PaginationControls
         currentPage={currentPage}
         totalPages={totalPages}
@@ -188,6 +246,14 @@ export default function AnnouncementsPage() {
 
   return (
     <div className="space-y-6">
+      <DeleteAnnouncementDialog
+        announcementId={deleteDialog.id}
+        announcementTitle={deleteDialog.title}
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}
+        onSuccess={handleDeleteSuccess}
+      />
+      
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
@@ -226,7 +292,7 @@ export default function AnnouncementsPage() {
             </div>
           </div>
 
-      <Tabs defaultValue="TABLE">
+      {filteredAnnouncements.length > 0 ? <Tabs defaultValue="TABLE">
         <TabsList defaultValue={"TABLE"} className="w-fit mb-4 bg-secondary/50 rounded-full p-1">
           <TabsTrigger 
             value="TABLE"
@@ -245,31 +311,48 @@ export default function AnnouncementsPage() {
             <Card>
                 <CardContent>
                   <AnnouncementTable 
-                    announcements={announcements}
+                    announcements={paginatedAnnouncements}
                     currentPage={Page}
                     onPageChange={setPage}
-                    totalPages={1}
+                    totalPages={totalPages}
                     />
                 </CardContent>
             </Card>
         </TabsContent>
         <TabsContent value="CARD">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {announcements.length === 0 ? (
-              <div className="text-center text-muted-foreground col-span-full">
-                No announcements found
-              </div>
-            ) : (
-              announcements.map((announcement) => (
+            {
+              paginatedAnnouncements.map((announcement) => (
                 <AnnouncementCard 
                   key={announcement.ANNOUNCEMENT_ID} 
                   announcement={announcement} 
                 />
               ))
-            )}
+            }
           </div>
+          {totalPages > 1 && (
+            <div className="mt-6">
+              <PaginationControls
+                currentPage={Page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                itemsPerPage={ITEMS_PER_PAGE}
+                totalItems={filteredAnnouncements.length}
+              />
+            </div>
+          )}
         </TabsContent>
-      </Tabs>
+      </Tabs> : <Empty className="border border-dashed">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <List />
+        </EmptyMedia>
+        <EmptyTitle>No Announcements</EmptyTitle>
+        <EmptyDescription>
+          The system currently has no announcements. Try adding new announcements to keep everyone informed.
+        </EmptyDescription>
+      </EmptyHeader>
+    </Empty>}
       {/* Search and Filters */}
 
     </div>

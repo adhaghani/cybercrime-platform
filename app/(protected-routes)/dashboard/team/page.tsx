@@ -71,7 +71,7 @@ export default function AllTeamsPage() {
       </div>
 
       {teams.length === 0 ? (
-    <Empty>
+    <Empty className="border border-dashed">
       <EmptyHeader>
         <EmptyMedia variant="icon">
           <Users />

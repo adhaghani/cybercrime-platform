@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, UserCheck } from "lucide-react";
+import { Loader2, UserCheck, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getInitials, getYearBadgeColor } from "@/lib/utils/badge-helpers";
@@ -22,6 +22,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
 import Link from "next/link";
 import { Student } from "@/lib/types";
 import { PaginationControls } from "@/components/ui/pagination-controls";
@@ -290,8 +297,22 @@ export default function StudentsPage() {
               ))}
             </TableBody>
           </Table>
-
-          {filteredStudents.length === 0 && (
+          {
+            students.length === 0 && (
+                  <Empty className="border border-dashed">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Users />
+        </EmptyMedia>
+        <EmptyTitle>No Students currently available</EmptyTitle>
+        <EmptyDescription>
+          The system currently has no students. Try registering some students to populate this list.
+        </EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+            )
+          }
+          {students.length !== 0 && filteredStudents.length === 0 && (
             <div className="text-center py-12 text-muted-foreground">
               No students found matching your filters.
             </div>

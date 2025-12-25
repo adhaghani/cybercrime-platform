@@ -171,7 +171,7 @@ export default function EmergencyContactsPage() {
       )}
       {
         contacts.length === 0 && (
-    <Empty>
+    <Empty className="border border-dashed">
       <EmptyHeader>
         <EmptyMedia variant="icon">
           <Flame />

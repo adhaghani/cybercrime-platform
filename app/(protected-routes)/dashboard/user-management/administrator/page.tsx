@@ -294,7 +294,7 @@ export default function AdministratorPage() {
           )}
         </CardContent>
       </Card>) : (
-    <Empty>
+    <Empty className="border border-dashed">
       <EmptyHeader>
         <EmptyMedia variant="icon">
           <UsersIcon />
