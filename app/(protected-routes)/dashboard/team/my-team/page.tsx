@@ -9,6 +9,13 @@ import { Staff } from '@/lib/types';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
+interface MyTeamResponse {
+  currentUser: Staff;
+  supervisor: Staff | null;
+  teamMembers: Staff[];
+  teamSize: number;
+}
+
 export default function MyTeamPage() {
   const [currentUser, setCurrentUser] = useState<Staff | null>(null);
   const [supervisor, setSupervisor] = useState<Staff | null>(null);
@@ -21,33 +28,13 @@ export default function MyTeamPage() {
 
   const fetchMyTeam = async () => {
     try {
-      // Get current user
-      const meResponse = await fetch('/api/auth/me');
-      if (!meResponse.ok) throw new Error('Failed to fetch current user');
-      const currentUserData = await meResponse.json();
-      setCurrentUser(currentUserData);
-
-      // Get all staff
-      const staffResponse = await fetch('/api/staff');
-      if (!staffResponse.ok) throw new Error('Failed to fetch staff');
-      const { staff: allStaff } = await staffResponse.json();
-
-      // If user is a supervisor, show their team
-      if (currentUserData.role === 'SUPERVISOR') {
-        const members = allStaff.filter(
-          (s: Staff) => s.supervisorId === currentUserData.accountId && s.accountId !== currentUserData.accountId
-        );
-        setTeamMembers(members);
-      } else if (currentUserData.supervisorId) {
-        // If user has a supervisor, show team members with same supervisor
-        const supervisorData = allStaff.find((s: Staff) => s.accountId === currentUserData.supervisorId);
-        setSupervisor(supervisorData);
-        
-        const members = allStaff.filter(
-          (s: Staff) => s.supervisorId === currentUserData.supervisorId && s.accountId !== currentUserData.accountId
-        );
-        setTeamMembers(members);
-      }
+      const response = await fetch('/api/teams/my-team');
+      if (!response.ok) throw new Error('Failed to fetch team');
+      
+      const data: MyTeamResponse = await response.json();
+      setCurrentUser(data.currentUser);
+      setSupervisor(data.supervisor);
+      setTeamMembers(data.teamMembers || []);
     } catch (error) {
       console.error('Failed to fetch team:', error);
     } finally {
@@ -72,7 +59,7 @@ export default function MyTeamPage() {
     );
   }
 
-  if (!currentUser?.supervisorId && currentUser?.role !== 'SUPERVISOR') {
+  if (!currentUser?.SUPERVISOR_ID && currentUser?.ROLE !== 'SUPERVISOR') {
     return (
       <div className="container mx-auto py-6">
         <Card>
@@ -92,12 +79,12 @@ export default function MyTeamPage() {
         <div>
           <h1 className="text-3xl font-bold">My Team</h1>
           <p className="text-muted-foreground">
-            {currentUser?.role === 'SUPERVISOR'
+            {currentUser?.ROLE === 'SUPERVISOR'
               ? 'Team members under your supervision'
-              : `Your team members under ${supervisor?.name || 'your supervisor'}`}
+              : `Your team members under ${supervisor?.NAME || 'your supervisor'}`}
           </p>
         </div>
-        {currentUser?.role === 'SUPERVISOR' && (
+        {currentUser?.ROLE === 'SUPERVISOR' && (
           <Link href="/dashboard/user-management/staff/add">
             <Button>Add Team Member</Button>
           </Link>
@@ -105,7 +92,7 @@ export default function MyTeamPage() {
       </div>
 
       {/* Supervisor Card */}
-      {supervisor && currentUser?.role !== 'SUPERVISOR' && (
+      {supervisor && currentUser?.ROLE !== 'SUPERVISOR' && (
         <Card>
           <CardHeader>
             <CardTitle>Supervisor</CardTitle>
@@ -113,29 +100,29 @@ export default function MyTeamPage() {
           <CardContent>
             <div className="flex items-center space-x-4">
               <Avatar className="h-16 w-16">
-                <AvatarImage src={supervisor.avatarUrl} />
-                <AvatarFallback>{getInitials(supervisor.name)}</AvatarFallback>
+                <AvatarImage src={supervisor.AVATAR_URL} />
+                <AvatarFallback>{getInitials(supervisor.NAME)}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold">{supervisor.name}</h3>
-                <p className="text-sm text-muted-foreground">{supervisor.position}</p>
-                <p className="text-sm text-muted-foreground">{supervisor.department}</p>
+                <h3 className="text-lg font-semibold">{supervisor.NAME}</h3>
+                <p className="text-sm text-muted-foreground">{supervisor.POSITION}</p>
+                <p className="text-sm text-muted-foreground">{supervisor.DEPARTMENT}</p>
                 <div className="flex gap-4 mt-2">
-                  {supervisor.email && (
+                  {supervisor.EMAIL && (
                     <div className="flex items-center gap-1 text-sm">
                       <Mail className="h-3 w-3" />
-                      <span>{supervisor.email}</span>
+                      <span>{supervisor.EMAIL}</span>
                     </div>
                   )}
-                  {supervisor.contactNumber && (
+                  {supervisor.CONTACT_NUMBER && (
                     <div className="flex items-center gap-1 text-sm">
                       <Phone className="h-3 w-3" />
-                      <span>{supervisor.contactNumber}</span>
+                      <span>{supervisor.CONTACT_NUMBER}</span>
                     </div>
                   )}
                 </div>
               </div>
-              <Badge>{supervisor.role}</Badge>
+              <Badge>{supervisor.ROLE}</Badge>
             </div>
           </CardContent>
         </Card>
@@ -154,7 +141,7 @@ export default function MyTeamPage() {
             <div className="flex flex-col items-center justify-center py-8">
               <Users className="h-12 w-12 text-muted-foreground mb-4" />
               <p className="text-sm text-muted-foreground">
-                {currentUser?.role === 'SUPERVISOR'
+                {currentUser?.ROLE === 'SUPERVISOR'
                   ? 'No team members yet. Add members to get started.'
                   : 'No other team members yet'}
               </p>
@@ -162,33 +149,33 @@ export default function MyTeamPage() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {teamMembers.map((member) => (
-                <Card key={member.accountId}>
+                <Card key={member.ACCOUNT_ID}>
                   <CardContent className="pt-6">
                     <div className="flex flex-col items-center text-center space-y-3">
                       <Avatar className="h-16 w-16">
-                        <AvatarImage src={member.avatarUrl} />
-                        <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
+                        <AvatarImage src={member.AVATAR_URL} />
+                        <AvatarFallback>{getInitials(member.NAME)}</AvatarFallback>
                       </Avatar>
                       <div className="space-y-1">
-                        <h4 className="font-semibold">{member.name}</h4>
-                        <p className="text-sm text-muted-foreground">{member.position}</p>
-                        <p className="text-xs text-muted-foreground">{member.department}</p>
+                        <h4 className="font-semibold">{member.NAME}</h4>
+                        <p className="text-sm text-muted-foreground">{member.POSITION}</p>
+                        <p className="text-xs text-muted-foreground">{member.DEPARTMENT}</p>
                       </div>
                       <div className="flex gap-2">
-                        <Badge variant="outline">{member.role}</Badge>
+                        <Badge variant="outline">{member.ROLE}</Badge>
                       </div>
-                      {(member.email || member.contactNumber) && (
+                      {(member.EMAIL || member.CONTACT_NUMBER) && (
                         <div className="space-y-1 pt-2 text-xs text-muted-foreground">
-                          {member.email && (
+                          {member.EMAIL && (
                             <div className="flex items-center gap-1 justify-center">
                               <Mail className="h-3 w-3" />
-                              <span>{member.email}</span>
+                              <span>{member.EMAIL}</span>
                             </div>
                           )}
-                          {member.contactNumber && (
+                          {member.CONTACT_NUMBER && (
                             <div className="flex items-center gap-1 justify-center">
                               <Phone className="h-3 w-3" />
-                              <span>{member.contactNumber}</span>
+                              <span>{member.CONTACT_NUMBER}</span>
                             </div>
                           )}
                         </div>
