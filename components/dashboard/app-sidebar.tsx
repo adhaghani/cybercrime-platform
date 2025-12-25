@@ -486,8 +486,8 @@ const getNavMainByRole = (role: string | undefined) => {
 const getNavSecondaryByRole = () => {
   const commonSecondary = [
     {
-      title: "App Tutorial",
-      url: "#",
+      title: "App Guide",
+      url: "/guide",
       icon: BookOpen,
     },
   ];
