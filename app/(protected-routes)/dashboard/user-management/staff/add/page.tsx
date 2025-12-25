@@ -15,23 +15,18 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { passwordComplexity, StaffEmailRegex,StaffIDRegex } from '@/lib/constant';
 import { useAuth } from '@/lib/context/auth-provider';
 import { Staff } from '@/lib/types';
-
-interface Supervisor {
-  accountId: string;
-  name: string;
-  department: string;
-}
+import { signUp } from '@/lib/api/auth';
 
 const staffSchema = z.object({
   name: z.string().min(1, "Name is required").max(100, "Name is too long"),
   email: z.string().email("Invalid email address").regex(StaffEmailRegex, "Need to use UiTM Staff email"),
   password: z.string().min(8, "Password must be at least 8 characters").regex(passwordComplexity, "Password must include uppercase, lowercase, number and symbol"),
-  contactNumber: z.string().min(9, "Contact number must be at least 9 characters").optional().or(z.literal("")),
+  contact_number: z.string().min(9, "Contact number must be at least 9 characters").optional().or(z.literal("")),
   role: z.enum(["STAFF", "SUPERVISOR", "ADMIN", "SUPERADMIN"] as const),
   department: z.string().min(1, "Department is required").max(100, "Department is too long"),
   position: z.string().min(1, "Position is required").max(100, "Position is too long"),
   staffID: z.string().regex(StaffIDRegex, "Invalid Staff ID"),
-  supervisorId: z.string().optional().or(z.literal("")),
+  supervisorID: z.string().optional().or(z.literal("")),
 });
 
 type StaffFormData = z.infer<typeof staffSchema>;
@@ -39,7 +34,7 @@ type StaffFormData = z.infer<typeof staffSchema>;
 export default function AddStaffPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [supervisors, setSupervisors] = useState<Supervisor[]>([]);
+  const [supervisors, setSupervisors] = useState<Staff[]>([]);
   const {claims} = useAuth();
   const currentUser = claims as Staff;
   const form = useForm<StaffFormData>({
@@ -48,12 +43,12 @@ export default function AddStaffPage() {
       name: '',
       email: '',
       password: '',
-      contactNumber: '',
+      contact_number: '',
       role: 'STAFF',
       department: '',
       position: '',
       staffID: '',
-      supervisorId: '',
+      supervisorID: '',
     },
   });
 
@@ -63,7 +58,7 @@ export default function AddStaffPage() {
 
   const fetchSupervisors = async () => {
     try {
-      const response = await fetch('/api/staff?role=SUPERVISOR');
+      const response = await fetch('/api/staff');
       if (response.ok) {
         const data = await response.json();
         setSupervisors(data.staff || []);
@@ -78,50 +73,25 @@ export default function AddStaffPage() {
 
     try {
       // First create account
-      const accountResponse = await fetch('/api/accounts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: data.name,
-          email: data.email,
-          password: data.password,
-          contact_number: data.contactNumber || undefined,
-          account_type: 'STAFF',
-          role: data.role,
-          staffID: data.staffID,
-          department: data.department,
-          position: data.position,
-        }),
+      const response = await signUp({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        contact_number: data.contact_number || '',
+        account_type: 'STAFF',
+        // Staff specific fields can be added here if needed
+        staffID: data.staffID,
+        supervisorID: data.supervisorID ? data.supervisorID : "",
+        department: data.department,
+        position: data.position,
+        role: data.role,
       });
-
-      if (!accountResponse.ok) {
-        const error = await accountResponse.json();
-        throw new Error(error.message || 'Failed to create account');
+      if(!response.message){
+        throw new Error('Account creation failed');
       }
-
-      // const { accountId } = await accountResponse.json();
-
-      // Then create staff record
-      // const staffResponse = await fetch('/api/staff', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     accountId,
-      //     role: data.role,
-      //     department: data.department,
-      //     position: data.position,
-      //     staffID: data.staffID || null,
-      //     supervisorID: data.supervisorId || null,
-      //   }),
-      // });
-
-      // if (!staffResponse.ok) {
-      //   const error = await staffResponse.json();
-      //   throw new Error(error.message || 'Failed to create staff record');
-      // }
-
+      
+      // Then associate staff details
       toast.success('Staff member added successfully');
-
       router.push('/dashboard/user-management/staff');
     } catch (error) {
         toast.error((error as Error).message || 'An error occurred');
@@ -130,8 +100,9 @@ export default function AddStaffPage() {
     }
   };
 
-  const canSelectSupervisor = currentUser?.ROLE === 'ADMIN' || currentUser?.ROLE === 'SUPERADMIN';
+  const Supervisor = supervisors.filter(s => s.ROLE === 'SUPERVISOR');
 
+  const canSelectSupervisor = currentUser?.ROLE === 'ADMIN' || currentUser?.ROLE === 'SUPERADMIN';
   return (
     <div className="container max-w-4xl mx-auto py-6">
       <Card>
@@ -189,10 +160,10 @@ export default function AddStaffPage() {
                   <Label htmlFor="contactNumber">Contact Number</Label>
                   <Input
                     id="contactNumber"
-                    {...form.register("contactNumber")}
+                    {...form.register("contact_number")}
                   />
-                  {form.formState.errors.contactNumber && (
-                    <p className="text-sm text-destructive">{form.formState.errors.contactNumber.message}</p>
+                  {form.formState.errors.contact_number && (
+                    <p className="text-sm text-destructive">{form.formState.errors.contact_number.message}</p>
                   )}
                 </div>
               </div>
@@ -266,9 +237,9 @@ export default function AddStaffPage() {
 
                 {canSelectSupervisor && supervisors.length > 0 && (
                   <div className="space-y-2">
-                    <Label htmlFor="supervisorId">Supervisor</Label>
+                    <Label htmlFor="supervisorID">Supervisor</Label>
                     <Controller
-                      name="supervisorId"
+                      name="supervisorID"
                       control={form.control}
                       render={({ field }) => (
                         <Select value={field.value} onValueChange={field.onChange}>
@@ -277,9 +248,9 @@ export default function AddStaffPage() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="NULL">No Supervisor</SelectItem>
-                            {supervisors.map((supervisor) => (
-                              <SelectItem key={supervisor.accountId} value={supervisor.accountId}>
-                                {supervisor.name} - {supervisor.department}
+                            {Supervisor.map((supervisor) => (
+                              <SelectItem key={supervisor.ACCOUNT_ID} value={String(supervisor.ACCOUNT_ID)}>
+                                {supervisor.NAME} - {supervisor.DEPARTMENT}
                               </SelectItem>
                             ))}
                           </SelectContent>

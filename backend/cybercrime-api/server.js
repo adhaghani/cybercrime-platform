@@ -32,7 +32,7 @@ const emergencyRoutes = require('./routes/emergency');
 const policeRoutes = require('./routes/police');
 const generatedReportsRoutes = require('./routes/generated-reports');
 const dashboardRoutes = require('./routes/dashboard');
-const resolutionsRoutes = require('./routes/resolutions');
+const resolutionsRoutes = require('./routes/resolution');
 
 // Mount routes
 app.use('/api/auth', authRoutes);

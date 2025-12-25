@@ -10,7 +10,9 @@ const router = express.Router();
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, contact_number, account_type } = req.body;
+    const { name, email, password, contact_number, account_type, studentID, program, semester, year_of_study, 
+      role, department, position, staffID, supervisorID
+     } = req.body;
     
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Name, email, and password are required' });
@@ -49,10 +51,50 @@ router.post('/register', async (req, res) => {
 
     const result = await exec(sql, binds, { autoCommit: true });
     
+    // If account created successfully, update the auto-created student record
+    if(account_type === 'STUDENT'){
+      const studentSql = `
+        UPDATE STUDENT SET 
+          STUDENT_ID = :studentId, 
+          PROGRAM = :program, 
+          SEMESTER = :semester, 
+          YEAR_OF_STUDY = :yearOfStudy 
+        WHERE ACCOUNT_ID = :accountId AND STUDENT_ID IS NULL
+      `;
+      const studentBinds = {
+        studentId: studentID,
+        accountId: result.outBinds.id[0],
+        program: program || null,
+        semester: semester || null,
+        yearOfStudy: year_of_study || null
+      };
+      await exec(studentSql, studentBinds, { autoCommit: true });
+    } else {
+      const staffSql = `
+        UPDATE STAFF SET 
+          STAFF_ID = :staffId, 
+          ROLE = :role, 
+          DEPARTMENT = :department, 
+          POSITION = :position,
+          SUPERVISOR_ID = :supervisorId
+        WHERE ACCOUNT_ID = :accountId AND STAFF_ID IS NULL
+      `;
+      const staffBinds = {
+        staffId: staffID,
+        supervisorId: supervisorID || null,
+        accountId: result.outBinds.id[0],
+        role: role || null,
+        department: department || null,
+        position: position || null,
+      };
+      await exec(staffSql, staffBinds, { autoCommit: true });
+    }
+
     res.status(201).json({ 
       message: 'Account created successfully',
       account_id: result.outBinds.id[0]
     });
+    
   } catch (err) {
     console.error('Registration error:', err);
     res.status(500).json({ error: 'Registration failed', details: err.message });

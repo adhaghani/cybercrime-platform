@@ -7,7 +7,7 @@ import { apiClient } from './client';
 import { Staff, Student } from '@/lib/types';
 
 // Toggle between mock and real API
-const USE_MOCK_AUTH = true;
+const USE_MOCK_AUTH = false;
 
 // Mock users for testing
 const MOCK_USERS = {
@@ -98,11 +98,16 @@ export interface SignUpData {
   email: string;
   contact_number: string;
   password: string;
-  account_type?: string;
-  studentID: string;
-  program: string;
-  semester: number;
-  year_of_study: number;
+  account_type: string;
+  studentID?: string;
+  program?: string;
+  semester?: number;
+  year_of_study?: number;
+  staffID?: string;
+  department?: string;
+  position?: string;
+  role?: string;
+  supervisorID?: string;
 }
 
 export interface AuthResponse {
