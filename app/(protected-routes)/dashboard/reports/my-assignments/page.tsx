@@ -64,10 +64,10 @@ export default function MyAssignmentsPage() {
         const assignments = await assignmentsResponse.json();
         
         // Filter reports assigned to current staff member
-        const userAssignments = assignments.filter((a: any) => a.staffId === claims?.user_metadata?.staffId);
-        const assignedReportIds = userAssignments.map((a: any) => a.reportId);
+        const userAssignments = assignments.filter((a: any) => a.STAFF_ID === claims?.STAFF_ID);
+        const assignedReportIds = userAssignments.map((a: any) => a.REPORT_ID);
         const assignedReports = allReports.filter((r: Report) => 
-          assignedReportIds.includes(r.reportId)
+          assignedReportIds.includes(r.REPORT_ID)
         );
         
         setReports(assignedReports);
@@ -82,12 +82,12 @@ export default function MyAssignmentsPage() {
 
   const filteredReports = reports.filter((report) => {
     const matchesSearch = 
-      report.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.location.toLowerCase().includes(searchQuery.toLowerCase());
+      report.TITLE.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      report.DESCRIPTION.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      report.LOCATION.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesStatus = statusFilter === "ALL" || report.status === statusFilter;
-    const matchesType = typeFilter === "ALL" || report.type === typeFilter;
+    const matchesStatus = statusFilter === "ALL" || report.STATUS === statusFilter;
+    const matchesType = typeFilter === "ALL" || report.TYPE === typeFilter;
 
     return matchesSearch && matchesStatus && matchesType;
   });
@@ -107,9 +107,9 @@ export default function MyAssignmentsPage() {
 
   const stats = {
     total: reports.length,
-    pending: reports.filter(r => r.status === "PENDING").length,
-    inProgress: reports.filter(r => r.status === "IN_PROGRESS").length,
-    resolved: reports.filter(r => r.status === "RESOLVED").length,
+    pending: reports.filter(r => r.STATUS === "PENDING").length,
+    inProgress: reports.filter(r => r.STATUS === "IN_PROGRESS").length,
+    resolved: reports.filter(r => r.STATUS === "RESOLVED").length,
   };
 
   if (loading) {
@@ -265,35 +265,35 @@ export default function MyAssignmentsPage() {
                 </TableHeader>
                 <TableBody>
                   {paginatedReports.map((report) =>   (
-                    <TableRow key={report.reportId}>
+                    <TableRow key={report.REPORT_ID}>
                       <TableCell>
                         <div className="space-y-1">
-                          <div className="font-medium">{report.title}</div>
+                          <div className="font-medium">{report.TITLE}</div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getReportTypeColor(report.type)} variant="outline">
-                          {report.type}
+                        <Badge className={getReportTypeColor(report.TYPE)} variant="outline">
+                          {report.TYPE}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1 text-sm">
                           <MapPin className="h-3 w-3" />
-                          {report.location}
+                          {report.LOCATION}
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1 text-sm">
                           <Calendar className="h-3 w-3" />
-                          {format(new Date(report.submittedAt), "MMM d, yyyy")}
+                          {format(new Date(report.SUBMITTED_AT), "MMM d, yyyy")}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <StatusBadge status={report.status} />
+                        <StatusBadge status={report.STATUS} />
                       </TableCell>
                       <TableCell className="text-right">
                         <Button asChild variant="ghost" size="sm">
-                          <Link href={`/dashboard/reports/${report.reportId}`}>
+                          <Link href={`/dashboard/reports/${report.REPORT_ID}`}>
                             <Eye className="h-4 w-4 mr-2" />
                             View & Manage
                           </Link>

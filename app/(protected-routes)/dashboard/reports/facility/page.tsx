@@ -71,13 +71,13 @@ export default function FacilityReportsPage() {
 
   const filteredReports = facilityReports.filter((report) => {
     const matchesSearch = 
-      report.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.location.toLowerCase().includes(searchQuery.toLowerCase());
+      report.TITLE.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      report.DESCRIPTION.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      report.LOCATION.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesStatus = statusFilter === "ALL" || report.status === statusFilter;
-    const matchesType = typeFilter === "ALL" || report.facilityType === typeFilter;
-    const matchesSeverity = severityFilter === "ALL" || report.severityLevel === severityFilter;
+    const matchesStatus = statusFilter === "ALL" || report.STATUS === statusFilter;
+    const matchesType = typeFilter === "ALL" || report.FACILITY_TYPE === typeFilter;
+    const matchesSeverity = severityFilter === "ALL" || report.SEVERITY_LEVEL === severityFilter;
 
     return matchesSearch && matchesStatus && matchesType && matchesSeverity;
   });
@@ -96,10 +96,10 @@ export default function FacilityReportsPage() {
 
   const stats = {
     total: facilityReports.length,
-    pending: facilityReports.filter(r => r.status === "PENDING").length,
-    inProgress: facilityReports.filter(r => r.status === "IN_PROGRESS").length,
-    resolved: facilityReports.filter(r => r.status === "RESOLVED").length,
-    critical: facilityReports.filter(r => r.severityLevel === "CRITICAL").length,
+    pending: facilityReports.filter(r => r.STATUS === "PENDING").length,
+    inProgress: facilityReports.filter(r => r.STATUS === "IN_PROGRESS").length,
+    resolved: facilityReports.filter(r => r.STATUS === "RESOLVED").length,
+    critical: facilityReports.filter(r => r.SEVERITY_LEVEL === "CRITICAL").length,
   };
 
   if (loading) {
@@ -284,45 +284,45 @@ export default function FacilityReportsPage() {
                 </TableHeader>
                 <TableBody>
                   {paginatedReports.map((report) => (
-                    <TableRow key={report.reportId}>
+                    <TableRow key={report.REPORT_ID}>
                       <TableCell>
                         <div className="space-y-1">
-                          <div className="font-medium">{report.title}</div>
+                          <div className="font-medium">{report.TITLE}</div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">
-                          {report.facilityType}
+                          {report.FACILITY_TYPE}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <FacilitySeverityBadge severityLevel={report.severityLevel} />
+                        <FacilitySeverityBadge severityLevel={report.SEVERITY_LEVEL} />
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1 text-sm">
                           <MapPin className="h-3 w-3" />
-                          {report.location}
+                          {report.LOCATION}
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1 text-sm">
                           <Calendar className="h-3 w-3" />
-                          {format(new Date(report.submittedAt), "MMM d, yyyy")}
+                          {format(new Date(report.SUBMITTED_AT), "MMM d, yyyy")}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <StatusBadge status={report.status} />
+                        <StatusBadge status={report.STATUS} />
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button asChild variant="ghost" size="sm">
-                            <Link href={`/dashboard/reports/${report.reportId}`}>
+                            <Link href={`/dashboard/reports/${report.REPORT_ID}`}>
                               <Eye className="h-4 w-4" />
                             </Link>
                           </Button>
-                          {isSupervisorOrAdmin && report.status !== "RESOLVED" && (
+                          {isSupervisorOrAdmin && report.STATUS !== "RESOLVED" && (
                             <Button asChild variant="ghost" size="sm">
-                              <Link href={`/dashboard/reports/${report.reportId}?action=assign`}>
+                              <Link href={`/dashboard/reports/${report.REPORT_ID}?action=assign`}>
                                 <UserPlus className="h-4 w-4" />
                               </Link>
                             </Button>

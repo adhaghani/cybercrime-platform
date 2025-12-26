@@ -214,15 +214,7 @@ export default function StaffManagementPage() {
       <Card>
         <CardHeader>
           <CardTitle>Staff List ({filteredStaff.length})</CardTitle>
-          {totalPages > 1 && paginatedStaff.length > 0 && (
-            <PaginationControls
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              itemsPerPage={ITEMS_PER_PAGE}
-              totalItems={filteredStaff.length}
-            />
-          )}
+
         </CardHeader>
         <CardContent>
           <Table>
@@ -243,10 +235,19 @@ export default function StaffManagementPage() {
                     <div className="flex items-center gap-3">
                       <Avatar>
                         <AvatarImage src={member.AVATAR_URL} />
-                        <AvatarFallback>{getInitials(member.NAME)}</AvatarFallback>
+                        <AvatarFallback className="bg-green-500/10 text-green-500">{getInitials(member.NAME)}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="font-medium">{member.NAME}</div>
+                        <div className="font-medium flex gap-1 items-center">
+                          <p>
+                          {member.NAME}
+                          </p>
+                          <p>
+                            <Badge variant="outline" className={getDepartmentColor(member.DEPARTMENT) + " text-green-500 border-green-500/50"}>
+                              {member.ROLE}
+                            </Badge>
+                          </p>
+                          </div>
                         <div className="text-sm text-muted-foreground flex items-center gap-1">
                           <Mail className="h-3 w-3" />
                           {member.EMAIL}
@@ -319,6 +320,15 @@ export default function StaffManagementPage() {
           )}
         </CardContent>
       </Card>
+          {paginatedStaff.length > 0 && (
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={ITEMS_PER_PAGE}
+              totalItems={filteredStaff.length}
+            />
+          )}
       {/* Dialogs */}
       <ViewUserDetailDialog
         accountId={selectedStaffId}

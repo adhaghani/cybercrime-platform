@@ -193,7 +193,7 @@ export default function NewAnnouncementPage() {
                           <FormLabel>Type *</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
-                              <SelectTrigger>
+                              <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select type" />
                               </SelectTrigger>
                             </FormControl>
@@ -216,7 +216,7 @@ export default function NewAnnouncementPage() {
                           <FormLabel>Priority *</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
-                              <SelectTrigger>
+                              <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select priority" />
                               </SelectTrigger>
                             </FormControl>
@@ -351,7 +351,7 @@ export default function NewAnnouncementPage() {
                       <FormLabel>Target Audience *</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select audience" />
                           </SelectTrigger>
                         </FormControl>

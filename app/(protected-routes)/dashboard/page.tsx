@@ -66,23 +66,23 @@ export default function DashboardPage() {
     );
   }
   
-  const crimeReports = reports.filter((r) => r.type === "CRIME") as Crime[];
-  const facilityReports = reports.filter((r) => r.type === "FACILITY") as Facility[];
-  const currentUserId = claims?.sub || '';
-  const myReports = reports.filter((r) => r.submittedBy === currentUserId);
+  const crimeReports = reports.filter((r) => r.TYPE === "CRIME") as Crime[];
+  const facilityReports = reports.filter((r) => r.TYPE === "FACILITY") as Facility[];
+  const currentUserId = claims?.ACCOUNT_ID || '';
+  const myReports = reports.filter((r) => r.SUBMITTED_BY === currentUserId);
 
   // Filter active announcements (published and within date range)
   const now = new Date();
   const activeAnnouncements = announcements
     .filter(a => 
-      a.status === 'PUBLISHED' && 
-      new Date(a.startDate) <= now && 
-      new Date(a.endDate) >= now
+      a.STATUS === 'PUBLISHED' && 
+      new Date(a.START_DATE) <= now && 
+      new Date(a.END_DATE) >= now
     )
     .sort((a, b) => {
       // Sort by priority
       const priorityOrder = { HIGH: 3, MEDIUM: 2, LOW: 1 };
-      return priorityOrder[b.priority] - priorityOrder[a.priority];
+      return priorityOrder[b.PRIORITY] - priorityOrder[a.PRIORITY];
     })
     .slice(0, 3); // Show top 3 announcements
 
@@ -90,12 +90,12 @@ export default function DashboardPage() {
     totalCrime: crimeReports.length,
     totalFacility: facilityReports.length,
     myReports: myReports.length,
-    pendingReports: myReports.filter(r => r.status === "PENDING").length,
-    resolvedReports: myReports.filter(r => r.status === "RESOLVED").length,
+    pendingReports: myReports.filter(r => r.STATUS === "PENDING").length,
+    resolvedReports: myReports.filter(r => r.STATUS === "RESOLVED").length,
     // System-wide stats for staff/admin
-    allPending: reports.filter(r => r.status === "PENDING").length,
-    allInProgress: reports.filter(r => r.status === "IN_PROGRESS").length,
-    allResolved: reports.filter(r => r.status === "RESOLVED").length,
+    allPending: reports.filter(r => r.STATUS === "PENDING").length,
+    allInProgress: reports.filter(r => r.STATUS === "IN_PROGRESS").length,
+    allResolved: reports.filter(r => r.STATUS === "RESOLVED").length,
     totalReports: reports.length,
   };
 

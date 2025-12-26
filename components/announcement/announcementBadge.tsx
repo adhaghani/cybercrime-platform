@@ -13,7 +13,7 @@ type AnnouncementPriorityBadge = {
 };
 
 type AnnouncementStatusBadge = {
-  status: "PUBLISHED" | "DRAFT" | "ARCHIVED";
+  status: "PUBLISHED" | "DRAFT" | "ARCHIVE";
   className?: string;
 };
 
@@ -48,7 +48,7 @@ export function AnnouncementStatusBadge({ status, className }: AnnouncementStatu
     switch (status) {
       case "PUBLISHED": return "bg-green-500/10 text-green-500 border-green-500/20";
       case "DRAFT": return "bg-gray-500/10 text-gray-500 border-gray-500/20";
-      case "ARCHIVED": return "bg-orange-500/10 text-orange-500 border-orange-500/20";
+      case "ARCHIVE": return "bg-orange-500/10 text-orange-500 border-orange-500/20";
       default: return "bg-gray-500/10 text-gray-500 border-gray-500/20";
     }
   };

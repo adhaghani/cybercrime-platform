@@ -78,7 +78,6 @@ export default function AdministratorPage() {
     const matchesSearch = 
       admin.NAME.toLowerCase().includes(searchQuery.toLowerCase()) ||
       admin.EMAIL.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      admin.STAFF_ID.toLowerCase().includes(searchQuery.toLowerCase()) ||
       admin.DEPARTMENT.toLowerCase().includes(searchQuery.toLowerCase()) ||
       admin.POSITION.toLowerCase().includes(searchQuery.toLowerCase());
 
@@ -247,8 +246,8 @@ export default function AdministratorPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1 text-sm">
-                      <Phone className="h-3 w-3" />
-                      {admin.CONTACT_NUMBER}
+                      {admin.CONTACT_NUMBER ? <Phone className="h-3 w-3" /> : null}
+                      {admin.CONTACT_NUMBER ? admin.CONTACT_NUMBER : "N/A"}
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
@@ -314,11 +313,11 @@ export default function AdministratorPage() {
     </Empty>
       )}
 
-      
-
       {/* Pagination Controls */}
       {filteredAdministrators.length > 0 && (
         <PaginationControls
+          totalItems={administrators.length}
+          itemsPerPage={ITEMS_PER_PAGE}
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}

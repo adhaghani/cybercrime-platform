@@ -7,7 +7,6 @@ import {
   ShieldAlert, 
   Wrench, 
   Phone, 
-  TrendingUp,
   Clock,
   CheckCircle2,
   ArrowRight,
@@ -36,7 +35,7 @@ interface StaffDashboardProps {
 
 export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps) {
   const allRecentReports = [...reports]
-    .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
+    .sort((a, b) => new Date(b.SUBMITTED_AT).getTime() - new Date(a.SUBMITTED_AT).getTime())
     .slice(0, 5);
 
   const getStatusColor = (status: string) => {
@@ -127,7 +126,7 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Pending</span>
                 <Badge variant="outline" className="bg-yellow-500/10 text-yellow-500">
-                  {reports.filter(r => r.type === "CRIME" && r.status === "PENDING").length}
+                  {reports.filter(r => r.TYPE === "CRIME" && r.STATUS === "PENDING").length}
                 </Badge>
               </div>
             </div>
@@ -157,7 +156,7 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Pending</span>
                 <Badge variant="outline" className="bg-yellow-500/10 text-yellow-500">
-                  {reports.filter(r => r.type === "FACILITY" && r.status === "PENDING").length}
+                  {reports.filter(r => r.TYPE === "FACILITY" && r.STATUS === "PENDING").length}
                 </Badge>
               </div>
             </div>
@@ -210,31 +209,31 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
             {allRecentReports.length > 0 ? (
               <div className="space-y-4">
                 {allRecentReports.map((report) => (
-                  <div key={report.reportId} className="flex items-start justify-between gap-4 pb-4 border-b last:border-0">
+                  <div key={report.REPORT_ID} className="flex items-start justify-between gap-4 pb-4 border-b last:border-0">
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="text-xs">
-                          {report.type}
+                          {report.TYPE}
                         </Badge>
-                        <p className="font-medium text-sm line-clamp-1">{report.title}</p>
+                        <p className="font-medium text-sm line-clamp-1">{report.TITLE}</p>
                       </div>
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <MapPin className="h-3 w-3" />
-                          {report.location}
+                          {report.LOCATION}
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          {format(new Date(report.submittedAt), "MMM d, yyyy")}
+                          {format(new Date(report.SUBMITTED_AT), "MMM d, yyyy")}
                         </span>
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                      <Badge className={getStatusColor(report.status)}>
-                        {report.status.replace("_", " ")}
+                      <Badge className={getStatusColor(report.STATUS)}>
+                        {report.STATUS.replace("_", " ")}
                       </Badge>
                       <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/dashboard/${report.type.toLowerCase()}/reports/${report.reportId}`}>
+                        <Link href={`/dashboard/${report.TYPE.toLowerCase()}/reports/${report.REPORT_ID}`}>
                           View
                         </Link>
                       </Button>
@@ -273,12 +272,6 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
               <Link href="/dashboard/announcement">
                 <Bell className="h-4 w-4 mr-2" />
                 Manage Announcements
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="w-full justify-start">
-              <Link href="/dashboard/crime/statistics">
-                <TrendingUp className="h-4 w-4 mr-2" />
-                View Statistics
               </Link>
             </Button>
             {isAdmin && (

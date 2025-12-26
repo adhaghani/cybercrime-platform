@@ -163,7 +163,7 @@ export default function AllReportsPage() {
       {viewMode === "card" ? (
       <div className="grid gap-4 md:grid-cols-2">
         {paginatedReports.map((report) => (
-          <ReportCard key={report.reportId} report={report} />
+          <ReportCard key={report.REPORT_ID} report={report} />
         ))}
       </div>
       ) : (
@@ -180,20 +180,20 @@ export default function AllReportsPage() {
             </TableHeader>
             <TableBody>
               {paginatedReports.map((report) => (
-                <TableRow key={report.reportId}>
-                  <TableCell className="font-medium">{report.title}</TableCell>
-                  <TableCell>{report.location}</TableCell>
-                  <TableCell>{report.facilityType}</TableCell>
+                <TableRow key={report.REPORT_ID}>
+                  <TableCell className="font-medium">{report.TITLE}</TableCell>
+                  <TableCell>{report.LOCATION}</TableCell>
+                  <TableCell>{report.FACILITY_TYPE}</TableCell>
                   <TableCell>
-                    <StatusBadge status={report.status} />
+                    <StatusBadge status={report.STATUS} />
                   </TableCell>
                   <TableCell>
-                    <FacilitySeverityBadge severityLevel={report.severityLevel} />
+                    <FacilitySeverityBadge severityLevel={report.SEVERITY_LEVEL} />
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end items-center gap-2">
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={`/dashboard/facility/reports/${report.reportId}`}>
+                        <Link href={`/dashboard/facility/reports/${report.REPORT_ID}`}>
                           View
                         </Link>
                       </Button>

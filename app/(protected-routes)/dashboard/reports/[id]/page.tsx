@@ -78,8 +78,8 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
   const [updateActionTaken, setUpdateActionTaken] = useState("");
   const [updateFeedback, setUpdateFeedback] = useState("");
   // Get current user info for auto-fill
-  const currentUserName = claims?.user_metadata?.name || "Current User";
-  const currentUserId = claims?.sub || "user-1";
+  const currentUserName = claims?.NAME|| "Current User";
+  const currentUserId = claims?.ACCOUNT_ID || "-";
 
   if (loading) {
     return (
@@ -93,17 +93,17 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
     notFound();
   }
 
-  const isCrimeReport = report.type === "CRIME";
+  const isCrimeReport = report.TYPE === "CRIME";
   const crimeData = isCrimeReport ? (report as Crime) : null;
   const facilityData = !isCrimeReport ? (report as Facility) : null;
 
   const handleUpdateReport = () => {
     // TODO: Implement API call to update assignment
     const updateData: Partial<ReportAssignment> = {
-      reportId: params.id,
-      accountId: currentUserId,
-      actionTaken: updateActionTaken,
-      additionalFeedback: updateFeedback,
+      REPORT_ID: params.id,
+      ACCOUNT_ID: currentUserId,
+      ACTION_TAKEN: updateActionTaken,
+      ADDITIONAL_FEEDBACK: updateFeedback,
     };
     
     console.log("Updating report:", updateData);
@@ -117,7 +117,7 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
       {/* Header */}
       
         <div className="w-full flex gap-2 justify-end">
-          {report.status !== "RESOLVED" && (
+          {report.STATUS !== "RESOLVED" && (
             <>
             {isSupervisorOrAdmin ? <>
               <Button variant="outline" onClick={() => setIsAssignDialogOpen(true)}>
@@ -126,8 +126,8 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
               </Button>
 
               <AssignStaffDialog
-                reportId={report.reportId}
-                reportTitle={report.title}
+                reportId={report.REPORT_ID}
+                reportTitle={report.TITLE}
                 open={isAssignDialogOpen}
                 onOpenChange={setIsAssignDialogOpen}
                 onSuccess={() => {
@@ -142,11 +142,11 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
               <ResolveReportDialog 
                 open={isResolveDialogOpen} 
                 onOpenChange={setIsResolveDialogOpen} 
-                reportTitle={report.title} 
+                reportTitle={report.TITLE} 
                 onSuccess={() => {
                   fetchReport(); // Refresh report data
                 }}
-                reportId={report.reportId}
+                reportId={report.REPORT_ID}
               />
               </> : null}
               
@@ -219,11 +219,11 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
             <Wrench className="h-10 w-10 text-orange-500" />
           )}
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{report.title}</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{report.TITLE}</h1>
             <div className="flex items-center gap-2 mt-1">
-              <StatusBadge status={report.status} />
+              <StatusBadge status={report.STATUS} />
               <Badge variant="outline">
-                {report.type}
+                {report.TYPE}
               </Badge>
             </div>
           </div>
@@ -242,7 +242,7 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
             <CardContent className="space-y-4">
               <div>
                 <Label className="text-muted-foreground">Description</Label>
-                <p className="mt-1">{report.description}</p>
+                <p className="mt-1">{report.DESCRIPTION}</p>
               </div>
 
               <Separator />
@@ -253,7 +253,7 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
                     <MapPin className="h-4 w-4" />
                     Location
                   </Label>
-                  <p className="mt-1 font-medium">{report.location}</p>
+                  <p className="mt-1 font-medium">{report.LOCATION}</p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground flex items-center gap-2">
@@ -261,12 +261,12 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
                     Submitted At
                   </Label>
                   <p className="mt-1 font-medium">
-                    {format(new Date(report.submittedAt), "PPP 'at' p")}
+                    {format(new Date(report.SUBMITTED_AT), "PPP 'at' p")}
                   </p>
                 </div>
               </div>
 
-              {report.attachmentPath && (
+              {report.ATTACHMENT_PATH && (
                 <>
                   <Separator />
                   <div>
@@ -296,37 +296,37 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
                     <Label className="text-muted-foreground">Crime Category</Label>
-                    <p className="mt-1 font-medium">{crimeData.crimeCategory}</p>
+                    <p className="mt-1 font-medium">{crimeData.CRIME_CATEGORY}</p>
                   </div>
-                  {crimeData.injuryLevel && (
+                  {crimeData.INJURY_LEVEL && (
                     <div>
                       <Label className="text-muted-foreground">Injury Level</Label>
-                      <p className="mt-1 font-medium">{crimeData.injuryLevel}</p>
+                      <p className="mt-1 font-medium">{crimeData.INJURY_LEVEL}</p>
                     </div>
                   )}
                 </div>
-                {crimeData.suspectDescription && (
+                {crimeData.SUSPECT_DESCRIPTION && (
                   <div>
                     <Label className="text-muted-foreground">Suspect Description</Label>
-                    <p className="mt-1">{crimeData.suspectDescription}</p>
+                    <p className="mt-1">{crimeData.SUSPECT_DESCRIPTION}</p>
                   </div>
                 )}
-                {crimeData.victimInvolved && (
+                {crimeData.VICTIM_INVOLVED && (
                   <div>
                     <Label className="text-muted-foreground">Victim Information</Label>
-                    <p className="mt-1">{crimeData.victimInvolved}</p>
+                    <p className="mt-1">{crimeData.VICTIM_INVOLVED}</p>
                   </div>
                 )}
-                {crimeData.weaponInvolved && (
+                {crimeData.WEAPON_INVOLVED && (
                   <div>
                     <Label className="text-muted-foreground">Weapon Involved</Label>
-                    <p className="mt-1">{crimeData.weaponInvolved}</p>
+                    <p className="mt-1">{crimeData.WEAPON_INVOLVED}</p>
                   </div>
                 )}
-                {crimeData.evidenceDetails && (
+                {crimeData.EVIDENCE_DETAILS && (
                   <div>
                     <Label className="text-muted-foreground">Evidence Details</Label>
-                    <p className="mt-1">{crimeData.evidenceDetails}</p>
+                    <p className="mt-1">{crimeData.EVIDENCE_DETAILS}</p>
                   </div>
                 )}
               </CardContent>
@@ -343,22 +343,22 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
                     <Label className="text-muted-foreground">Facility Type</Label>
-                    <p className="mt-1 font-medium">{facilityData.facilityType}</p>
+                    <p className="mt-1 font-medium">{facilityData.FACILITY_TYPE}</p>
                   </div>
                   <div>
                     <Label className="text-muted-foreground">Severity Level</Label>
                     <Badge variant={
-                      facilityData.severityLevel === "CRITICAL" ? "destructive" : 
-                      facilityData.severityLevel === "HIGH" ? "default" : "outline"
+                      facilityData.SEVERITY_LEVEL === "CRITICAL" ? "destructive" : 
+                      facilityData.SEVERITY_LEVEL === "HIGH" ? "default" : "outline"
                     }>
-                      {facilityData.severityLevel}
+                      {facilityData.SEVERITY_LEVEL}
                     </Badge>
                   </div>
                 </div>
-                {facilityData.affectedEquipment && (
+                {facilityData.AFFECTED_EQUIPMENT && (
                   <div>
                     <Label className="text-muted-foreground">Affected Equipment</Label>
-                    <p className="mt-1">{facilityData.affectedEquipment}</p>
+                    <p className="mt-1">{facilityData.AFFECTED_EQUIPMENT}</p>
                   </div>
                 )}
               </CardContent>
@@ -380,7 +380,7 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
                   Submitted By
                 </Label>
                 <p className="mt-1 font-medium">Student Name</p>
-                <p className="text-sm text-muted-foreground">ID: {report.submittedBy}</p>
+                <p className="text-sm text-muted-foreground">ID: {report.SUBMITTED_BY}</p>
               </div>
               <Separator />
               <div>
@@ -389,13 +389,13 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
                   Last Updated
                 </Label>
                 <p className="mt-1 font-medium">
-                  {format(new Date(report.updatedAt), "PPP")}
+                  {format(new Date(report.UPDATED_AT), "PPP")}
                 </p>
               </div>
               <Separator />
               <div>
                 <Label className="text-muted-foreground">Report ID</Label>
-                <p className="mt-1 font-mono text-sm">{report.reportId}</p>
+                <p className="mt-1 font-mono text-sm">{report.REPORT_ID}</p>
               </div>
             </CardContent>
           </Card>
@@ -437,7 +437,7 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
                   <div className="flex-1 pb-4">
                     <p className="font-medium text-sm">Report Submitted</p>
                     <p className="text-xs text-muted-foreground">
-                      {format(new Date(report.submittedAt), "PPP 'at' p")}
+                      {format(new Date(report.SUBMITTED_AT), "PPP 'at' p")}
                     </p>
                   </div>
                 </div>

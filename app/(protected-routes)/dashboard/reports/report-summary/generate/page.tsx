@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, FileText, Download, Sparkles, Calendar, Clock, Loader2 } from "lucide-react";
+import { ArrowLeft, FileText, Download, Sparkles, Calendar, Clock } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { GeneratedReportCategory, GeneratedReportDataType, GeneratedReport, Report } from "@/lib/types";
@@ -66,9 +66,9 @@ export default function GenerateReportPage() {
             matchesCategory = true;
         }
         else {
-            matchesCategory = report.type === category;
+            matchesCategory = report.TYPE === category;
         }
-        const reportDate = new Date(report.submittedAt);
+        const reportDate = new Date(report.SUBMITTED_AT);
         const startDate = new Date(dateRangeStart);
         const endDate = new Date(dateRangeEnd);
         
@@ -81,17 +81,17 @@ export default function GenerateReportPage() {
       const reportData = {
         totalReports: filteredReports.length,
         byStatus: {
-          pending: filteredReports.filter(r => r.status === "PENDING").length,
-          inProgress: filteredReports.filter(r => r.status === "IN_PROGRESS").length,
-          resolved: filteredReports.filter(r => r.status === "RESOLVED").length,
-          rejected: filteredReports.filter(r => r.status === "REJECTED").length,
+          pending: filteredReports.filter(r => r.STATUS === "PENDING").length,
+          inProgress: filteredReports.filter(r => r.STATUS === "IN_PROGRESS").length,
+          resolved: filteredReports.filter(r => r.STATUS === "RESOLVED").length,
+          rejected: filteredReports.filter(r => r.STATUS === "REJECTED").length,
         },
         reports: filteredReports.map(r => ({
-          title: r.title,
-          location: r.location,
-          status: r.status,
-          submittedAt: r.submittedAt,
-          type: r.type,
+          title: r.TITLE,
+          location: r.LOCATION,
+          status: r.STATUS,
+          submittedAt: r.SUBMITTED_AT,
+          type: r.TYPE,
         })),
       };
 

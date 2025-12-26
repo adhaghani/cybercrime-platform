@@ -28,7 +28,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
-import { Bell, Plus, Search, MoreVertical, Eye, Edit, Trash2, Archive, Loader2, List } from "lucide-react";
+import { Bell, Plus, Search, MoreVertical, Eye, Edit, Trash2, Loader2, List } from "lucide-react";
 import {Tabs, TabsList, TabsTrigger, TabsContent} from "@/components/ui/tabs";
 import Link from "next/link";
 import { Announcement } from "@/lib/types";
@@ -43,7 +43,7 @@ const ITEMS_PER_PAGE = 10;
 
 export default function AnnouncementsPage() {
   const hasAnyRole = useHasAnyRole();
-  const hasManageAccess = hasAnyRole(['STAFF', 'ADMIN', 'SUPERADMIN']);
+  const hasManageAccess = hasAnyRole(['STAFF','SUPERVISOR', 'ADMIN', 'SUPERADMIN']);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -77,24 +77,6 @@ export default function AnnouncementsPage() {
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
     setPage(1);
-  };
-
-  const handleArchive = async (announcementId: string) => {
-    try {
-      const response = await fetch(`/api/announcements/${announcementId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'ARCHIVED' }),
-      });
-
-      if (!response.ok) throw new Error('Failed to archive announcement');
-      
-      toast.success('Announcement archived successfully');
-      fetchAnnouncements();
-    } catch (error) {
-      console.error('Error archiving announcement:', error);
-      toast.error('Failed to archive announcement');
-    }
   };
 
   const handleDeleteClick = (id: string, title: string) => {
@@ -209,10 +191,6 @@ export default function AnnouncementsPage() {
                           <Edit className="h-4 w-4 mr-2" />
                           Edit
                         </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleArchive(announcement.ANNOUNCEMENT_ID)}>
-                        <Archive className="h-4 w-4 mr-2" />
-                        Archive
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem 

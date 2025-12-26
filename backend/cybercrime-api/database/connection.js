@@ -1,6 +1,9 @@
 require('dotenv').config();
 const oracledb = require('oracledb');
 
+// Configure oracledb to automatically fetch CLOBs as strings
+oracledb.fetchAsString = [oracledb.CLOB];
+
 // Database Configuration
 const dbConfig = {
   user: process.env.DB_USER || 'PDBADMIN',

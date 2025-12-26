@@ -21,7 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Search, FileText, Download, Eye, Calendar, Filter, Loader2 } from "lucide-react";
+import { Search, FileText, Download, Eye, Calendar, Filter, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { GeneratedReport, GeneratedReportCategory, GeneratedReportDataType } from "@/lib/types";
@@ -106,15 +106,6 @@ export default function AllGeneratedReportsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/dashboard/reports">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Reports
-          </Link>
-        </Button>
-      </div>
-
       <div>
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
           <FileText className="h-8 w-8" />

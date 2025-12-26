@@ -202,15 +202,6 @@ export default function StudentsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Student List ({filteredStudents.length})</CardTitle>
-          {totalPages > 1 && paginatedStudents.length > 0 && (
-            <PaginationControls
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              itemsPerPage={ITEMS_PER_PAGE}
-              totalItems={filteredStudents.length}
-            />
-          )}
         </CardHeader>
         <CardContent>
           <Table className="overflow-hidden">
@@ -231,7 +222,7 @@ export default function StudentsPage() {
                     <div className="flex items-center gap-3">
                       <Avatar>
                         <AvatarImage src={student.AVATAR_URL} />
-                        <AvatarFallback>{getInitials(student.NAME)}</AvatarFallback>
+                        <AvatarFallback className="bg-blue-500/10 text-blue-500">{getInitials(student.NAME)}</AvatarFallback>
                       </Avatar>
                       <div>
                         <div className="font-medium">{student.NAME}</div>
@@ -319,7 +310,15 @@ export default function StudentsPage() {
           )}
         </CardContent>
       </Card>
-
+          {paginatedStudents.length > 0 && (
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={ITEMS_PER_PAGE}
+              totalItems={filteredStudents.length}
+            />
+          )}
       {/* Dialogs */}
       <ViewUserDetailDialog
         accountId={selectedStudentId}

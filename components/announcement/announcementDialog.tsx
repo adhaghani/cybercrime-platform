@@ -1,12 +1,14 @@
 
-import { Calendar} from "lucide-react";
+import { Calendar, Pencil } from "lucide-react";
 import { Dialog, DialogHeader, DialogContent, DialogDescription, DialogTitle } from "../ui/dialog";
 import { Announcement } from "@/lib/types";
 import { format } from "date-fns";
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-
+import { useHasAnyRole } from "@/hooks/use-user-role";
 import { AnnouncementPriorityBadge, AnnouncementStatusBadge, AnnouncementTypeBadge } from "./announcementBadge";
+import { Button } from "../ui/button";
+import Link from "next/link";
 
 interface AnnouncementCardProps {
     announcement: Announcement;
@@ -15,14 +17,24 @@ interface AnnouncementCardProps {
 }
 
 const AnnouncementDialog = ({announcement, open, onOpenChange} : AnnouncementCardProps) => {
-
+    const hasAnyRole = useHasAnyRole();
+    const hasManageAccess = hasAnyRole(['STAFF','SUPERVISOR', 'ADMIN', 'SUPERADMIN']);
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}> 
       <DialogContent className="!max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-start justify-between">
             <div className="space-y-2 flex-1">
-              <DialogTitle className="text-2xl">{announcement.TITLE}</DialogTitle>
+              <DialogTitle className="text-2xl flex items-center gap-4">
+                <p>{announcement.TITLE}</p>
+                {hasManageAccess ? <Button asChild variant="outline" size="icon" className="flex items-center">
+                  <Link href={`/dashboard/announcement/${announcement.ANNOUNCEMENT_ID}/update`}>
+                   <Pencil className="h-4 w-4" />
+                  </Link>
+                </Button> : null}
+
+              </DialogTitle>
               <DialogDescription className="flex items-center gap-2 flex-wrap">
                 <AnnouncementTypeBadge AnnouncementType={announcement.TYPE} />
                 <AnnouncementPriorityBadge priority={announcement.PRIORITY} />

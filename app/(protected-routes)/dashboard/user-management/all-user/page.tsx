@@ -155,7 +155,6 @@ export default function AllUsersPage() {
             <SelectItem value="ALL">All Roles</SelectItem>
             <SelectItem value="STUDENT">Students</SelectItem>
             <SelectItem value="STAFF">Staff</SelectItem>
-            <SelectItem value="ADMIN">Administrators</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -163,16 +162,7 @@ export default function AllUsersPage() {
       {/* Users Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Users ({filteredUsers.length})</CardTitle>
-          {totalPages > 1 && paginatedUsers.length > 0 && (
-            <PaginationControls
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              itemsPerPage={ITEMS_PER_PAGE}
-              totalItems={filteredUsers.length}
-            />
-          )}
+          <CardTitle>Users ({filteredUsers.length})</CardTitle> 
         </CardHeader>
         <CardContent>
           <Table>
@@ -192,7 +182,9 @@ export default function AllUsersPage() {
                     <div className="flex items-center gap-3">
                       <Avatar>
                         <AvatarImage src={user.AVATAR_URL} />
-                        <AvatarFallback>{getInitials(user.NAME)}</AvatarFallback>
+                        <AvatarFallback
+                        className={user.ACCOUNT_TYPE === "STUDENT" ? "bg-blue-500/10 text-blue-500" : "bg-green-500/10 text-green-500"}
+                        >{getInitials(user.NAME)}</AvatarFallback>
                       </Avatar>
                       <div>
                         <div className="font-medium">{user.NAME}</div>
@@ -253,7 +245,15 @@ export default function AllUsersPage() {
           )}
         </CardContent>
       </Card>
-
+          {paginatedUsers.length > 0 && (
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={ITEMS_PER_PAGE}
+              totalItems={filteredUsers.length}
+            />
+          )}
       {/* Dialogs */}
       <ViewUserDetailDialog
         accountId={selectedUserId}

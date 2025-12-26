@@ -35,7 +35,59 @@ export const UITM_CAMPUS = [
     campuses: [
       "Shah Alam",
       "Puncak Alam",
-    ]
+      "Puncak Perdana",
+      "Hospital Sg Buloh",
+      "Dengkil",
+      "affiliated Colleges"
+    ],
+  },
+  {
+    name: "PERLIS",
+    campuses: ["Arau"],
+  },
+  {
+    name: "KEDAH",
+    campuses: ["Sungai Petani"],
+  },
+  {
+    name: "PENANG",
+    campuses: ["Permatang Pauh"],
+  },
+  {
+    name: "PERAK",
+    campuses: ["Tapah", "Seri Iskandar"],
+  },
+  {
+    name: "MELAKA",
+    campuses: ["Alor Gajah", "Bandaraya Melaka", "Jasin"],
+  },
+  {
+    name: "NEGERI SEMBILAN",
+    campuses: ["Seremban 3", "Rembau", "Kuala Pilah Beting"],
+  },
+  {
+    name: "JOHOR",
+    campuses: ["Pasir Gudang", "Segamat"],
+  },
+  {
+    name: "PAHANG",
+    campuses: ["Raub", "Jenga"],
+  },
+  {
+    name: "TERENGGANU",
+    campuses: ["Dungun", "Kuala Terengganu Cendering", "Bukit Besi"],
+  },
+  {
+    name: "KELANTAN",
+    campuses: ["Machang", "Kota Bharu"],
+  },
+  {
+    name: "SABAH",
+    campuses: ["Kota Kinabalu", "Tawau"],
+  },
+  {
+    name: "SARAWAK",
+    campuses: ["Samarahan", "Samarahan 2", "Mukah"],
   }
 ]
 
