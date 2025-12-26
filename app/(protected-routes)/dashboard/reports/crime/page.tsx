@@ -54,10 +54,10 @@ export default function CrimeReportsPage() {
 
   const fetchReports = async () => {
     try {
-      const response = await fetch('/api/reports?type=CRIME');
+      const response = await fetch('/api/reports/with-details?type=CRIME');
       if (response.ok) {
         const data = await response.json();
-        setCrimeReports(data.reports || []);
+        setCrimeReports(data || []);
       }
     } catch (error) {
       console.error('Failed to fetch crime reports:', error);

@@ -563,6 +563,32 @@ router.get('/:id', authenticateToken, async (req, res) => {
       }
     }
 
+    // Get assignments and assigned staff details
+    const assignmentsResult = await exec(
+      `SELECT 
+        RA.ASSIGNMENT_ID, RA.ACCOUNT_ID, RA.REPORT_ID, 
+        RA.ASSIGNED_AT, RA.ACTION_TAKEN, RA.ADDITIONAL_FEEDBACK, RA.UPDATED_AT,
+        A.NAME, A.EMAIL, A.CONTACT_NUMBER, A.ACCOUNT_TYPE,
+        S.STAFF_ID, S.ROLE, S.DEPARTMENT, S.POSITION
+      FROM REPORT_ASSIGNMENT RA
+      INNER JOIN ACCOUNT A ON RA.ACCOUNT_ID = A.ACCOUNT_ID
+      LEFT JOIN STAFF S ON A.ACCOUNT_ID = S.ACCOUNT_ID
+      WHERE RA.REPORT_ID = :id
+      ORDER BY RA.ASSIGNED_AT DESC`,
+      { id: req.params.id }
+    );
+
+    const assignments = toPlainRows(assignmentsResult.rows);
+    detailedReport.STAFF_ASSIGNED = assignments;
+  
+    const resolutionsResult = await exec(
+      `SELECT * FROM RESOLUTION WHERE REPORT_ID = :id ORDER BY RESOLVED_AT DESC`,
+      { id: req.params.id }
+    );
+
+    const resolutions = toPlainRows(resolutionsResult.rows);
+    detailedReport.RESOLUTIONS = resolutions.length > 0 ? resolutions[0] : null;
+
     res.json(detailedReport);
   } catch (err) {
     console.error('Get report error:', err);

@@ -2,6 +2,7 @@ const express = require('express');
 const oracledb = require('oracledb');
 const { exec } = require('../database/connection');
 const { authenticateToken } = require('../middleware/auth');
+const { toPlainRows } = require('../helper/toPlainRows');
 
 const router = express.Router();
 
@@ -56,7 +57,17 @@ router.post('/', authenticateToken, async (req, res) => {
     };
 
     const result = await exec(sql, binds, { autoCommit: true });
+
+    // update the report status to 'IN_PROGRESS' when assigned
+    const updateReportSql = `
+      UPDATE REPORT 
+      SET STATUS = 'IN_PROGRESS', UPDATED_AT = SYSTIMESTAMP 
+      WHERE REPORT_ID = :report_id
+    `;
     
+    await exec(updateReportSql, { report_id }, { autoCommit: true });
+
+
     res.status(201).json({
       message: 'Report assignment created successfully',
       assignment_id: result.outBinds.id[0]
@@ -73,17 +84,18 @@ router.get('/my-assignments', authenticateToken, async (req, res) => {
     const sql = `
       SELECT ra.ASSIGNMENT_ID, ra.ACCOUNT_ID, ra.REPORT_ID, ra.ASSIGNED_AT, 
              ra.ACTION_TAKEN, ra.ADDITIONAL_FEEDBACK, ra.UPDATED_AT,
-             r.TITLE as REPORT_TITLE, r.TYPE as REPORT_TYPE, r.STATUS as REPORT_STATUS, 
-             r.LOCATION as REPORT_LOCATION, r.SUBMITTED_AT as REPORT_SUBMITTED_AT,
-             r.DESCRIPTION as REPORT_DESCRIPTION
+             r.TITLE as TITLE, r.TYPE as TYPE, r.STATUS as STATUS, 
+             r.LOCATION as LOCATION, r.SUBMITTED_AT as SUBMITTED_AT,
+             r.DESCRIPTION as DESCRIPTION
       FROM REPORT_ASSIGNMENT ra
       JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
       WHERE ra.ACCOUNT_ID = :account_id
       ORDER BY ra.ASSIGNED_AT DESC
     `;
-    
-    const result = await exec(sql, { account_id: req.user.accountId });
-    res.json(result.rows);
+    const userId = req.user.accountId || req.user.ACCOUNT_ID || req.user.id;
+    const result = await exec(sql, { account_id: userId });
+    const reports = toPlainRows(result.rows);
+    res.json(reports);
   } catch (err) {
     console.error('Get my assignments error:', err);
     res.status(500).json({ error: 'Failed to get my assignments', details: err.message });

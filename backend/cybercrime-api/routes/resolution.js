@@ -95,24 +95,24 @@ router.post('/', authenticateToken, async (req, res) => {
         :resolution_summary, :evidence_path, SYSTIMESTAMP
       ) RETURNING RESOLUTION_ID INTO :id
     `;
-    
+        const userId = req.user.accountId || req.user.ACCOUNT_ID || req.user.id;
     const binds = {
       report_id,
-      resolved_by: req.user.accountId,
+      resolved_by: userId,
       resolution_type,
       resolution_summary,
       evidence_path: evidence_path || null,
       id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
     };
 
-    const result = await exec(sql, binds, { autoCommit: false });
+    const result = await exec(sql, binds, { autoCommit: true });
     
     // Update report status to RESOLVED if resolution type is RESOLVED
     if (resolution_type === 'RESOLVED') {
       await exec(
         `UPDATE REPORT SET STATUS = 'RESOLVED', UPDATED_AT = SYSTIMESTAMP WHERE REPORT_ID = :report_id`,
         { report_id },
-        { autoCommit: false }
+        { autoCommit: true }
       );
     }
 

@@ -176,10 +176,22 @@ export type AnyAccount = Student | Staff;
 // Union type for reports
 export type AnyReport = Crime | Facility;
 
-// Report Assignment with staff details
-export interface ReportAssignmentExtended extends ReportAssignment {
-  staffName?: string;
-  reportTitle?: string;
-  reportType?: ReportType;
-  reportStatus?: ReportStatus;
+export interface AssignmentWithStaffDetails extends Staff {
+  ASSIGNMENT_ID: string;
+  REPORT_ID: string; // FK → report.report_id
+  ASSIGNED_AT: string;
+  ACTION_TAKEN?: string;
+  ADDITIONAL_FEEDBACK?: string;
 }
+
+export interface CrimeReportWithAssignedStaffDetails extends Crime {
+  STAFF_ASSIGNED?: AssignmentWithStaffDetails[];
+  RESOLUTIONS?: Resolution;
+}
+
+export interface FacilityReportWithAssignedStaffDetails extends Facility {
+    STAFF_ASSIGNED?: AssignmentWithStaffDetails[];
+    RESOLUTIONS?: Resolution;
+}
+
+export type ReportWithAssignedStaffDetails = CrimeReportWithAssignedStaffDetails | FacilityReportWithAssignedStaffDetails;

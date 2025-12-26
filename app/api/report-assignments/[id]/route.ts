@@ -24,7 +24,7 @@ export async function PUT(
       );
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/report_assignments/${id}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/report-assignments/${id}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -64,7 +64,7 @@ export async function DELETE(
       );
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/report_assignments/${id}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/report-assignments/${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,

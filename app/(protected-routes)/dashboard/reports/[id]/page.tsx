@@ -30,7 +30,7 @@ import {
   Loader2
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Crime, Facility,  ReportAssignment } from "@/lib/types";
+import { Crime, Facility, ReportWithAssignedStaffDetails } from "@/lib/types";
 import { format } from "date-fns";
 import StatusBadge from "@/components/ui/statusBadge";
 import { notFound, useSearchParams } from "next/navigation";
@@ -38,19 +38,21 @@ import { useAuth } from "@/lib/context/auth-provider";
 import { ResolveReportDialog } from "@/components/report/resolve-report-dialog";
 import { AssignStaffDialog } from "@/components/report/assign-staff-dialog";
 import { useHasAnyRole } from "@/hooks/use-user-role";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert"
 
 export default function ReportDetailsPage({ params }: { params: { id: string } }) {
   const searchParams = useSearchParams();
   const showAssignDialog = searchParams.get("action") === "assign";
   const { claims } = useAuth();
-  const [report, setReport] = useState<Crime | Facility | null>(null);
+  const [report, setReport] = useState<ReportWithAssignedStaffDetails | null>(null);
   const [loading, setLoading] = useState(true);
 
   const isSupervisorOrAdmin = useHasAnyRole()(["SUPERVISOR", "ADMIN", "SUPERADMIN"]);
 
-  useEffect(() => {
-    fetchReport();
-  }, [params.id]);
 
   const fetchReport = async () => {
     try {
@@ -64,13 +66,18 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
         throw new Error('Failed to fetch report');
       }
       const data = await response.json();
-      setReport(data.report);
+      setReport(data);
     } catch (error) {
       console.error('Failed to fetch report:', error);
     } finally {
       setLoading(false);
     }
   };
+
+
+  useEffect(() => {
+    fetchReport();
+  }, [params.id]);
   
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(showAssignDialog);
   const [isResolveDialogOpen, setIsResolveDialogOpen] = useState(false);
@@ -80,6 +87,14 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
   // Get current user info for auto-fill
   const currentUserName = claims?.NAME|| "Current User";
   const currentUserId = claims?.ACCOUNT_ID || "-";
+
+  const isCurrentUserAssignedToThisReport = report?.STAFF_ASSIGNED?.some(assignment => 
+    assignment.ACCOUNT_ID === currentUserId
+  );
+
+  const isCurrentUserCompletedAssignment = report?.STAFF_ASSIGNED?.some(assignment =>
+    assignment.ACCOUNT_ID === currentUserId && assignment.ACTION_TAKEN && assignment.ACTION_TAKEN.trim() !== ""
+  );
 
   if (loading) {
     return (
@@ -97,19 +112,43 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
   const crimeData = isCrimeReport ? (report as Crime) : null;
   const facilityData = !isCrimeReport ? (report as Facility) : null;
 
-  const handleUpdateReport = () => {
-    // TODO: Implement API call to update assignment
-    const updateData: Partial<ReportAssignment> = {
-      REPORT_ID: params.id,
-      ACCOUNT_ID: currentUserId,
-      ACTION_TAKEN: updateActionTaken,
-      ADDITIONAL_FEEDBACK: updateFeedback,
-    };
-    
-    console.log("Updating report:", updateData);
-    setIsUpdateDialogOpen(false);
-    setUpdateActionTaken("");
-    setUpdateFeedback("");
+  const handleUpdateReport = async () => {
+    try {
+      // Find the current user's assignment for this report
+      const currentUserAssignment = report?.STAFF_ASSIGNED?.find(
+        assignment => assignment.ACCOUNT_ID === currentUserId
+      );
+
+      if (!currentUserAssignment) {
+        console.error("No assignment found for current user");
+        return;
+      }
+
+      const response = await fetch(`/api/report-assignments/${currentUserAssignment.ASSIGNMENT_ID}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action_taken: updateActionTaken,
+          additional_feedback: updateFeedback,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update assignment');
+      }
+
+      // Close dialog and reset form
+      setIsUpdateDialogOpen(false);
+      setUpdateActionTaken("");
+      setUpdateFeedback("");
+
+      // Refresh report data to show updated information
+      await fetchReport();
+    } catch (error) {
+      console.error("Failed to update assignment:", error);
+    }
   };
 
   return (
@@ -150,11 +189,11 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
               />
               </> : null}
               
-              <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
+              {isCurrentUserAssignedToThisReport && <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button>
+                  <Button disabled={isCurrentUserCompletedAssignment} variant={isCurrentUserCompletedAssignment ? "ghost" : "default"}>
                     <FileText className="h-4 w-4 mr-2" />
-                    Update Assignment
+                    {isCurrentUserCompletedAssignment ? "Assignment Completed" : "Update Assignment"}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl">
@@ -204,7 +243,7 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
                     </Button>
                   </DialogFooter>
                 </DialogContent>
-              </Dialog>
+              </Dialog>}
             </>
           )}
         </div>
@@ -229,6 +268,21 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
           </div>
         </div>
       </div>
+
+      {
+        report.STATUS === "RESOLVED" && report.RESOLUTIONS && (
+      <div className="grid w-full items-start gap-4">
+      <Alert className="bg-green-500/10 border-green-500/20 text-green-500">
+        <AlertTitle>This report has been resolved</AlertTitle>
+        <AlertDescription>
+          This report was resolved on {format(new Date(report.RESOLUTIONS.RESOLVED_AT), "PPP 'at' p")} with the following summary:
+          <p className="mt-2 font-medium">{report.RESOLUTIONS.RESOLUTION_SUMMARY}</p>
+        </AlertDescription>
+      </Alert>
+
+    </div>
+        )
+      }
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Content */}
@@ -364,6 +418,48 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
               </CardContent>
             </Card>
           )}
+
+          {/* Report Assignment Feedback and action Taken */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Assignments and Feedback</CardTitle>
+              <CardDescription>Staff assignments and their feedback</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-0">
+              {
+                report.STAFF_ASSIGNED && report.STAFF_ASSIGNED.length > 0 ? report.STAFF_ASSIGNED.map((assignment) => (
+                  <div key={assignment.ASSIGNMENT_ID} className="space-y-0 p-4 rounded-lg border border-dashed mb-2">
+                    <div className="flex items-center gap-2">
+                      <User className="h-5 w-5 text-primary" />
+                      <span className="font-medium text-primary">{assignment.NAME}</span>
+                      <span className="text-sm text-muted-foreground">
+                        (Assigned on {format(new Date(assignment.ASSIGNED_AT), "PPP")})
+                      </span>
+    
+                    </div>
+                    {
+                        assignment.UPDATED_AT && assignment.ACTION_TAKEN && (
+                          <span className="text-sm text-muted-foreground block mb-4">
+                            - Updated on {format(new Date(assignment.UPDATED_AT), "PPP")}
+                          </span>
+                        )
+                      }
+                    <div>
+                      <Label className="text-muted-foreground">Action Taken</Label>
+                      <p className="mt-1">{assignment.ACTION_TAKEN || "No action taken yet."}</p>
+                    </div>
+                    {assignment.ADDITIONAL_FEEDBACK && (
+                      <div>
+                        <Label className="text-muted-foreground">Additional Feedback</Label>
+                        <p className="mt-1">{assignment.ADDITIONAL_FEEDBACK}</p>
+                      </div>
+                    )}
+
+                  </div>
+                )) : <p className="text-sm text-muted-foreground">No staff have been assigned to this report yet.</p>
+              }
+            </CardContent>
+          </Card>
         </div>
 
         {/* Sidebar */}
@@ -408,13 +504,25 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <div className="flex items-center gap-2 p-2 rounded-lg bg-accent/50">
+                {report.STAFF_ASSIGNED && report.STAFF_ASSIGNED.length > 0 ?
+                  report.STAFF_ASSIGNED.map((assignment) => (
+                <div key={assignment.ASSIGNMENT_ID} className="flex items-center gap-2 p-2 rounded-lg bg-accent/50">
+                  <User className="h-4 w-4 text-primary" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{assignment.NAME}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Assigned on {format(new Date(assignment.ASSIGNED_AT), "PPP")}
+                    </p>
+                  </div>
+                </div>
+                ))
+                : <div className="flex items-center gap-2 p-2 rounded-lg bg-accent/50">
                   <User className="h-4 w-4" />
                   <div className="flex-1">
                     <p className="text-sm font-medium">No assignments yet</p>
                     <p className="text-xs text-muted-foreground">Click &quot;Assign Staff&quot; to assign</p>
                   </div>
-                </div>
+                </div>}
               </div>
             </CardContent>
           </Card>
@@ -429,8 +537,8 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
               <div className="space-y-3">
                 <div className="flex gap-3">
                   <div className="flex flex-col items-center">
-                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      <FileText className="h-4 w-4" />
+                    <div className="h-8 w-8 rounded-full flex items-center justify-center">
+                      <FileText className="h-4 w-4 text-primary" />
                     </div>
                     <div className="w-px h-full bg-border mt-2" />
                   </div>
@@ -441,6 +549,64 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
                     </p>
                   </div>
                 </div>
+              
+              {/* Combine all events and sort chronologically */}
+              {report.STAFF_ASSIGNED && report.STAFF_ASSIGNED.length > 0 && (() => {
+                const events: Array<{
+                  type: 'assignment' | 'update';
+                  timestamp: string;
+                  assignment: typeof report.STAFF_ASSIGNED[0];
+                }> = [];
+
+                // Add assignment events
+                report.STAFF_ASSIGNED.forEach(assignment => {
+                  events.push({
+                    type: 'assignment',
+                    timestamp: assignment.ASSIGNED_AT,
+                    assignment
+                  });
+
+                  // Add update event if action was taken
+                  if (assignment.ACTION_TAKEN) {
+                    events.push({
+                      type: 'update',
+                      timestamp: assignment.UPDATED_AT,
+                      assignment
+                    });
+                  }
+                });
+
+                // Sort by timestamp
+                events.sort((a, b) => 
+                  new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+                );
+
+                return events.map((event, index) => (
+                  <div key={`${event.assignment.ASSIGNMENT_ID}-${event.type}-${index}`} className="flex gap-3">
+                    <div className="flex flex-col items-center">
+                      <div className="h-8 w-8 aspect-square rounded-full flex items-center justify-center">
+                        {event.type === 'assignment' ? (
+                          <User className="h-4 w-4 rounded-full text-primary" />
+                        ) : (
+                          <FileText className="h-4 w-4 rounded-full text-primary" />
+                        )}
+                      </div>
+                      <div className="w-px h-full bg-border mt-2" />
+                    </div>
+                    <div className="flex-1 pb-4">
+                      <p className="font-medium text-sm">
+                        {event.type === 'assignment' 
+                          ? `Assigned to ${event.assignment.NAME}`
+                          : `Update from ${event.assignment.NAME}`
+                        }
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(event.timestamp), "PPP 'at' p")}
+                      </p>
+                    </div>
+                  </div>
+                ));
+              })()}
               </div>
             </CardContent>
           </Card>

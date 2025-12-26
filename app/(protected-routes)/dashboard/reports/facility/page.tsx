@@ -57,10 +57,10 @@ export default function FacilityReportsPage() {
 
   const fetchReports = async () => {
     try {
-      const response = await fetch('/api/reports?type=FACILITY');
+      const response = await fetch('/api/reports/with-details?type=FACILITY');
       if (response.ok) {
         const data = await response.json();
-        setFacilityReports(data.reports || []);
+        setFacilityReports(data || []);
       }
     } catch (error) {
       console.error('Failed to fetch facility reports:', error);

@@ -53,24 +53,12 @@ export default function MyAssignmentsPage() {
   useEffect(() => {
     const fetchAssignedReports = async () => {
       try {
-        // Fetch all reports and filter by assigned staff
-        const response = await fetch('/api/reports');
-        if (!response.ok) throw new Error('Failed to fetch reports');
-        const allReports = await response.json();
         
         // Fetch report assignments to find reports assigned to current user
-        const assignmentsResponse = await fetch('/api/report-assignments');
+        const assignmentsResponse = await fetch('/api/report-assignments/my-assignments');
         if (!assignmentsResponse.ok) throw new Error('Failed to fetch assignments');
         const assignments = await assignmentsResponse.json();
-        
-        // Filter reports assigned to current staff member
-        const userAssignments = assignments.filter((a: any) => a.STAFF_ID === claims?.STAFF_ID);
-        const assignedReportIds = userAssignments.map((a: any) => a.REPORT_ID);
-        const assignedReports = allReports.filter((r: Report) => 
-          assignedReportIds.includes(r.REPORT_ID)
-        );
-        
-        setReports(assignedReports);
+        setReports(assignments);
       } catch (error) {
         console.error('Error fetching assigned reports:', error);
       } finally {
@@ -82,9 +70,9 @@ export default function MyAssignmentsPage() {
 
   const filteredReports = reports.filter((report) => {
     const matchesSearch = 
-      report.TITLE.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.DESCRIPTION.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.LOCATION.toLowerCase().includes(searchQuery.toLowerCase());
+      report.TITLE?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      report.DESCRIPTION?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      report.LOCATION?.toLowerCase().includes(searchQuery.toLowerCase()) || null;
     
     const matchesStatus = statusFilter === "ALL" || report.STATUS === statusFilter;
     const matchesType = typeFilter === "ALL" || report.TYPE === typeFilter;

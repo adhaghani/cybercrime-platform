@@ -63,12 +63,13 @@ export function AssignStaffDialog({
     setLoading(true);
 
     try {
+      console.log('Assigning report', reportId, 'to staff', Number(selectedStaff));
       const response = await fetch('/api/report-assignments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          reportId,
-          accountId: selectedStaff,
+          report_id: Number(reportId),
+          account_id: Number(selectedStaff),
         }),
       });
 
@@ -120,8 +121,8 @@ export function AssignStaffDialog({
                       </div>
                     ) : (
                       staffList.map((staff) => (
-                        <SelectItem key={staff.accountId} value={staff.accountId}>
-                          {staff.name} ({staff.position || staff.role})
+                        <SelectItem key={staff.ACCOUNT_ID} value={String(staff.ACCOUNT_ID)}>
+                          {staff.NAME} ({staff.POSITION || staff.ROLE})
                         </SelectItem>
                       ))
                     )}
