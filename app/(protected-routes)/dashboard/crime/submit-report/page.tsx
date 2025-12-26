@@ -79,59 +79,28 @@ export default function SubmitCrimeReportPage() {
   };
 
   const onSubmit = async (data: CrimeReportFormValues) => {
-    setIsSubmitting(true);
+  setIsSubmitting(true);
 
-    try {
-      console.log("Form data:", data);
-      let token = null;
-      if (apiClient.getToken) {
-        token = apiClient.getToken();
-      } else {
-        // Fallback to localStorage
-        token = localStorage.getItem('token') || 
-                localStorage.getItem('access_token') ||
-                sessionStorage.getItem('token');
-      }
-    console.log("Auth token found:", !!token);
-    console.log("Token value:", token);
-
-    if (!token) {
-      toast.error("Please login first");
-      router.push("/login");
-      return;
-    }
-      
-      const reportData = {
-        type: 'CRIME',
-        title: data.title,
-        description: data.description,
-        location: data.location,
-        crime_category: data.crimeCategory,
-        suspect_description: data.suspectDescription || null,
-        victim_involved: data.victimInvolved || null,
-        weapon_involved: data.weaponInvolved || null,
-        injury_level: data.injuryLevel === "" ? null : data.injuryLevel,
-        evidence_details: data.evidenceDetails || null,
-      };
-      console.log("Sending to API:", reportData);
+  try {
+    const reportData = {
+      type: 'CRIME',
+      title: data.title,
+      description: data.description,
+      location: data.location,
+      crime_category: data.crimeCategory,
+      suspect_description: data.suspectDescription || null,
+      victim_involved: data.victimInvolved || null,
+      weapon_involved: data.weaponInvolved || null,
+      injury_level: data.injuryLevel === "" ? null : data.injuryLevel,
+      evidence_details: data.evidenceDetails || null,
+    };
     
-    const response = await fetch('http://localhost:5000/api/reports', {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
-      body: JSON.stringify(reportData),
-    });
+    console.log("Sending to API:", reportData);
     
-    console.log("Response status:", response.status);
+    // Use apiClient instead of fetch
+    const response = await apiClient.post('/api/reports', reportData);
     
-    const responseData = await response.json();
-    console.log("Response data:", responseData);
-    
-    if (!response.ok) {
-      throw new Error(responseData.error || 'Failed to submit report');
-    }
+    console.log("Response:", response);
     
     toast.success("Crime report submitted successfully!");
     router.push("/dashboard/crime/my-reports");

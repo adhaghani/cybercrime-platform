@@ -38,7 +38,7 @@ export default function AllCrimeReportsPage() {
   useEffect(() => {
     const fetchCrimeReports = async () => {
       try {
-        const response = await fetch('/api/reports?type=CRIME');
+        const response = await fetch('/api/reports/with-details?type=CRIME');
         if (!response.ok) throw new Error('Failed to fetch reports');
         const data = await response.json();
         setReports(data as Crime[]);

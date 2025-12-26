@@ -11,6 +11,7 @@ import { Crime, ReportStatus } from "@/lib/types";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { useAuth } from "@/lib/context/auth-provider";
 import ReportCard from "@/components/report/reportCard";
+import { apiClient } from "@/lib/api/client";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -25,18 +26,41 @@ export default function MyCrimeReportsPage() {
   useEffect(() => {
     const fetchMyReports = async () => {
       try {
-        const response = await fetch(`/api/reports?type=CRIME&submittedBy=${claims?.user_metadata?.userId}`);
-        if (!response.ok) throw new Error('Failed to fetch reports');
-        const data = await response.json();
-        setReports(data as Crime[]);
+        console.log("Fetching my crime reports...");
+        
+        const data = await apiClient.get<any[]>('/api/crimes/my-reports');
+        
+        console.log("Fetched reports:", data);
+        
+        // Transform the data to match Crime type
+        const transformedReports = data.map((item: any) => ({
+          reportId: item.REPORT_ID,
+          title: item.TITLE,
+          description: item.DESCRIPTION || '',
+          location: item.LOCATION,
+          status: item.STATUS,
+          type: 'CRIME',
+          submittedBy: item.SUBMITTED_BY,
+          submittedAt: item.SUBMITTED_AT,
+          updatedAt: item.UPDATED_AT,
+          crimeCategory: item.CRIME_CATEGORY,
+          suspectDescription: item.SUSPECT_DESCRIPTION,
+          victimInvolved: item.VICTIM_INVOLVED,
+          injuryLevel: item.INJURY_LEVEL,
+          weaponInvolved: item.WEAPON_INVOLVED,
+          evidenceDetails: item.EVIDENCE_DETAILS,
+        }));
+        
+        setReports(transformedReports as Crime[]);
       } catch (error) {
         console.error('Error fetching my reports:', error);
       } finally {
         setLoading(false);
       }
     };
-    if (claims?.user_metadata?.userId) fetchMyReports();
-  }, [claims?.user_metadata?.userId]);
+    
+    fetchMyReports();
+  }, [claims]);
 
   const filteredReports = reports.filter((report) => {
     const matchesSearch =

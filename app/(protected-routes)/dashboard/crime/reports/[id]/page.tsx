@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, MapPin, Calendar, Clock, ShieldAlert, FileText, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { MOCK_REPORTS } from "@/lib/api/mock-data";
 import { Crime } from "@/lib/types";
 import { format } from "date-fns";
 import StatusBadge from "@/components/ui/statusBadge";
@@ -17,18 +16,38 @@ export default function CrimeReportDetailPage({ params }: { params: Promise<{ id
   const { id } = use(params);
   const [report, setReport] = useState<Crime | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchReport = async () => {
       try {
+        console.log('Fetching report with ID:', id);
         const response = await fetch(`/api/reports/${id}`);
-        if (!response.ok) throw new Error('Not found');
+        console.log('Response status:', response.status);
+        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Error response:', errorText);
+          
+          // Try to parse as JSON
+          try {
+            const errorData = JSON.parse(errorText);
+            throw new Error(errorData.error || errorData.message || 'Failed to fetch report');
+          } catch (parseError) {
+            throw new Error(errorText || `HTTP ${response.status}: ${response.statusText}`);
+          }
+        }
         const data = await response.json();
-        if (data.type === 'CRIME') {
+        console.log('Report data:', data);
+        
+        if (data.type === 'CRIME' || data.TYPE === 'CRIME') {
           setReport(data as Crime);
+        } else {
+          throw new Error('Report is not a crime report');
         }
       } catch (error) {
         console.error('Error fetching report:', error);
+        setError(error instanceof Error ? error.message : 'Unknown error');
       } finally {
         setLoading(false);
       }
