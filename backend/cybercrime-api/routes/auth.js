@@ -184,10 +184,13 @@ router.post('/login', async (req, res) => {
 // GET /api/auth/me
 router.get('/me', authenticateToken, async (req, res) => {
   try {
+    // JWT stores ACCOUNT_ID (uppercase), use that or fallback to accountId
+    const accountId = req.user.ACCOUNT_ID || req.user.accountId;
+    
     const result = await exec(
       `SELECT ACCOUNT_ID, NAME, EMAIL, CONTACT_NUMBER, ACCOUNT_TYPE, CREATED_AT 
        FROM ACCOUNT WHERE ACCOUNT_ID = :id`,
-      { id: req.user.accountId }
+      { id: accountId }
     );
 
     if (result.rows.length === 0) {

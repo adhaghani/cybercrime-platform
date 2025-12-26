@@ -13,79 +13,14 @@ interface ApiError {
 
 class ApiClient {
   private baseUrl: string;
-  private token: string | null = null;
 
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
-    
-    // Initialize token from cookie if available (client-side only)
-    if (typeof window !== 'undefined') {
-      this.token = this.getTokenFromCookie();
-    }
-  }
-
-  /**
-   * Get token from cookie
-   */
-  private getTokenFromCookie(): string | null {
-    if (typeof document === 'undefined') return null;
-    
-    const cookies = document.cookie.split(';');
-    const authCookie = cookies.find(c => c.trim().startsWith('auth_token='));
-    
-    if (!authCookie) return null;
-    
-    return authCookie.split('=')[1];
-  }
-
-  /**
-   * Set token in cookie
-   */
-  private setTokenCookie(token: string, maxAge: number = 86400) {
-    if (typeof document === 'undefined') return;
-    
-    document.cookie = `auth_token=${token}; path=/; max-age=${maxAge}; SameSite=Strict`;
-  }
-
-  /**
-   * Clear token cookie
-   */
-  private clearTokenCookie() {
-    if (typeof document === 'undefined') return;
-    
-    document.cookie = 'auth_token=; path=/; max-age=0';
-  }
-
-  /**
-   * Set authentication token
-   */
-  setToken(token: string | null) {
-    this.token = token;
-    if (typeof window !== 'undefined') {
-      if (token) {
-        this.setTokenCookie(token);
-      } else {
-        this.clearTokenCookie();
-      }
-    }
-  }
-
-  /**
-   * Get authentication token
-   */
-  getToken(): string | null {
-    return this.token;
-  }
-
-  /**
-   * Clear authentication token
-   */
-  clearToken() {
-    this.setToken(null);
   }
 
   /**
    * Make HTTP request
+   * Uses credentials: 'include' to send HttpOnly cookies
    */
   private async request<T>(
     endpoint: string,
@@ -98,15 +33,11 @@ class ApiClient {
       ...(options.headers as Record<string, string>),
     };
 
-    // Add authorization header if token exists
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
-    }
-
     try {
       const response = await fetch(url, {
         ...options,
         headers,
+        credentials: 'include', // Include cookies in requests
       });
 
       // Handle non-JSON responses

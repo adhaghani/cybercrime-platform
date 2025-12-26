@@ -131,7 +131,6 @@ export async function login(credentials: LoginCredentials): Promise<AuthResponse
 
         if (mockUser) {
           const mockToken = `mock-token-${mockUser.user.ACCOUNT_ID}-${Date.now()}`;
-          apiClient.setToken(mockToken);
           
           resolve({
             token: mockToken,
@@ -144,14 +143,23 @@ export async function login(credentials: LoginCredentials): Promise<AuthResponse
     });
   }
 
-  const response = await apiClient.post<AuthResponse>('/api/auth/login', credentials);
-  
-  // Set token in API client
-  if (response.token) {
-    apiClient.setToken(response.token);
+  // Call Next.js API route (same origin) for proper cookie handling
+  const response = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(credentials),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Login failed');
   }
+
+  const data = await response.json();
   
-  return response;
+  // Token is set as HttpOnly cookie by the server, no client-side handling needed
+  return data;
 }
 
 /**
@@ -175,47 +183,47 @@ export async function signUp(data: SignUpData): Promise<{ message: string }> {
  * Logout user
  */
 export async function logout(): Promise<void> {
-  await apiClient.post('/api/auth/logout');
+  // Call Next.js API route (same origin) for proper cookie handling
+  await fetch('/api/auth/logout', {
+    method: 'POST',
+    credentials: 'include',
+  });
   
-  // Clear token
-  apiClient.clearToken();
+  // Cookie is cleared by the server (HttpOnly)
 }
 
 /**
  * Get current user profile
  */
 export async function getCurrentUser(): Promise<UserProfile | null> {
-  const token = apiClient.getToken();
-  
-  if (!token) {
-    return null;
-  }
-
   if (USE_MOCK_AUTH) {
-    // Mock get current user
+    // Mock get current user - for mock mode, check if we have stored user data
     return new Promise((resolve) => {
       setTimeout(() => {
-        if (token.startsWith('mock-token-')) {
-          const accountId = token.split('-')[2];
-          const mockUser = Object.values(MOCK_USERS).find(
-            (u) => u.user.ACCOUNT_ID === accountId
-          );
-          resolve(mockUser ? mockUser.user : null);
-        } else {
-          resolve(null);
-        }
+        // In mock mode, we'll check the first mock user as fallback
+        // In a real scenario, you'd check against a mock session
+        resolve(MOCK_USERS.student.user);
       }, 200);
     });
   }
 
   try {
-    const response = await apiClient.get<UserProfile>('/api/auth/me');
-    console.log(response);
-    return response;
+    // Call Next.js API route (same origin) for proper cookie handling
+    const response = await fetch('/api/auth/me', {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      console.error("Failed to fetch user, status:", response.status);
+      return null;
+    }
+
+    const data = await response.json();
+    return data;
   } catch (error) {
-    // If unauthorized or token invalid, clear token
+    // If unauthorized or token invalid, return null
     console.error("Error fetching current user:", error);
-    apiClient.clearToken();
     return null;
   }
 }

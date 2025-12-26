@@ -32,19 +32,36 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // If user is authenticated and trying to access auth pages, redirect to dashboard
+  // If user has a token and trying to access auth pages, verify token first
   if (isPublicRoute && token && pathname.startsWith("/auth/")) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
-  }
+    try {
+      // Verify token by checking with backend
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
 
-  // TODO: Add JWT token verification when backend auth endpoints are ready
-  // For now, we just check if token exists
-  // In production, you would:
-  // 1. Verify token signature
-  // 2. Check token expiration
-  // 3. Validate token claims
+      // If token is valid, redirect to dashboard
+      if (response.ok) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/dashboard";
+        return NextResponse.redirect(url);
+      }
+      
+      // If token is invalid, clear it and allow access to auth pages
+      const url = request.nextUrl.clone();
+      const res = NextResponse.redirect(url);
+      res.cookies.delete('auth_token');
+      return res;
+    } catch (error) {
+      console.error('Token verification failed:', error);
+      // On error, clear cookie and allow access to auth pages
+      const res = NextResponse.next();
+      res.cookies.delete('auth_token');
+      return res;
+    }
+  }
   
   return NextResponse.next();
 }
