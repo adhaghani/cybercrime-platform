@@ -38,7 +38,7 @@ export default function AllCrimeReportsPage() {
   useEffect(() => {
     const fetchCrimeReports = async () => {
       try {
-        const response = await fetch('/api/reports?type=CRIME');
+        const response = await fetch('/api/reports/with-details?type=CRIME');
         if (!response.ok) throw new Error('Failed to fetch reports');
         const data = await response.json();
         setReports(data as Crime[]);
@@ -165,7 +165,7 @@ export default function AllCrimeReportsPage() {
       {viewMode === "card" ? (
         <div className="grid gap-4 md:grid-cols-2">
           {paginatedReports.map((report) => (
-            <ReportCard key={report.reportId} report={report} />
+            <ReportCard key={report.REPORT_ID} report={report} />
           ))}
         </div>
       ) : (
@@ -182,27 +182,27 @@ export default function AllCrimeReportsPage() {
             </TableHeader>
             <TableBody>
               {paginatedReports.map((report) => (
-                <TableRow key={report.reportId} className="hover:bg-accent/50">
-                  <TableCell className="font-medium">{report.title}</TableCell>
+                <TableRow key={report.REPORT_ID} className="hover:bg-accent/50">
+                  <TableCell className="font-medium">{report.TITLE}</TableCell>
                   <TableCell>
                     <span className="flex items-center gap-1 text-sm">
                       <MapPin className="h-3 w-3" />
-                      {report.location}
+                      {report.LOCATION}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <CrimeCategoryBadge category={report.crimeCategory} />
+                    <CrimeCategoryBadge category={report.CRIME_CATEGORY} />
                   </TableCell>
                   <TableCell>
-                    <StatusBadge status={report.status} />
+                    <StatusBadge status={report.STATUS} />
                   </TableCell>
                   <TableCell className="text-sm">
-                    {format(new Date(report.submittedAt), "MMM d, yyyy")}
+                    {format(new Date(report.SUBMITTED_AT), "MMM d, yyyy")}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end items-center gap-2">
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={`/dashboard/crime/reports/${report.reportId}`}>
+                        <Link href={`/dashboard/crime/reports/${report.REPORT_ID}`}>
                           View
                         </Link>
                       </Button>

@@ -17,7 +17,7 @@ export async function GET(
 ) {
   try {
     const token = request.cookies.get('auth_token')?.value;
-    const { id } = params;
+    const { id } = await params;
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reports/${id}`, {
       method: 'GET',

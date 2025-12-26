@@ -13,6 +13,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useAuth } from "@/lib/context/auth-provider";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 const facilityReportSchema = z.object({
@@ -29,6 +30,8 @@ type FacilityReportFormValues = z.infer<typeof facilityReportSchema>;
 export default function SubmitReportPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const {claims} = useAuth();
+  const AccountID = claims?.ACCOUNT_ID;
 
   const form = useForm<FacilityReportFormValues>({
     resolver: zodResolver(facilityReportSchema),
@@ -51,12 +54,15 @@ export default function SubmitReportPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'FACILITY',
+          status: 'PENDING',
           title: data.title,
           description: data.description,
           location: data.location,
           facility_type: data.facilityType,
           severity_level: data.severityLevel,
           affected_equipment: data.affectedEquipment,
+          attachment_path: null, // File upload handling to be implemented
+          submitted_by: AccountID,
         }),
       });
       

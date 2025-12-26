@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Crime, Facility, Announcement } from "@/lib/types";
-import { useHasAnyRole, useUserRole } from "@/hooks/use-user-role";
+import { useHasAnyRole } from "@/hooks/use-user-role";
 import { StudentDashboard } from "@/components/dashboard/student-dashboard";
 import { StaffDashboard } from "@/components/dashboard/staff-dashboard";
 import { AnnouncementsSection } from "@/components/dashboard/announcements-section";
@@ -11,14 +11,14 @@ import { Loader2 } from "lucide-react";
 
 export default function DashboardPage() {
   const hasAnyRole = useHasAnyRole();
-  const role = useUserRole();
   const { claims } = useAuth();
+  const UserAccounType = claims?.ACCOUNT_TYPE;
   const [reports, setReports] = useState<(Crime | Facility)[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   
-  const isStudent = role === 'STUDENT';
-  const isStaff = hasAnyRole(['STAFF']);
+  const isStudent = UserAccounType === 'STUDENT';
+  const isStaff = hasAnyRole(['STAFF', 'SUPERVISOR']);
   const isAdmin = hasAnyRole(['ADMIN', 'SUPERADMIN']);
   
   const fetchDashboardData = useCallback(async () => {
@@ -46,13 +46,13 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    if (role) {
+    if (UserAccounType) {
       fetchDashboardData();
     }
-  }, [role, fetchDashboardData]);
+  }, [UserAccounType, fetchDashboardData]);
   
   // Handle null role - user not authenticated or role not set
-  if (role === null || loading) {
+  if (UserAccounType === null || loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-4">

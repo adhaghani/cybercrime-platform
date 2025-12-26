@@ -59,7 +59,7 @@ router.get('/my-reports', authenticateToken, async (req, res) => {
     const whereClause = whereClauses.join(' AND ');
     
     const sql = `
-      SELECT F.*, R.TITLE, R.LOCATION, R.STATUS, R.SUBMITTED_AT
+      SELECT F.*, R.TITLE, R.LOCATION, R.STATUS, R.SUBMITTED_AT, R.DESCRIPTION
       FROM FACILITY F
       JOIN REPORT R ON F.REPORT_ID = R.REPORT_ID
       WHERE ${whereClause}
@@ -67,7 +67,23 @@ router.get('/my-reports', authenticateToken, async (req, res) => {
     `;
     
     const result = await exec(sql, binds);
-    res.json(result.rows);
+    
+    // Serialize to avoid circular references
+    const cleanRows = result.rows.map(row => {
+      const cleanRow = {};
+      Object.keys(row).forEach(key => {
+        if (typeof row[key] !== 'object' || row[key] === null) {
+          cleanRow[key] = row[key];
+        } else if (row[key] instanceof Date) {
+          cleanRow[key] = row[key].toISOString();
+        } else if (typeof row[key].toString === 'function') {
+          cleanRow[key] = row[key].toString();
+        }
+      });
+      return cleanRow;
+    });
+    
+    res.json(cleanRows);
   } catch (err) {
     console.error('Get my facilities error:', err);
     res.status(500).json({ error: 'Failed to get facilities', details: err.message });

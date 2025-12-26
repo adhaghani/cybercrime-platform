@@ -43,7 +43,13 @@ router.get('/', authenticateToken, async (req, res) => {
 // POST /api/reports
 router.post('/', authenticateToken, async (req, res) => {
   try {
-    const { submitted_by, title, description, location, status, type, attachment_path } = req.body;
+    const { submitted_by, title, description, location, status, type, attachment_path,
+      // CRIME RELATED FIELDS
+       crime_category, suspect_description, victim_involved, weapon_involved,
+       injury_level, evidence_details,
+      // FACILITY RELATED FIELDS
+        facility_type, severity_level, affected_equipment
+     } = req.body;
     
     if (!title || !description || !location || !type) {
       return res.status(400).json({ error: 'Title, description, location, and type are required' });
@@ -71,13 +77,65 @@ router.post('/', authenticateToken, async (req, res) => {
     };
 
     const result = await exec(sql, binds, { autoCommit: true });
-    
+
+    if(type === 'CRIME'){
+      try {
+      const crimeSql = `
+      UPDATE CRIME SET
+        CRIME_CATEGORY = :crime_category,
+        SUSPECT_DESCRIPTION = :suspect_description,
+        VICTIM_INVOLVED = :victim_involved,
+        WEAPON_INVOLVED = :weapon_involved,
+        INJURY_LEVEL = :injury_level,
+        EVIDENCE_DETAILS = :evidence_details
+      WHERE REPORT_ID = :report_id 
+      `;
+      const crimeBinds = {
+        report_id: result.outBinds.id[0],
+        crime_category: crime_category,
+        suspect_description: suspect_description || null,
+        victim_involved: victim_involved ?  victim_involved : 'N/A',
+        weapon_involved: weapon_involved ? weapon_involved : 'N/A',
+        injury_level: injury_level || null,
+        evidence_details: evidence_details || null
+      };
+      await exec(crimeSql, crimeBinds, { autoCommit: true }); 
+    } catch (err) {
+      console.error('Insert crime details error:', err);
+      await exec('ROLLBACK');
+      return res.status(500).json({ error: 'Failed to create crime report', details: err.message });
+    }
+  }
+    else {
+try{
+      const facilitySql = `
+      UPDATE FACILITY SET
+        FACILITY_TYPE = :facility_type,
+        SEVERITY_LEVEL = :severity_level,
+        AFFECTED_EQUIPMENT = :affected_equipment
+      WHERE REPORT_ID = :report_id
+      `;
+      const facilityBinds = {
+        report_id: result.outBinds.id[0],
+        facility_type: facility_type,
+        severity_level: severity_level || null,
+        affected_equipment: affected_equipment || null
+      };
+      await exec(facilitySql, facilityBinds, { autoCommit: true });
+    } catch (err) {
+      console.error('Insert facility details error:', err);
+      await exec('ROLLBACK');
+      return res.status(500).json({ error: 'Failed to create facility report', details: err.message });
+    }
+    }
+
     res.status(201).json({
       message: 'Report created successfully',
       report_id: result.outBinds.id[0]
     });
   } catch (err) {
     console.error('Create report error:', err);
+    await exec('ROLLBACK');
     res.status(500).json({ error: 'Failed to create report', details: err.message });
   }
 });
@@ -87,24 +145,66 @@ router.get('/my-reports', authenticateToken, async (req, res) => {
   try {
     const { type, status } = req.query;
     
-    let whereClauses = ['SUBMITTED_BY = :submitted_by'];
-    const binds = { submitted_by: req.user.accountId };
+    console.log('req.user:', req.user);
+    console.log('req.user.accountId:', req.user.accountId);
+    console.log('Query params:', { type, status });
+    
+    // Try different possible user ID field names
+    const userId = req.user.accountId || req.user.ACCOUNT_ID || req.user.id;
+    console.log('Using userId:', userId);
+    
+    let whereClauses = ['R.SUBMITTED_BY = :submitted_by'];
+    const binds = { submitted_by: userId };
 
     if (type) {
-      whereClauses.push('TYPE = :type');
+      whereClauses.push('R.TYPE = :type');
       binds.type = type;
     }
     if (status) {
-      whereClauses.push('STATUS = :status');
+      whereClauses.push('R.STATUS = :status');
       binds.status = status;
     }
 
     const whereClause = whereClauses.join(' AND ');
     
-    const sql = `SELECT * FROM REPORT WHERE ${whereClause} ORDER BY SUBMITTED_AT DESC`;
-    const result = await exec(sql, binds);
+    let sql;
+    if (type === 'CRIME') {
+      sql = `
+        SELECT 
+          R.REPORT_ID, R.SUBMITTED_BY, R.TITLE, R.DESCRIPTION, R.LOCATION, 
+          R.STATUS, R.TYPE, R.SUBMITTED_AT, R.UPDATED_AT,
+          C.CRIME_CATEGORY, C.SUSPECT_DESCRIPTION, C.VICTIM_INVOLVED,
+          C.WEAPON_INVOLVED, C.INJURY_LEVEL, C.EVIDENCE_DETAILS
+        FROM REPORT R
+        LEFT JOIN CRIME C ON R.REPORT_ID = C.REPORT_ID
+        WHERE ${whereClause}
+        ORDER BY R.SUBMITTED_AT DESC
+      `;
+    } else if (type === 'FACILITY') {
+      sql = `
+        SELECT 
+          R.REPORT_ID, R.SUBMITTED_BY, R.TITLE, R.DESCRIPTION, R.LOCATION,
+          R.STATUS, R.TYPE, R.SUBMITTED_AT, R.UPDATED_AT,
+          F.FACILITY_TYPE, F.SEVERITY_LEVEL, F.AFFECTED_EQUIPMENT
+        FROM REPORT R
+        LEFT JOIN FACILITY F ON R.REPORT_ID = F.REPORT_ID
+        WHERE ${whereClause}
+        ORDER BY R.SUBMITTED_AT DESC
+      `;
+    } else {
+      sql = `SELECT * FROM REPORT R WHERE ${whereClause} ORDER BY R.SUBMITTED_AT DESC`;
+    }
     
-    res.json(result.rows);
+    console.log('Executing SQL:', sql);
+    console.log('With binds:', binds);
+    
+    const result = await exec(sql, binds);
+    console.log('Raw result.rows:', result.rows);
+    
+    const reports = toPlainRows(result.rows);
+    console.log('After toPlainRows:', reports);
+    
+    res.json(reports);
   } catch (err) {
     console.error('Get my reports error:', err);
     res.status(500).json({ error: 'Failed to get reports', details: err.message });
@@ -330,6 +430,106 @@ router.get('/by-date-range', authenticateToken, async (req, res) => {
   }
 });
 
+// GET /api/reports/with-details - Get reports with their type-specific details
+router.get('/with-details', async (req, res) => {
+  try {
+    const { type } = req.query;
+    
+    if (type === 'CRIME') {
+      // Join REPORT with CRIME table
+      const sql = `
+        SELECT 
+          R.REPORT_ID, R.SUBMITTED_BY, R.TITLE, R.DESCRIPTION, R.LOCATION, 
+          R.STATUS, R.TYPE, R.SUBMITTED_AT, R.UPDATED_AT,
+          C.CRIME_CATEGORY, C.SUSPECT_DESCRIPTION, C.VICTIM_INVOLVED,
+          C.WEAPON_INVOLVED, C.INJURY_LEVEL, C.EVIDENCE_DETAILS
+        FROM REPORT R
+        LEFT JOIN CRIME C ON R.REPORT_ID = C.REPORT_ID
+        WHERE R.TYPE = 'CRIME'
+        ORDER BY R.SUBMITTED_AT DESC
+      `;
+      
+      const result = await exec(sql, {});
+      
+      // Serialize the results
+      const serializedRows = result.rows.map(row => {
+        const serialized = {};
+        for (const key in row) {
+          const value = row[key];
+          if (value instanceof Date) {
+            serialized[key] = value.toISOString();
+          } else if (value !== null && typeof value === 'object' && value.toString) {
+            serialized[key] = value.toString();
+          } else {
+            serialized[key] = value;
+          }
+        }
+        return serialized;
+      });
+      
+      res.json(serializedRows);
+      
+    } else if (type === 'FACILITY') {
+      // Join REPORT with FACILITY table
+      const sql = `
+        SELECT 
+          R.REPORT_ID, R.SUBMITTED_BY, R.TITLE, R.DESCRIPTION, R.LOCATION,
+          R.STATUS, R.TYPE, R.SUBMITTED_AT, R.UPDATED_AT,
+          F.FACILITY_TYPE, F.SEVERITY_LEVEL, F.AFFECTED_EQUIPMENT
+        FROM REPORT R
+        LEFT JOIN FACILITY F ON R.REPORT_ID = F.REPORT_ID
+        WHERE R.TYPE = 'FACILITY'
+        ORDER BY R.SUBMITTED_AT DESC
+      `;
+      
+      const result = await exec(sql, {});
+      
+      // Serialize the results
+      const serializedRows = result.rows.map(row => {
+        const serialized = {};
+        for (const key in row) {
+          const value = row[key];
+          if (value instanceof Date) {
+            serialized[key] = value.toISOString();
+          } else if (value !== null && typeof value === 'object' && value.toString) {
+            serialized[key] = value.toString();
+          } else {
+            serialized[key] = value;
+          }
+        }
+        return serialized;
+      });
+      
+      res.json(serializedRows);
+      
+    } else {
+      // No type specified, return all reports
+      const sql = `SELECT * FROM REPORT ORDER BY SUBMITTED_AT DESC`;
+      const result = await exec(sql, {});
+      
+      const serializedRows = result.rows.map(row => {
+        const serialized = {};
+        for (const key in row) {
+          const value = row[key];
+          if (value instanceof Date) {
+            serialized[key] = value.toISOString();
+          } else if (value !== null && typeof value === 'object' && value.toString) {
+            serialized[key] = value.toString();
+          } else {
+            serialized[key] = value;
+          }
+        }
+        return serialized;
+      });
+      
+      res.json(serializedRows);
+    }
+  } catch (err) {
+    console.error('Get reports with details error:', err);
+    res.status(500).json({ error: 'Failed to get reports', details: err.message });
+  }
+});
+
 // GET /api/reports/:id
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
@@ -342,7 +542,28 @@ router.get('/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Report not found' });
     }
 
-    res.json(result.rows[0]);
+    const report = result.rows[0];
+    let detailedReport = { ...report };
+
+    if (report.TYPE === 'CRIME') {
+      const crimeResult = await exec(
+        `SELECT * FROM CRIME WHERE REPORT_ID = :id`,
+        { id: req.params.id }
+      );
+      if (crimeResult.rows.length > 0) {
+        detailedReport = { ...report, ...crimeResult.rows[0] };
+      }
+    } else if (report.TYPE === 'FACILITY') {
+      const facilityResult = await exec(
+        `SELECT * FROM FACILITY WHERE REPORT_ID = :id`,
+        { id: req.params.id }
+      );
+      if (facilityResult.rows.length > 0) {
+        detailedReport = { ...report, ...facilityResult.rows[0] };
+      }
+    }
+
+    res.json(detailedReport);
   } catch (err) {
     console.error('Get report error:', err);
     res.status(500).json({ error: 'Failed to get report', details: err.message });

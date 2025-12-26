@@ -67,7 +67,25 @@ router.get('/my-reports', authenticateToken, async (req, res) => {
     `;
     
     const result = await exec(sql, { user_id: req.user.accountId });
-    res.json(result.rows);
+
+    // Manual serialization to avoid circular references
+    const cleanRows = result.rows.map(row => {
+      const cleanRow = {};
+      // Extract only the data we need
+      Object.keys(row).forEach(key => {
+        // Skip any Oracle-specific objects
+        if (typeof row[key] !== 'object' || row[key] === null) {
+          cleanRow[key] = row[key];
+        } else if (row[key] instanceof Date) {
+          cleanRow[key] = row[key].toISOString();
+        } else if (typeof row[key].toString === 'function') {
+          cleanRow[key] = row[key].toString();
+        }
+      });
+      return cleanRow;
+    });
+    
+    res.json(cleanRows);
   } catch (err) {
     console.error('Get my crimes error:', err);
     res.status(500).json({ error: 'Failed to get crimes', details: err.message });
@@ -117,7 +135,22 @@ router.get('/report/:reportId', authenticateToken, async (req, res) => {
       `SELECT * FROM CRIME WHERE REPORT_ID = :report_id`,
       { report_id: req.params.reportId }
     );
-    res.json(result.rows);
+    const serializedRows = result.rows.map(row => {
+      const serialized = {};
+      for (const key in row) {
+        const value = row[key];
+        if (value instanceof Date) {
+          serialized[key] = value.toISOString();
+        } else if (value !== null && typeof value === 'object' && value.toString) {
+          serialized[key] = value.toString();
+        } else {
+          serialized[key] = value;
+        }
+      }
+      return serialized;
+    });
+    
+    res.json(serializedRows);
   } catch (err) {
     console.error('Get crime error:', err);
     res.status(500).json({ error: 'Failed to get crime', details: err.message });
