@@ -19,22 +19,44 @@ export default function ReportDetailPage({ params }: { params: Promise<{ id: str
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchReport = async () => {
-      try {
-        const response = await fetch(`/api/reports/${id}`);
-        if (!response.ok) throw new Error('Not found');
-        const data = await response.json();
-        if (data.type === 'FACILITY') {
-          setReport(data as Facility);
-        }
-      } catch (error) {
-        console.error('Error fetching report:', error);
-      } finally {
-        setLoading(false);
+  const fetchReport = async () => {
+    try {
+      const response = await fetch(`/api/reports/${id}`);
+      if (!response.ok) throw new Error('Not found');
+      const data = await response.json();
+      
+      console.log('Fetched report data:', data); // Debug log
+      
+      if (data.TYPE === 'FACILITY' || data.type === 'FACILITY') {
+        // Transform Oracle column names to camelCase
+        const transformedReport: Facility = {
+          reportId: data.REPORT_ID || data.reportId,
+          title: data.TITLE || data.title,
+          description: data.DESCRIPTION || data.description,
+          location: data.LOCATION || data.location,
+          status: data.STATUS || data.status,
+          type: 'FACILITY',
+          submittedBy: data.SUBMITTED_BY || data.submittedBy,
+          submittedAt: data.SUBMITTED_AT || data.submittedAt,
+          updatedAt: data.UPDATED_AT || data.updatedAt,
+          facilityType: data.FACILITY_TYPE || data.facilityType,
+          severityLevel: data.SEVERITY_LEVEL || data.severityLevel,
+          affectedEquipment: data.AFFECTED_EQUIPMENT || data.affectedEquipment,
+        };
+        
+        console.log('Transformed report:', transformedReport); // Debug log
+        setReport(transformedReport);
+      } else {
+        throw new Error('Report is not a facility report');
       }
-    };
-    fetchReport();
-  }, [id]);
+    } catch (error) {
+      console.error('Error fetching report:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchReport();
+}, [id]);
 
   if (loading) {
     return (

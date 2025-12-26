@@ -11,6 +11,7 @@ import { ReportStatus, Facility } from "@/lib/types";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { useAuth } from "@/lib/context/auth-provider";
 import ReportCard from "@/components/report/reportCard";
+import { apiClient } from "@/lib/api/client";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -22,20 +23,41 @@ export default function MyReportsPage() {
   const [statusFilter, setStatusFilter] = useState<ReportStatus | "ALL">("ALL");
   const [currentPage, setCurrentPage] = useState(1);
 
-  useEffect(() => {
+ useEffect(() => {
     const fetchMyReports = async () => {
       try {
-        const response = await fetch(`/api/reports?type=FACILITY&submittedBy=${claims?.user_metadata?.userId  }`);
-        if (!response.ok) throw new Error('Failed to fetch reports');
-        const data = await response.json();
-        setReports(data as Facility[]);
+        console.log("Fetching my facility reports...");
+        
+        // Use the correct endpoint - /api/facilities/my-reports
+        const data = await apiClient.get<any[]>('/api/facilities/my-reports');
+        
+        console.log("Fetched reports:", data);
+        
+        // Transform the data to match Facility type
+        const transformedReports = data.map((item: any) => ({
+          reportId: item.REPORT_ID,
+          title: item.TITLE,
+          description: item.DESCRIPTION || '',
+          location: item.LOCATION,
+          status: item.STATUS,
+          type: 'FACILITY',
+          submittedBy: item.SUBMITTED_BY,
+          submittedAt: item.SUBMITTED_AT,
+          updatedAt: item.UPDATED_AT,
+          facilityType: item.FACILITY_TYPE,
+          severityLevel: item.SEVERITY_LEVEL,
+          affectedEquipment: item.AFFECTED_EQUIPMENT,
+        }));
+        
+        setReports(transformedReports as Facility[]);
       } catch (error) {
         console.error('Error fetching my reports:', error);
       } finally {
         setLoading(false);
       }
     };
-    if (claims?.user_metadata?.userId) fetchMyReports();
+    
+    fetchMyReports();
   }, [claims]);
 
   const filteredReports = reports.filter((report) => {

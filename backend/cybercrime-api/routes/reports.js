@@ -629,32 +629,52 @@ router.get('/with-details', async (req, res) => {
 // GET /api/reports/:id
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
-    const result = await exec(
+    // First get the basic report
+    const reportResult = await exec(
       `SELECT * FROM REPORT WHERE REPORT_ID = :id`,
       { id: req.params.id }
     );
 
-    if (result.rows.length === 0) {
+    if (reportResult.rows.length === 0) {
       return res.status(404).json({ error: 'Report not found' });
     }
-    const report = result.rows[0];
-        const serializedReport = {};
-        
-        // Copy all properties to a plain object
-        for (const key in report) {
-          const value = report[key];
-          // Handle Oracle types properly
-          if (value instanceof Date) {
-            serializedReport[key] = value.toISOString();
-          } else if (value !== null && typeof value === 'object' && value.toString) {
-            // Handle Oracle-specific types
-            serializedReport[key] = value.toString();
-          } else {
-            serializedReport[key] = value;
-          }
-        }
 
-        res.json(serializedReport);
+    const report = reportResult.rows[0];
+    let detailedReport = { ...report };
+
+    // Get type-specific details
+    if (report.TYPE === 'CRIME') {
+      const crimeResult = await exec(
+        `SELECT * FROM CRIME WHERE REPORT_ID = :id`,
+        { id: req.params.id }
+      );
+      if (crimeResult.rows.length > 0) {
+        detailedReport = { ...report, ...crimeResult.rows[0] };
+      }
+    } else if (report.TYPE === 'FACILITY') {
+      const facilityResult = await exec(
+        `SELECT * FROM FACILITY WHERE REPORT_ID = :id`,
+        { id: req.params.id }
+      );
+      if (facilityResult.rows.length > 0) {
+        detailedReport = { ...report, ...facilityResult.rows[0] };
+      }
+    }
+
+    // Serialize the response
+    const serializedReport = {};
+    for (const key in detailedReport) {
+      const value = detailedReport[key];
+      if (value instanceof Date) {
+        serializedReport[key] = value.toISOString();
+      } else if (value !== null && typeof value === 'object' && value.toString) {
+        serializedReport[key] = value.toString();
+      } else {
+        serializedReport[key] = value;
+      }
+    }
+
+    res.json(serializedReport);
   } catch (err) {
     console.error('Get report error:', err);
     res.status(500).json({ error: 'Failed to get report', details: err.message });

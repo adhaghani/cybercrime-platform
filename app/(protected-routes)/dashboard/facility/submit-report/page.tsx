@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { apiClient } from "@/lib/api/client";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 const facilityReportSchema = z.object({
@@ -42,35 +43,55 @@ export default function SubmitReportPage() {
     },
   });
 
-  const onSubmit = async (data: FacilityReportFormValues) => {
-    setIsSubmitting(true);
+  useEffect(() => {
+      // Debug: Check where token is stored
+      console.log("=== DEBUG TOKEN STORAGE ===");
+      
+      // Check apiClient
+      const token = apiClient.getToken ? apiClient.getToken() : null;
+      console.log("Token from apiClient:", token);
+      
+      // Check localStorage
+      console.log("LocalStorage token:", localStorage.getItem('token'));
+      console.log("LocalStorage access_token:", localStorage.getItem('access_token'));
+      
+      // Check all localStorage items
+      console.log("All localStorage items:");
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        console.log(`  ${key}:`, localStorage.getItem(key || ''));
+      }
+    }, []);
 
-    try {
-      const response = await fetch('/api/reports', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'FACILITY',
-          title: data.title,
-          description: data.description,
-          location: data.location,
-          facility_type: data.facilityType,
-          severity_level: data.severityLevel,
-          affected_equipment: data.affectedEquipment,
-        }),
-      });
-      
-      if (!response.ok) throw new Error('Failed to submit report');
-      
-      toast.success("Report submitted successfully!");
-      router.push("/dashboard/facility/my-reports");
-    } catch (error) {
-      console.error("Error submitting facility report:", error);
-      toast.error("Failed to submit report. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const onSubmit = async (data: FacilityReportFormValues) => {
+  setIsSubmitting(true);
+
+  try {
+    const reportData = {
+      type: 'FACILITY',
+      title: data.title,
+      description: data.description,
+      location: data.location,
+      facility_type: data.facilityType,
+      severity_level: data.severityLevel,
+      affected_equipment: data.affectedEquipment || null,
+    };
+    
+    console.log("Sending to API:", reportData);
+    
+    const response = await apiClient.post('/api/reports', reportData);
+    
+    console.log("Response:", response);
+    
+    toast.success("Facility report submitted successfully!");
+    router.push("/dashboard/facility/my-reports");
+  } catch (error: any) {
+    console.error("Error submitting facility report:", error);
+    toast.error(error.message || "Failed to submit report. Please try again.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto w-full">

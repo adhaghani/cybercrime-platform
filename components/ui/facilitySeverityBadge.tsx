@@ -3,7 +3,7 @@ import { SeverityLevel } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type FacilitySeverityBadgeProps = {
-  severityLevel: SeverityLevel;
+  severityLevel?: SeverityLevel | string;
   className?: string;
 };
 
@@ -11,8 +11,19 @@ export default function FacilitySeverityBadge({
   severityLevel,
   className,
 }: FacilitySeverityBadgeProps) {
+  // Handle undefined or null severityLevel
+  if (!severityLevel) {
+    return (
+      <Badge className={cn("bg-gray-500/10 text-gray-500 border-gray-500/20", className)}>
+        Not specified
+      </Badge>
+    );
+  }
+
   const getSeverityColor = () => {
-    switch (severityLevel) {
+    const level = severityLevel.toUpperCase();
+    
+    switch (level) {
       case "LOW":
         return "bg-gray-500/10 text-gray-500 border-gray-500/20";
       case "MEDIUM":
@@ -21,12 +32,14 @@ export default function FacilitySeverityBadge({
         return "bg-orange-500/10 text-orange-500 border-orange-500/20";
       case "CRITICAL":
         return "bg-red-500/10 text-red-500 border-red-500/20";
+      default:
+        return "bg-gray-500/10 text-gray-500 border-gray-500/20";
     }
   };
 
   return (
     <Badge className={cn(getSeverityColor(), className)}>
-      {severityLevel.replace("_", " ")}
+      {severityLevel.toString().replace("_", " ")}
     </Badge>
   );
 }

@@ -35,7 +35,7 @@ export default function AllReportsPage() {
   useEffect(() => {
     const fetchFacilityReports = async () => {
       try {
-        const response = await fetch('/api/reports?type=FACILITY');
+        const response = await fetch('/api/reports/with-details?type=FACILITY');
         if (!response.ok) throw new Error('Failed to fetch reports');
         const data = await response.json();
         setReports(data as Facility[]);
