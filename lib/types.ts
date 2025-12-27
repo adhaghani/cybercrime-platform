@@ -72,7 +72,7 @@ export interface Report {
   LOCATION: string;
   STATUS: ReportStatus;
   TYPE: ReportType;
-  ATTACHMENT_PATH?: string;
+  ATTACHMENT_PATH?: string[];
   SUBMITTED_AT: string;
   UPDATED_AT: string;
 }

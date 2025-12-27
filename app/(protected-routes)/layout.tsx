@@ -1,6 +1,4 @@
 import { ProtectedLayoutContent } from "@/components/auth/protected-layout-content";
-import { StyleProvider } from "@/lib/context/style-provider";
-
 import { AppSidebar } from "@/components/dashboard/app-sidebar"
 import { SiteHeader } from "@/components/dashboard/site-header"
 import {
@@ -15,7 +13,7 @@ export default function ProtectedLayout({
 }) {
   return (
   <ProtectedLayoutContent>
-    <StyleProvider>
+
       <div className="w-full">
         <SidebarProvider className="flex flex-col">
           <SiteHeader />
@@ -27,6 +25,5 @@ export default function ProtectedLayout({
           </div>
         </SidebarProvider>
       </div>
-    </StyleProvider>
     </ProtectedLayoutContent>);
 }

@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/lib/context/theme-provder";
 import { StructuredData } from "@/components/seo/structured-data";
 import { WebVitals } from "@/components/seo/web-vitals";
 import AuthProvider from "@/lib/context/auth-provider";
 import { Toaster } from "sonner";
+import { StyleProvider } from "@/lib/context/style-provider";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -33,6 +34,7 @@ export default function RootLayout({
         />
         <meta name="format-detection" content="telephone=no" />
       </head>
+      <StyleProvider>
       <body className="bg-background text-foreground">
         <WebVitals />
         <AuthProvider>
@@ -49,6 +51,7 @@ export default function RootLayout({
         </AuthProvider>
         <Toaster position="bottom-right" richColors />
       </body>
+      </StyleProvider>
     </html>
   );
 }

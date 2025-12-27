@@ -20,7 +20,8 @@ import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { ProfilePictureUpload } from "@/components/upload/profile-picture-upload";
 
 const profileFormSchema = z.object({
   name: z
@@ -48,7 +49,8 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 export default function SettingsProfilePage() {
   const { claims, setClaims } = useAuth();
   const router = useRouter();
-  const role = claims?.ROLE;
+  const AccountType = claims?.ACCOUNT_TYPE
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>();
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -92,13 +94,14 @@ export default function SettingsProfilePage() {
           body: JSON.stringify({
             name: data.name,
             contact_number: data.contactNumber,
-            ...(role === 'STUDENT' ? {
+            avatar_url: avatarUrl,
+            ...(AccountType === 'STUDENT' ? {
               student_id: claims?.STUDENT_ID,
               program: data.program,
               semester: data.semester ? parseInt(data.semester) : undefined,
               year_of_study: data.yearOfStudy ? parseInt(data.yearOfStudy) : undefined,
             } : {}),
-            ...((role === 'STAFF' || role === 'SUPERVISOR' || role === 'ADMIN' || role === 'SUPERADMIN') ? {
+            ...((AccountType === 'STAFF') ? {
               staff_id: claims?.STAFF_ID,
               department: data.department,
               position: data.position,
@@ -114,13 +117,14 @@ export default function SettingsProfilePage() {
             ...claims,
             NAME: data.name,
             CONTACT_NUMBER: data.contactNumber,
-            ...(role === 'STUDENT' ? {
+            ...(avatarUrl && { AVATAR_URL: avatarUrl }),
+            ...(AccountType === 'STUDENT' ? {
               STUDENT_ID: claims?.STUDENT_ID,
               PROGRAM: data.program,
               SEMESTER: data.semester ? parseInt(data.semester) : claims.SEMESTER,
               YEAR_OF_STUDY: data.yearOfStudy ? parseInt(data.yearOfStudy) : claims.YEAR_OF_STUDY,
             } : {}),
-            ...((role === 'STAFF' || role === 'SUPERVISOR' || role === 'ADMIN' || role === 'SUPERADMIN') ? {
+            ...((AccountType === 'STAFF') ? {
               STAFF_ID: claims?.STAFF_ID,
               DEPARTMENT: data.department,
               POSITION: data.position,
@@ -141,6 +145,17 @@ export default function SettingsProfilePage() {
     updateAccount();
   }
 
+  const getUserInitials = () => {
+    if (claims?.NAME) {
+      return claims.NAME.split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+    }
+    return 'U';
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -157,6 +172,18 @@ export default function SettingsProfilePage() {
         </div>
       </div>
       <Separator />
+      
+      {/* Profile Picture Upload */}
+      <div className="flex justify-center py-6">
+        <ProfilePictureUpload
+          currentImageUrl={claims?.AVATAR_URL as string | undefined}
+          userInitials={getUserInitials()}
+          onUploadComplete={(path) => setAvatarUrl(path)}
+          accountId={claims?.ACCOUNT_ID || ''}
+        />
+      </div>
+      <Separator />
+      
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField
@@ -193,7 +220,7 @@ export default function SettingsProfilePage() {
           />
 
           {/* Student Fields */}
-          {role === 'STUDENT' && (
+          {AccountType === 'STUDENT' && (
             <>
               <FormField
                 control={form.control}
@@ -240,7 +267,7 @@ export default function SettingsProfilePage() {
           )}
 
           {/* Staff Fields */}
-          {(role === 'STAFF' || role === 'ADMIN') && (
+          {(AccountType === 'STAFF') && (
             <>
               <FormField
                 control={form.control}

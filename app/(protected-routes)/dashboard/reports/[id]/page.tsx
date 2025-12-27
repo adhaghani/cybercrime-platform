@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +18,13 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
 import { 
   FileText,
   Calendar,
@@ -320,26 +328,39 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
                   </p>
                 </div>
               </div>
-
-              {report.ATTACHMENT_PATH && (
-                <>
-                  <Separator />
-                  <div>
-                    <Label className="text-muted-foreground flex items-center gap-2">
-                      <ImageIcon className="h-4 w-4" />
-                      Attachment
-                    </Label>
-                    <div className="mt-2">
-                      <Button variant="outline" size="sm">
-                        View Attachment
-                      </Button>
-                    </div>
-                  </div>
-                </>
-              )}
             </CardContent>
           </Card>
-
+          {
+            report.ATTACHMENT_PATH ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Report Image Evidence</CardTitle>
+                </CardHeader>
+                <CardContent>
+              <Carousel className="w-4/5 mx-auto">
+                <CarouselContent>
+                  {
+                    report.ATTACHMENT_PATH.map((path, index) => (
+                      <CarouselItem className="basis-1 md:basis-1/2" key={index}>
+                        <div className="w-full aspect-4/3 relative rounded-lg overflow-hidden">
+                          <Image
+                            src={path}
+                            alt={`Attachment ${index + 1}`}
+                            fill
+                            className="aspect-4/3"
+                          />
+                        </div>
+                      </CarouselItem>
+                    ))
+                  }
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
+              </CardContent>
+              </Card>
+            ) : null
+          }
           {/* Crime/Facility Specific Details */}
           {isCrimeReport && crimeData && (
             <Card>

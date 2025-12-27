@@ -54,7 +54,7 @@ export function NavUser({
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium text-xs">{user.NAME}</span>
               </div>
-              <Avatar className="h-8 w-8 rounded-lg">
+              <Avatar className="h-8 w-8 rounded-full">
                 <AvatarImage src={user.AVATAR_URL} alt={user.NAME} />
                 <AvatarFallback className="rounded-lg">{getEmailInitials(user.NAME)}</AvatarFallback>
               </Avatar>

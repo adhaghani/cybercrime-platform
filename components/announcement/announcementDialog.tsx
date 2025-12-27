@@ -24,6 +24,17 @@ const AnnouncementDialog = ({announcement, open, onOpenChange} : AnnouncementCar
     <Dialog open={open} onOpenChange={onOpenChange}> 
       <DialogContent className="!max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <DialogHeader>
+            {announcement.PHOTO_PATH && (
+              <div className="aspect-video w-full bg-accent rounded-lg flex items-center justify-center overflow-hidden">
+                <Image
+                  width={800}
+                  height={450}
+                  src={announcement.PHOTO_PATH}
+                  alt={announcement.TITLE}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
           <div className="flex items-start justify-between">
             <div className="space-y-2 flex-1">
               <DialogTitle className="text-2xl flex items-center gap-4">
@@ -46,17 +57,6 @@ const AnnouncementDialog = ({announcement, open, onOpenChange} : AnnouncementCar
 
         <div className="grid gap-6  mt-4">
           <div className=" space-y-6">
-            {announcement.PHOTO_PATH && (
-              <div className="aspect-video w-full bg-accent rounded-lg flex items-center justify-center overflow-hidden">
-                <Image
-                  width={800}
-                  height={450}
-                  src={announcement.PHOTO_PATH}
-                  alt={announcement.TITLE}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            )}
             
             <Card>
               <CardHeader>

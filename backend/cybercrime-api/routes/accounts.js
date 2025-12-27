@@ -14,6 +14,7 @@ router.get('/', optionalAuth, async (req, res) => {
               a.NAME,
               a.EMAIL,
               a.CONTACT_NUMBER,
+              a.AVATAR_URL,
               a.ACCOUNT_TYPE,
               s.STUDENT_ID,
               f.STAFF_ID,
@@ -30,6 +31,7 @@ router.get('/', optionalAuth, async (req, res) => {
         ACCOUNT_ID: row.ACCOUNT_ID,
         NAME: row.NAME,
         EMAIL: row.EMAIL,
+        AVATAR_URL: row.AVATAR_URL,
         CONTACT_NUMBER: row.CONTACT_NUMBER,
         ACCOUNT_TYPE: row.ACCOUNT_TYPE,
         CREATED_AT: row.CREATED_AT,
@@ -78,8 +80,8 @@ router.post('/', async (req, res) => {
 
     // 1. Insert into ACCOUNT table (trigger will auto-create empty STUDENT/STAFF record)
     const accountSql = `
-      INSERT INTO ACCOUNT (NAME, EMAIL, PASSWORD_HASH, CONTACT_NUMBER, ACCOUNT_TYPE)
-      VALUES (:name, :email, :password, :contact_number, :type)
+      INSERT INTO ACCOUNT (NAME, EMAIL, PASSWORD_HASH, CONTACT_NUMBER, AVATAR_URL, ACCOUNT_TYPE)
+      VALUES (:name, :email, :password, :contact_number, :avatar_url, :type)
       RETURNING ACCOUNT_ID INTO :id
     `;
 
@@ -88,6 +90,7 @@ router.post('/', async (req, res) => {
       email,
       password: hashedPassword,
       contact: contact_number || null,
+      avatar_url: null,
       type: account_type,
       id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
     };
@@ -159,6 +162,7 @@ router.get('/:id', async (req, res) => {
               a.NAME,
               a.EMAIL,
               a.CONTACT_NUMBER,
+              a.AVATAR_URL,
               a.ACCOUNT_TYPE,
               s.STUDENT_ID,
               s.PROGRAM,
@@ -188,6 +192,7 @@ router.get('/:id', async (req, res) => {
       NAME: row.NAME,
       EMAIL: row.EMAIL,
       CONTACT_NUMBER: row.CONTACT_NUMBER,
+      AVATAR_URL: row.AVATAR_URL,
       ACCOUNT_TYPE: row.ACCOUNT_TYPE,
       CREATED_AT: row.CREATED_AT,
       UPDATED_AT: row.UPDATED_AT
@@ -214,7 +219,7 @@ router.get('/:id', async (req, res) => {
 // PUT /api/accounts/:id
 router.put('/:id', authenticateToken, async (req, res) => {
   try {
-    const { name, email, contact_number, password } = req.body;
+    const { name, email, contact_number, password, avatar_url } = req.body;
     const updates = [];
     const binds = { id: req.params.id };
 
@@ -229,6 +234,10 @@ router.put('/:id', authenticateToken, async (req, res) => {
     if (contact_number) {
       updates.push('CONTACT_NUMBER = :contact');
       binds.contact = contact_number;
+    }
+    if (avatar_url) {
+      updates.push('AVATAR_URL = :avatar_url');
+      binds.avatar_url = avatar_url;
     }
     if (password) {
       updates.push('PASSWORD_HASH = :password');

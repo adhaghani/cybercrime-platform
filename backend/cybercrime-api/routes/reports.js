@@ -5,6 +5,22 @@ const { authenticateToken } = require('../middleware/auth');
 const { toPlainRows } = require('../helper/toPlainRows');
 const router = express.Router();
 
+// Helper function to parse attachment_path JSON string to array
+const parseAttachmentPath = (report) => {
+  if (report.ATTACHMENT_PATH) {
+    try {
+      const parsed = JSON.parse(report.ATTACHMENT_PATH);
+      report.ATTACHMENT_PATH = Array.isArray(parsed) ? parsed : [report.ATTACHMENT_PATH];
+    } catch (e) {
+      // If parsing fails, treat as single path
+      report.ATTACHMENT_PATH = [report.ATTACHMENT_PATH];
+    }
+  } else {
+    report.ATTACHMENT_PATH = [];
+  }
+  return report;
+};
+
 // GET /api/reports
 router.get('/', authenticateToken, async (req, res) => {
   try {
@@ -36,11 +52,11 @@ router.get('/', authenticateToken, async (req, res) => {
 
     const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
     
-    const sql = `SELECT REPORT_ID, SUBMITTED_BY, TITLE, DESCRIPTION, TYPE, LOCATION, STATUS, SUBMITTED_AT, UPDATED_AT 
+    const sql = `SELECT REPORT_ID, SUBMITTED_BY, TITLE, DESCRIPTION, TYPE, LOCATION, STATUS, ATTACHMENT_PATH, SUBMITTED_AT, UPDATED_AT 
                  FROM REPORT ${whereClause} ORDER BY SUBMITTED_AT DESC`;
     
     const result = await exec(sql, binds);
-    const reports = toPlainRows(result.rows);
+    const reports = toPlainRows(result.rows).map(parseAttachmentPath);
     res.json({ reports, total: reports.length });
   } catch (err) {
     console.error('Get reports error:', err);
@@ -63,6 +79,7 @@ router.post('/', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Title, description, location, and type are required' });
     }
 
+    // attachment_path can be a JSON string array of image paths (up to 5 images)
     const sql = `
       INSERT INTO REPORT (
         REPORT_ID, SUBMITTED_BY, TITLE, DESCRIPTION, LOCATION, STATUS, TYPE, 
@@ -180,7 +197,7 @@ router.get('/my-reports', authenticateToken, async (req, res) => {
       sql = `
         SELECT 
           R.REPORT_ID, R.SUBMITTED_BY, R.TITLE, R.DESCRIPTION, R.LOCATION, 
-          R.STATUS, R.TYPE, R.SUBMITTED_AT, R.UPDATED_AT,
+          R.STATUS, R.TYPE, R.SUBMITTED_AT, R.UPDATED_AT, R.ATTACHMENT_PATH,
           C.CRIME_CATEGORY, C.SUSPECT_DESCRIPTION, C.VICTIM_INVOLVED,
           C.WEAPON_INVOLVED, C.INJURY_LEVEL, C.EVIDENCE_DETAILS
         FROM REPORT R
@@ -192,7 +209,7 @@ router.get('/my-reports', authenticateToken, async (req, res) => {
       sql = `
         SELECT 
           R.REPORT_ID, R.SUBMITTED_BY, R.TITLE, R.DESCRIPTION, R.LOCATION,
-          R.STATUS, R.TYPE, R.SUBMITTED_AT, R.UPDATED_AT,
+          R.STATUS, R.TYPE, R.SUBMITTED_AT, R.UPDATED_AT, R.ATTACHMENT_PATH,
           F.FACILITY_TYPE, F.SEVERITY_LEVEL, F.AFFECTED_EQUIPMENT
         FROM REPORT R
         LEFT JOIN FACILITY F ON R.REPORT_ID = F.REPORT_ID
@@ -209,7 +226,7 @@ router.get('/my-reports', authenticateToken, async (req, res) => {
     const result = await exec(sql, binds);
     console.log('Raw result.rows:', result.rows);
     
-    const reports = toPlainRows(result.rows);
+    const reports = toPlainRows(result.rows).map(parseAttachmentPath);
     console.log('After toPlainRows:', reports);
     
     res.json(reports);
@@ -257,7 +274,7 @@ router.get('/search', authenticateToken, async (req, res) => {
     const sql = `SELECT * FROM REPORT ${whereClause} ORDER BY SUBMITTED_AT DESC`;
     const result = await exec(sql, binds);
 
-    res.json(result.rows);
+    res.json(toPlainRows(result.rows).map(parseAttachmentPath));
   } catch (err) {
     console.error('Search reports error:', err);
     res.status(500).json({ error: 'Failed to search reports', details: err.message });
@@ -448,7 +465,7 @@ router.get('/with-details', async (req, res) => {
       const sql = `
         SELECT 
           R.REPORT_ID, R.SUBMITTED_BY, R.TITLE, R.DESCRIPTION, R.LOCATION, 
-          R.STATUS, R.TYPE, R.SUBMITTED_AT, R.UPDATED_AT,
+          R.STATUS, R.TYPE, R.SUBMITTED_AT, R.UPDATED_AT, R.ATTACHMENT_PATH,
           C.CRIME_CATEGORY, C.SUSPECT_DESCRIPTION, C.VICTIM_INVOLVED,
           C.WEAPON_INVOLVED, C.INJURY_LEVEL, C.EVIDENCE_DETAILS
         FROM REPORT R
@@ -472,7 +489,7 @@ router.get('/with-details', async (req, res) => {
             serialized[key] = value;
           }
         }
-        return serialized;
+        return parseAttachmentPath(serialized);
       });
       
       res.json(serializedRows);
@@ -482,7 +499,7 @@ router.get('/with-details', async (req, res) => {
       const sql = `
         SELECT 
           R.REPORT_ID, R.SUBMITTED_BY, R.TITLE, R.DESCRIPTION, R.LOCATION,
-          R.STATUS, R.TYPE, R.SUBMITTED_AT, R.UPDATED_AT,
+          R.STATUS, R.TYPE, R.SUBMITTED_AT, R.UPDATED_AT, R.ATTACHMENT_PATH,
           F.FACILITY_TYPE, F.SEVERITY_LEVEL, F.AFFECTED_EQUIPMENT
         FROM REPORT R
         LEFT JOIN FACILITY F ON R.REPORT_ID = F.REPORT_ID
@@ -505,7 +522,7 @@ router.get('/with-details', async (req, res) => {
             serialized[key] = value;
           }
         }
-        return serialized;
+        return parseAttachmentPath(serialized);
       });
       
       res.json(serializedRows);
@@ -527,7 +544,7 @@ router.get('/with-details', async (req, res) => {
             serialized[key] = value;
           }
         }
-        return serialized;
+        return parseAttachmentPath(serialized);
       });
       
       res.json(serializedRows);
@@ -596,6 +613,9 @@ router.get('/:id', authenticateToken, async (req, res) => {
 
     const resolutions = toPlainRows(resolutionsResult.rows);
     detailedReport.RESOLUTIONS = resolutions.length > 0 ? resolutions[0] : null;
+
+    // Parse attachment_path JSON string to array
+    detailedReport = parseAttachmentPath(detailedReport);
 
     res.json(detailedReport);
   } catch (err) {

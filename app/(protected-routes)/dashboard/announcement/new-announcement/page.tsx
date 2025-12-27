@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import {
   Form,
   FormControl,
@@ -21,10 +20,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Bell, ArrowLeft, Save, Send, Image as ImageIcon, X } from "lucide-react";
+import { Bell, ArrowLeft, Save, Send } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import Image from "next/image";
+import { AnnouncementPhotoUpload } from "@/components/upload/announcement-photo-upload";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -52,7 +51,7 @@ const announcementSchema = z.object({
 
 export default function NewAnnouncementPage() {
   const router = useRouter();
-  const [photoPreview, setPhotoPreview] = useState<string>("");
+  const [photoPath, setPhotoPath] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const { claims } = useAuth();
   const ACCOUNT_ID = claims?.ACCOUNT_ID || null;
@@ -70,22 +69,7 @@ export default function NewAnnouncementPage() {
     },
   });
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Create preview URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
-  const handleRemovePhoto = () => {
-    setPhotoPreview("");
-    form.setValue("photo", undefined);
-  };
 
   const onSubmit = async (data: z.infer<typeof announcementSchema>, status: 'DRAFT' | 'PUBLISHED') => {
     try {
@@ -103,6 +87,7 @@ export default function NewAnnouncementPage() {
           end_date: data.endDate,
           created_by: ACCOUNT_ID,
           status,
+          ...(photoPath && { photo_path: photoPath }),
         }),
       });
       if (!response.ok) throw new Error('Failed to create announcement');
@@ -140,7 +125,25 @@ export default function NewAnnouncementPage() {
         <form className="">
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Main Form */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-4">
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Photo Upload</CardTitle>
+                <CardDescription>
+                  Add an optional photo to your announcement (16:9 aspect ratio)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AnnouncementPhotoUpload
+                  currentPhotoUrl={photoPath}
+                  onUploadComplete={(path) => setPhotoPath(path)}
+                  onRemove={() => setPhotoPath("")}
+                  disabled={isLoading}
+                />
+              </CardContent>
+            </Card>
+
               <Card>
                 <CardHeader>
                   <CardTitle>Announcement Details</CardTitle>
@@ -233,66 +236,6 @@ export default function NewAnnouncementPage() {
                   </div>
                 </CardContent>
               </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Photo Upload</CardTitle>
-                <CardDescription>
-                  Add an optional photo to your announcement
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="photo">Announcement Photo (Optional)</Label>
-                  {photoPreview ? (
-                    <div className="space-y-2">
-                      <div className="relative aspect-video w-full bg-accent rounded-lg overflow-hidden">
-                        <Image
-                        width={200}
-                        height={100} 
-                          src={photoPreview} 
-                          alt="Preview"
-                          className="w-full h-full object-cover"
-                        />
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          className="absolute top-2 right-2"
-                          onClick={handleRemovePhoto}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center w-full">
-                      <label
-                        htmlFor="photo"
-                        className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed rounded-lg cursor-pointer bg-accent/50 hover:bg-accent transition-colors"
-                      >
-                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                          <ImageIcon className="w-10 h-10 mb-3 text-muted-foreground" />
-                          <p className="mb-2 text-sm text-muted-foreground">
-                            <span className="font-semibold">Click to upload</span> or drag and drop
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            PNG, JPG or WEBP (MAX. 5MB)
-                          </p>
-                        </div>
-                        <Input
-                          id="photo"
-                          type="file"
-                          className="hidden"
-                          accept="image/*"
-                          onChange={handlePhotoChange}
-                        />
-                      </label>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
 
             <Card>
               <CardHeader>

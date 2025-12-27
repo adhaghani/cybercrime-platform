@@ -12,14 +12,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Bell, ArrowLeft, Save, Send, Image as ImageIcon, X , Loader2} from "lucide-react";
+import { Bell, ArrowLeft, Save, Send, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { notFound } from "next/navigation";
 import { Announcement } from "@/lib/types";
-import Image from "next/image";
+import { AnnouncementPhotoUpload } from "@/components/upload/announcement-photo-upload";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -53,7 +53,7 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
   const router = useRouter();
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [loading, setLoading] = useState(true);
-  const [photoPreview, setPhotoPreview] = useState<string>("");
+  const [photoPath, setPhotoPath] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -94,7 +94,7 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
           endDate: format(new Date(data.END_DATE), "yyyy-MM-dd"),
         });
         
-        setPhotoPreview(data.PHOTO_PATH || "");
+        setPhotoPath(data.PHOTO_PATH || "");
       } catch (error) {
         console.error('Error fetching announcement:', error);
       } finally {
@@ -103,22 +103,6 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
     };
     fetchAnnouncement();
   }, [params.id, reset]);
-
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Create preview URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleRemovePhoto = () => {
-    setPhotoPreview("");
-  };
 
   if (loading) {
     return (
@@ -150,6 +134,7 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
           start_date: startDateIso,
           end_date: endDateIso,
           status: status,
+          ...(photoPath && { photo_path: photoPath }),
         }),
       });
       if (!response.ok) throw new Error('Failed to update');
@@ -277,68 +262,17 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
               <CardHeader>
                 <CardTitle>Photo Upload</CardTitle>
                 <CardDescription>
-                  Update or remove the announcement photo
+                  Update or remove the announcement photo (16:9 aspect ratio)
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="photo">Announcement Photo (Optional)</Label>
-                  {photoPreview ? (
-                    <div className="space-y-2">
-                      <div className="relative aspect-video w-full bg-accent rounded-lg overflow-hidden">
-                        <Image 
-                        width={200}
-                        height={100}
-                          src={photoPreview} 
-                          alt="Preview"
-                          className="w-full h-full object-cover"
-                        />
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          className="absolute top-2 right-2"
-                          onClick={handleRemovePhoto}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => document.getElementById('photo')?.click()}
-                      >
-                        <ImageIcon className="h-4 w-4 mr-2" />
-                        Change Photo
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center w-full">
-                      <label
-                        htmlFor="photo"
-                        className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed rounded-lg cursor-pointer bg-accent/50 hover:bg-accent transition-colors"
-                      >
-                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                          <ImageIcon className="w-10 h-10 mb-3 text-muted-foreground" />
-                          <p className="mb-2 text-sm text-muted-foreground">
-                            <span className="font-semibold">Click to upload</span> or drag and drop
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            PNG, JPG or WEBP (MAX. 5MB)
-                          </p>
-                        </div>
-                        <Input
-                          id="photo"
-                          type="file"
-                          className="hidden"
-                          accept="image/*"
-                          onChange={handlePhotoChange}
-                        />
-                      </label>
-                    </div>
-                  )}
-                </div>
+              <CardContent>
+                <AnnouncementPhotoUpload
+                  currentPhotoUrl={photoPath}
+                  onUploadComplete={(path) => setPhotoPath(path)}
+                  onRemove={() => setPhotoPath("")}
+                  disabled={isSubmitting}
+                  announcementId={params.id}
+                />
               </CardContent>
             </Card>
 

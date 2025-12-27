@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import Image from "next/image";
 import { getPriorityColor, getAnnouncementTypeColor, getStatusColor } from "@/lib/utils/badge-helpers";
 import {
   Dialog,
@@ -23,7 +23,6 @@ import {
   Calendar,
   User,
   Clock,
-  Target,
 } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -84,33 +83,14 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex justify-between items-center gap-4">
         <Button variant="ghost" size="sm" asChild>
           <Link href="/dashboard/announcement">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Announcements
           </Link>
         </Button>
-      </div>
-
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-              <Bell className="h-8 w-8" />
-              {announcement.TITLE}
-            </h1>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <User className="h-4 w-4" />
-            <span>Posted by {announcement.CREATED_BY || "Unknown"}</span>
-            <span>•</span>
-            <Clock className="h-4 w-4" />
-            <span>{format(new Date(announcement.CREATED_AT), "PPP")}</span>
-          </div>
-        </div>
-
-        {hasManageAccess && (
+                {hasManageAccess && (
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" asChild>
               <Link href={`/dashboard/announcement/${announcement.ANNOUNCEMENT_ID}/update`}>
@@ -143,10 +123,55 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
           </div>
         )}
       </div>
+      {
+        announcement.PHOTO_PATH && (
+          <div>
+            <Image
+            width={500}
+            height={248}
+              src={announcement.PHOTO_PATH}
+              alt="Announcement Photo"
+              className="w-full aspect-video object-cover rounded-lg"
+            />
+          </div>
+        )
+      }
+      <div className="flex items-start justify-between">
+        <div className="space-y-1">
+          <div className="flex justify-between items-center gap-2 flex-wrap">
+            <div className="flex-1 flex">
+            <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+              <Bell className="h-8 w-8" />
+              {announcement.TITLE}
+            </h1>
+            </div>
+            <div className="flex flex-1 items-center gap-2">
+            <Badge className={getStatusColor(announcement.STATUS)} variant="outline">
+                  {announcement.STATUS}
+                </Badge>
+                <Badge className={getAnnouncementTypeColor(announcement.TYPE)} variant="outline">
+                  {announcement.TYPE}
+                </Badge>
+                <Badge className={getPriorityColor(announcement.PRIORITY)} variant="outline">
+                  {announcement.PRIORITY}
+                </Badge>
+              </div>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <User className="h-4 w-4" />
+            <span>Posted by {announcement.CREATED_BY || "Unknown"}</span>
+            <span>•</span>
+            <Clock className="h-4 w-4" />
+            <span>{format(new Date(announcement.CREATED_AT), "PPP")}</span>
+          </div>
+        </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+
+      </div>
+
+      <div className="space-y-4">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div >
           <Card>
             <CardHeader>
               <CardTitle>Announcement Message</CardTitle>
@@ -160,54 +185,31 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+        <div className="space-y-6" >
+
+              <div className="flex items-start gap-4">
               <div className="space-y-2">
-                <div className="text-sm font-medium text-muted-foreground">Status</div>
-                <Badge className={getStatusColor(announcement.STATUS)} variant="outline">
-                  {announcement.STATUS}
-                </Badge>
+                <div className="text-sm font-medium text-muted-foreground">Created By</div>
+                <div className="text-sm">{announcement.CREATED_BY || "Unknown"}</div>
               </div>
 
-              <Separator />
-
-              <div className="space-y-2">
-                <div className="text-sm font-medium text-muted-foreground">Type</div>
-                <Badge className={getAnnouncementTypeColor(announcement.TYPE)} variant="outline">
-                  {announcement.TYPE}
-                </Badge>
+              {announcement.UPDATED_AT && (
+                <>
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium text-muted-foreground">Last Updated</div>
+                    <div className="text-sm">
+                      {format(new Date(announcement.UPDATED_AT), "PPP")}
+                    </div>
+                  </div>
+                </>
+              )}
               </div>
-
-              <Separator />
-
-              <div className="space-y-2">
-                <div className="text-sm font-medium text-muted-foreground">Priority</div>
-                <Badge className={getPriorityColor(announcement.PRIORITY)} variant="outline">
-                  {announcement.PRIORITY}
-                </Badge>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                  <Target className="h-4 w-4" />
-                  Target Audience
-                </div>
-                <Badge variant="outline">{announcement.AUDIENCE}</Badge>
-              </div>
-
-              <Separator />
-
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                   <Calendar className="h-4 w-4" />
                   Display Period
                 </div>
+                <div className="flex items-center gap-4">
                 <div className="text-sm">
                   <div className="font-medium">Start Date</div>
                   <div className="text-muted-foreground">
@@ -220,28 +222,9 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
                     {format(new Date(announcement.END_DATE), "PPP")}
                   </div>
                 </div>
+                </div>
               </div>
 
-              <Separator />
-
-              <div className="space-y-2">
-                <div className="text-sm font-medium text-muted-foreground">Created By</div>
-                <div className="text-sm">{announcement.CREATED_BY || "Unknown"}</div>
-              </div>
-
-              {announcement.UPDATED_AT && (
-                <>
-                  <Separator />
-                  <div className="space-y-2">
-                    <div className="text-sm font-medium text-muted-foreground">Last Updated</div>
-                    <div className="text-sm">
-                      {format(new Date(announcement.UPDATED_AT), "PPP")}
-                    </div>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>

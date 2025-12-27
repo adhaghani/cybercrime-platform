@@ -15,6 +15,7 @@ router.get('/', authenticateToken, async (req, res) => {
         a.NAME as SUPERVISOR_NAME,
         a.EMAIL as SUPERVISOR_EMAIL,
         a.CONTACT_NUMBER as SUPERVISOR_CONTACT,
+        a.AVATAR_URL as SUPERVISOR_AVATAR_URL,
         s.STAFF_ID as SUPERVISOR_STAFF_ID,
         s.ROLE as SUPERVISOR_ROLE,
         s.DEPARTMENT as SUPERVISOR_DEPARTMENT,
@@ -24,7 +25,7 @@ router.get('/', authenticateToken, async (req, res) => {
       JOIN ACCOUNT a ON s.ACCOUNT_ID = a.ACCOUNT_ID
       LEFT JOIN STAFF team ON team.SUPERVISOR_ID = s.ACCOUNT_ID AND team.ACCOUNT_ID != s.ACCOUNT_ID
       WHERE s.ROLE = 'SUPERVISOR'
-      GROUP BY s.ACCOUNT_ID, a.NAME, a.EMAIL, a.CONTACT_NUMBER, s.STAFF_ID, s.ROLE, s.DEPARTMENT, s.POSITION
+      GROUP BY s.ACCOUNT_ID, a.NAME, a.EMAIL, a.CONTACT_NUMBER, a.AVATAR_URL, s.STAFF_ID, s.ROLE, s.DEPARTMENT, s.POSITION
       ORDER BY TEAM_SIZE DESC, a.NAME
     `;
     
@@ -42,6 +43,7 @@ router.get('/', authenticateToken, async (req, res) => {
           s.POSITION,
           s.SUPERVISOR_ID,
           a.NAME,
+          a.AVATAR_URL,
           a.EMAIL,
           a.CONTACT_NUMBER,
           a.ACCOUNT_TYPE
@@ -93,6 +95,7 @@ router.get('/my-team', authenticateToken, async (req, res) => {
         s.SUPERVISOR_ID,
         a.NAME,
         a.EMAIL,
+        a.AVATAR_URL,
         a.CONTACT_NUMBER
       FROM STAFF s
       JOIN ACCOUNT a ON s.ACCOUNT_ID = a.ACCOUNT_ID
@@ -120,6 +123,7 @@ router.get('/my-team', authenticateToken, async (req, res) => {
           s.DEPARTMENT,
           s.POSITION,
           s.SUPERVISOR_ID,
+          a.AVATAR_URL,
           a.NAME,
           a.EMAIL,
           a.CONTACT_NUMBER
@@ -141,6 +145,7 @@ router.get('/my-team', authenticateToken, async (req, res) => {
           s.DEPARTMENT,
           s.POSITION,
           a.NAME,
+          a.AVATAR_URL,
           a.EMAIL,
           a.CONTACT_NUMBER
         FROM STAFF s
@@ -164,6 +169,7 @@ router.get('/my-team', authenticateToken, async (req, res) => {
           s.SUPERVISOR_ID,
           a.NAME,
           a.EMAIL,
+          a.AVATAR_URL,
           a.CONTACT_NUMBER
         FROM STAFF s
         JOIN ACCOUNT a ON s.ACCOUNT_ID = a.ACCOUNT_ID

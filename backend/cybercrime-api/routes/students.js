@@ -30,7 +30,7 @@ router.get('/', authenticateToken, async (req, res) => {
     
     const sql = `
       SELECT st.ACCOUNT_ID, st.STUDENT_ID, st.PROGRAM, st.SEMESTER, 
-             st.YEAR_OF_STUDY, st.CREATED_AT, st.UPDATED_AT,
+             st.YEAR_OF_STUDY, st.CREATED_AT, st.UPDATED_AT, a.AVATAR_URL,
              a.NAME, a.EMAIL, a.CONTACT_NUMBER
       FROM STUDENT st
       JOIN ACCOUNT a ON st.ACCOUNT_ID = a.ACCOUNT_ID
@@ -113,7 +113,7 @@ router.get('/search', authenticateToken, async (req, res) => {
     const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
     
     const sql = `
-      SELECT st.ACCOUNT_ID, st.STUDENT_ID, st.PROGRAM, st.SEMESTER, st.YEAR_OF_STUDY,
+      SELECT st.ACCOUNT_ID, st.STUDENT_ID, st.PROGRAM, st.SEMESTER, st.YEAR_OF_STUDY, a.AVATAR_URL,
              a.NAME, a.EMAIL, a.CONTACT_NUMBER
       FROM STUDENT st
       JOIN ACCOUNT a ON st.ACCOUNT_ID = a.ACCOUNT_ID
@@ -196,7 +196,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
     const sql = `
       SELECT st.ACCOUNT_ID, st.STUDENT_ID, st.PROGRAM, st.SEMESTER, 
              st.YEAR_OF_STUDY, st.CREATED_AT, st.UPDATED_AT,
-             a.NAME, a.EMAIL, a.CONTACT_NUMBER
+             a.NAME, a.EMAIL, a.CONTACT_NUMBER, a.AVATAR_URL
       FROM STUDENT st
       JOIN ACCOUNT a ON st.ACCOUNT_ID = a.ACCOUNT_ID
       WHERE st.ACCOUNT_ID = :id

@@ -63,10 +63,14 @@ export function StyleProvider({ children }: { children: React.ReactNode }) {
     root.style.setProperty("--secondary", colors.secondary);
     root.style.setProperty("--secondary-foreground", colors.secondaryForeground);
     root.style.setProperty("--accent", colors.accent);
+    root.style.setProperty("--sidebar", colors.sidebar);
     root.style.setProperty("--accent-foreground", colors.accentForeground);
-    root.style.setProperty("--sidebar-primary", colors.sidebarPrimary);
-    root.style.setProperty("--sidebar-accent", colors.sidebarAccent);
+    root.style.setProperty("--sidebar-primary", colors.primary);
+    root.style.setProperty("--sidebar-primary-foreground", colors.primaryForeground);
+    root.style.setProperty("--sidebar-accent", colors.accent);
+    root.style.setProperty("--sidebar-accent-foreground", colors.accentForeground);
     root.style.setProperty("--ring", colors.ring);
+    root.style.setProperty("--sidebar-ring", colors.ring);
   }, [themeColor, resolvedTheme, mounted]);
 
   // Apply text size CSS variables

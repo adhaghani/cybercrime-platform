@@ -8,13 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Upload, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useAuth } from "@/lib/context/auth-provider";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { ReportEvidenceUpload } from "@/components/upload/report-evidence-upload";
 
 const facilityReportSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters").max(200, "Title is too long"),
@@ -30,6 +31,7 @@ type FacilityReportFormValues = z.infer<typeof facilityReportSchema>;
 export default function SubmitReportPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [evidenceImages, setEvidenceImages] = useState<string[]>([]);
   const {claims} = useAuth();
   const AccountID = claims?.ACCOUNT_ID;
 
@@ -61,7 +63,7 @@ export default function SubmitReportPage() {
           facility_type: data.facilityType,
           severity_level: data.severityLevel,
           affected_equipment: data.affectedEquipment,
-          attachment_path: null, // File upload handling to be implemented
+          attachment_path: evidenceImages.length > 0 ? JSON.stringify(evidenceImages) : null,
           submitted_by: AccountID,
         }),
       });
@@ -216,13 +218,14 @@ export default function SubmitReportPage() {
               />
 
               <div className="space-y-2">
-                <FormLabel htmlFor="attachment">Attachment (Optional)</FormLabel>
-                <div className="flex items-center gap-2">
-                  <Input id="attachment" type="file" accept="image/*" />
-                  <Upload className="h-4 w-4 text-muted-foreground" />
-                </div>
+                <FormLabel>Evidence Photos (Optional)</FormLabel>
+                <ReportEvidenceUpload
+                  onUploadComplete={(paths) => setEvidenceImages(paths)}
+                  maxImages={5}
+                  disabled={isSubmitting}
+                />
                 <FormDescription>
-                  Upload photos of the issue (max 5MB)
+                  Upload up to 5 photos of the issue (max 10MB each)
                 </FormDescription>
               </div>
             </CardContent>

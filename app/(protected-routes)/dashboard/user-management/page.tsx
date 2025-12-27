@@ -1,16 +1,16 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, GraduationCap, Briefcase, ShieldCheck, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 // Mock statistics - replace with actual API calls
-const USER_STATS = {
-  totalUsers: 1247,
-  students: 1050,
-  staff: 175,
-  administrators: 22,
-};
+// const USER_STATS = {
+//   totalUsers: 1247,
+//   students: 1050,
+//   staff: 175,
+//   administrators: 22,
+// };
 
 export default function UserManagementPage() {
   return (
@@ -23,7 +23,7 @@ export default function UserManagementPage() {
       </div>
 
       {/* Statistics Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -67,7 +67,7 @@ export default function UserManagementPage() {
             <p className="text-xs text-muted-foreground">System administrators</p>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
 
       {/* Quick Access Cards */}
       <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">

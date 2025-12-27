@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wrench, FileText, ClipboardList, PlusCircle } from "lucide-react";
+import { Wrench, ClipboardList, PlusCircle } from "lucide-react";
 import Link from "next/link";
 
 export default function FacilityPage() {
@@ -15,7 +15,7 @@ export default function FacilityPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2">
         <Card className="flex flex-col">
           <CardHeader>
             <div className="mb-2 h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -29,23 +29,6 @@ export default function FacilityPage() {
           <CardContent className="mt-auto pt-6">
             <Button asChild className="w-full">
               <Link href="/dashboard/facility/submit-report">Create Report</Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="flex flex-col">
-          <CardHeader>
-            <div className="mb-2 h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-              <FileText className="h-6 w-6 text-primary" />
-            </div>
-            <CardTitle>My Reports</CardTitle>
-            <CardDescription>
-              View and track the status of your submitted facility reports.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="mt-auto pt-6">
-            <Button asChild className="w-full" variant="outline">
-              <Link href="/dashboard/facility/my-reports">View My Reports</Link>
             </Button>
           </CardContent>
         </Card>

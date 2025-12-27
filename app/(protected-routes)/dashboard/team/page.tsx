@@ -83,7 +83,7 @@ export default function AllTeamsPage() {
       </EmptyHeader>
     </Empty>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2">
           {teams.map((team) => (
             <Card key={team.supervisor.ACCOUNT_ID}>
               <CardHeader>

@@ -26,7 +26,7 @@ router.get('/', authenticateToken, async (req, res) => {
     const sql = `
       SELECT s.ACCOUNT_ID, s.STAFF_ID, s.ROLE, s.DEPARTMENT, s.POSITION, 
              s.SUPERVISOR_ID, s.CREATED_AT, s.UPDATED_AT,
-             a.NAME, a.EMAIL, a.CONTACT_NUMBER,
+             a.NAME, a.EMAIL, a.CONTACT_NUMBER, a.AVATAR_URL,
              sup.NAME as SUPERVISOR_NAME
       FROM STAFF s
       JOIN ACCOUNT a ON s.ACCOUNT_ID = a.ACCOUNT_ID
@@ -68,7 +68,7 @@ router.get('/search', authenticateToken, async (req, res) => {
     
     const sql = `
       SELECT s.ACCOUNT_ID, s.STAFF_ID, s.ROLE, s.DEPARTMENT, s.POSITION,
-             a.NAME, a.EMAIL, a.CONTACT_NUMBER
+             a.NAME, a.EMAIL, a.CONTACT_NUMBER, a.AVATAR_URL
       FROM STAFF s
       JOIN ACCOUNT a ON s.ACCOUNT_ID = a.ACCOUNT_ID
       ${whereClause}
@@ -146,7 +146,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
     const sql = `
       SELECT s.ACCOUNT_ID, s.STAFF_ID, s.ROLE, s.DEPARTMENT, s.POSITION, 
              s.SUPERVISOR_ID, s.CREATED_AT, s.UPDATED_AT,
-             a.NAME, a.EMAIL, a.CONTACT_NUMBER,
+             a.NAME, a.EMAIL, a.CONTACT_NUMBER, a.AVATAR_URL,
              sup.NAME as SUPERVISOR_NAME
       FROM STAFF s
       JOIN ACCOUNT a ON s.ACCOUNT_ID = a.ACCOUNT_ID
