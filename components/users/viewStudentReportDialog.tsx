@@ -50,13 +50,13 @@ export function ViewStudentReportDialog({
     
     setLoading(true);
     try {
-      const response = await fetch(`/api/users/${accountId}/reports`);
+      const response = await fetch(`/api/reports?submitted_by=${accountId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch reports');
       }
       
       const data = await response.json();
-      setReports(data);
+      setReports(data.reports || []);
     } catch (error) {
       console.error('Failed to fetch reports:', error);
       toast.error('Failed to load student reports');
@@ -94,7 +94,7 @@ export function ViewStudentReportDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl! w-full! max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ClipboardList className="h-5 w-5" />

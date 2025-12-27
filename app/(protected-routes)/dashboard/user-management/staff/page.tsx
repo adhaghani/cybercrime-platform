@@ -13,7 +13,8 @@ import {
   ArrowLeft, Search, MoreVertical, Mail, Phone, 
   Briefcase, Building2, UserX, Shield, Loader2, UserPlus,
   ShieldCheck,
-  UserCheck
+  UserCheck,
+  Download
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -31,6 +32,7 @@ import { ViewStaffAssignmentDialog } from "@/components/users/viewStaffAssignmen
 import { PromoteStaffDialog } from "@/components/users/promoteStaffDialog";
 import { DeleteUserDialog } from "@/components/users/deleteUserDialog";
 import { useAuth } from "@/lib/context/auth-provider";
+import { useHasAnyRole } from "@/hooks/use-user-role";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -50,7 +52,9 @@ export default function StaffManagementPage() {
   const [selectedStaffEmail, setSelectedStaffEmail] = useState<string>("");
   const {claims} = useAuth();
   const ACCOUNT_ID = claims?.ACCOUNT_ID || null;
+  const hasAnyRole = useHasAnyRole();
 
+  const isAdmin = hasAnyRole(['ADMIN', 'SUPERADMIN']);
   useEffect(() => {
     fetchStaff();
   }, []);
@@ -68,6 +72,24 @@ export default function StaffManagementPage() {
       setLoading(false);
     }
   };
+
+  const handleDownloadCSV = async () => {
+    try {
+      const response = await fetch('/api/staff/export');
+      if (response.ok) {
+        const data = await response.blob();
+        const url = window.URL.createObjectURL(new Blob([data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'staff_members.csv');
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode?.removeChild(link);
+      }
+    } catch (error) {
+      console.error('Failed to download CSV:', error);
+    }
+  }
   // Get unique departments for filter
   const departments = Array.from(new Set(staffMembers.map(s => s.DEPARTMENT)));
 
@@ -213,7 +235,12 @@ export default function StaffManagementPage() {
       {/* Staff Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Staff List ({filteredStaff.length})</CardTitle>
+          <CardTitle className="flex items-center gap-2 justify-between">
+            <p>Staff List ({filteredStaff.length})</p>
+            {isAdmin && <Button onClick={handleDownloadCSV} variant={"secondary"}>
+              <Download  />
+              Download as CSV</Button>}
+            </CardTitle>
 
         </CardHeader>
         <CardContent>
@@ -291,10 +318,10 @@ export default function StaffManagementPage() {
                           <Briefcase className="h-4 w-4 mr-2" />
                           View Assignments
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handlePromoteToAdmin(member.ACCOUNT_ID, member.NAME)}>
+                        {isAdmin && <DropdownMenuItem onClick={() => handlePromoteToAdmin(member.ACCOUNT_ID, member.NAME)}>
                           <Shield className="h-4 w-4 mr-2" />
-                          Promote to Admin
-                        </DropdownMenuItem>
+                          Promote Staff
+                        </DropdownMenuItem>}
                         </>}
                         <DropdownMenuSeparator />
 

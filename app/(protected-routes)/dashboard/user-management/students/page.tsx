@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, UserCheck, Users } from "lucide-react";
+import { Download, Loader2, UserCheck, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getInitials, getYearBadgeColor } from "@/lib/utils/badge-helpers";
@@ -131,6 +131,24 @@ export default function StudentsPage() {
     }
   };
 
+  const handleDownloadCSV = async () => {
+    try {
+      const response = await fetch('/api/students/export');
+      if (response.ok) {
+        const data = await response.blob();
+        const url = window.URL.createObjectURL(new Blob([data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'students.csv');
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode?.removeChild(link);
+      }
+    } catch (error) {
+      console.error('Failed to download CSV:', error);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -201,7 +219,13 @@ export default function StudentsPage() {
       {/* Students Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Student List ({filteredStudents.length})</CardTitle>
+          <CardTitle className="flex items-center gap-2 justify-between">
+            <p>Student List ({filteredStudents.length})</p>
+            <Button onClick={handleDownloadCSV} variant={"secondary"}>
+              <Download  />
+              Download as CSV</Button>
+            </CardTitle>
+
         </CardHeader>
         <CardContent>
           <Table className="overflow-hidden">

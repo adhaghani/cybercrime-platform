@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -283,7 +283,7 @@ export default function MyAssignmentsPage() {
                         <Button asChild variant="ghost" size="sm">
                           <Link href={`/dashboard/reports/${report.REPORT_ID}`}>
                             <Eye className="h-4 w-4 mr-2" />
-                            View & Manage
+                            {report.STATUS === "RESOLVED" ? "View Report" : "View & Manage"}
                           </Link>
                         </Button>
                       </TableCell>

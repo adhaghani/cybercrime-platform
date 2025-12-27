@@ -37,6 +37,7 @@ export default function AddStaffPage() {
   const [supervisors, setSupervisors] = useState<Staff[]>([]);
   const {claims} = useAuth();
   const currentUser = claims as Staff;
+  const isCurrentUserSupervisor = currentUser?.ROLE === 'SUPERVISOR';
   const form = useForm<StaffFormData>({
     resolver: zodResolver(staffSchema),
     defaultValues: {
@@ -81,7 +82,7 @@ export default function AddStaffPage() {
         account_type: 'STAFF',
         // Staff specific fields can be added here if needed
         staffID: data.staffID,
-        supervisorID: data.supervisorID ? data.supervisorID : "",
+        supervisorID: data.supervisorID ? data.supervisorID : isCurrentUserSupervisor ? currentUser.ACCOUNT_ID : undefined,
         department: data.department,
         position: data.position,
         role: data.role,

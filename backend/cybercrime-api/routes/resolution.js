@@ -116,6 +116,14 @@ router.post('/', authenticateToken, async (req, res) => {
       );
     }
 
+    if(resolution_type === "DISMISSED"){
+      await exec(
+        `UPDATE REPORT SET STATUS = 'REJECTED', UPDATED_AT = SYSTIMESTAMP WHERE REPORT_ID = :report_id`,
+        { report_id },
+        { autoCommit: true }
+      );
+    }
+
     await exec('COMMIT', {}, { autoCommit: true });
 
     res.status(201).json({

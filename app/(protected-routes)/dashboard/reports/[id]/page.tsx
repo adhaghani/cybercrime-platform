@@ -91,10 +91,11 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
   const isCurrentUserAssignedToThisReport = report?.STAFF_ASSIGNED?.some(assignment => 
     assignment.ACCOUNT_ID === currentUserId
   );
-
   const isCurrentUserCompletedAssignment = report?.STAFF_ASSIGNED?.some(assignment =>
     assignment.ACCOUNT_ID === currentUserId && assignment.ACTION_TAKEN && assignment.ACTION_TAKEN.trim() !== ""
   );
+  const isReportResolved = report?.STATUS === "RESOLVED";
+  const isReportRejected = report?.STATUS === "REJECTED";
 
   if (loading) {
     return (
@@ -156,7 +157,7 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
       {/* Header */}
       
         <div className="w-full flex gap-2 justify-end">
-          {report.STATUS !== "RESOLVED" && (
+          {!isReportResolved && !isReportRejected && (
             <>
             {isSupervisorOrAdmin ? <>
               <Button variant="outline" onClick={() => setIsAssignDialogOpen(true)}>
@@ -270,12 +271,12 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
       </div>
 
       {
-        report.STATUS === "RESOLVED" && report.RESOLUTIONS && (
+        report.RESOLUTIONS && (
       <div className="grid w-full items-start gap-4">
-      <Alert className="bg-green-500/10 border-green-500/20 text-green-500">
-        <AlertTitle>This report has been resolved</AlertTitle>
+      <Alert className={isReportResolved ? "bg-green-500/10 border-green-500/20 text-green-500" : isReportRejected ? "bg-red-500/10 border-red-500/20 text-red-500" : ""}>
+        <AlertTitle>This report has been {report.STATUS.toLowerCase()}</AlertTitle>
         <AlertDescription>
-          This report was resolved on {format(new Date(report.RESOLUTIONS.RESOLVED_AT), "PPP 'at' p")} with the following summary:
+          This report was {report.STATUS.toLowerCase()} on {format(new Date(report.RESOLUTIONS.RESOLVED_AT), "PPP 'at' p")} with the following summary:
           <p className="mt-2 font-medium">{report.RESOLUTIONS.RESOLUTION_SUMMARY}</p>
         </AlertDescription>
       </Alert>
@@ -456,7 +457,7 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
                     )}
 
                   </div>
-                )) : <p className="text-sm text-muted-foreground">No staff have been assigned to this report yet.</p>
+                )) : isReportRejected ? <p className="text-sm text-muted-foreground">This report was rejected and no staff were assigned.</p> :  <p className="text-sm text-muted-foreground">No staff have been assigned to this report yet.</p>
               }
             </CardContent>
           </Card>
@@ -516,7 +517,15 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
                   </div>
                 </div>
                 ))
-                : <div className="flex items-center gap-2 p-2 rounded-lg bg-accent/50">
+                : isReportRejected ? <div>
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-red-500/10">
+                  <ShieldAlert className="h-4 w-4 text-red-500" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">This report was rejected</p>
+                    <p className="text-xs text-muted-foreground">No staff were assigned</p>
+                  </div>
+                </div>
+                </div> : <div className="flex items-center gap-2 p-2 rounded-lg bg-accent/50">
                   <User className="h-4 w-4" />
                   <div className="flex-1">
                     <p className="text-sm font-medium">No assignments yet</p>

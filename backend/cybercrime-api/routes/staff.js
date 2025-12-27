@@ -1,5 +1,4 @@
 const express = require('express');
-const oracledb = require('oracledb');
 const { exec } = require('../database/connection');
 const { authenticateToken } = require('../middleware/auth');
 
@@ -41,46 +40,6 @@ router.get('/', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error('Get staff error:', err);
     res.status(500).json({ error: 'Failed to get staff', details: err.message });
-  }
-});
-
-// POST /api/staff
-router.post('/', authenticateToken, async (req, res) => {
-  try {
-    const { account_id, role, department, position, supervisor_id } = req.body;
-    
-    if (!account_id || !role || !department || !position) {
-      return res.status(400).json({ error: 'Account ID, role, department, and position are required' });
-    }
-
-    const sql = `
-      INSERT INTO STAFF (
-        STAFF_ID, ACCOUNT_ID, ROLE, DEPARTMENT, POSITION, SUPERVISOR_ID, 
-        CREATED_AT, UPDATED_AT
-      ) VALUES (
-        staff_seq.NEXTVAL, :account_id, :role, :department, :position, :supervisor_id,
-        SYSTIMESTAMP, SYSTIMESTAMP
-      ) RETURNING STAFF_ID INTO :id
-    `;
-    
-    const binds = {
-      account_id,
-      role,
-      department,
-      position,
-      supervisor_id: supervisor_id || null,
-      id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
-    };
-
-    const result = await exec(sql, binds, { autoCommit: true });
-    
-    res.status(201).json({
-      message: 'Staff record created successfully',
-      staff_id: result.outBinds.id[0]
-    });
-  } catch (err) {
-    console.error('Create staff error:', err);
-    res.status(500).json({ error: 'Failed to create staff record', details: err.message });
   }
 });
 

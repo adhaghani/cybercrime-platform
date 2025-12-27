@@ -282,7 +282,7 @@ export default function CrimeReportsPage() {
                               <Eye className="h-4 w-4" />
                             </Link>
                           </Button>
-                          {isSupervisorOrAdmin && report.STATUS !== "RESOLVED" && (
+                          {isSupervisorOrAdmin && (report.STATUS !== "RESOLVED" && report.STATUS !== "REJECTED") && (
                             <Button asChild variant="ghost" size="sm">
                               <Link href={`/dashboard/reports/${report.REPORT_ID}?action=assign`}>
                                 <UserPlus className="h-4 w-4" />

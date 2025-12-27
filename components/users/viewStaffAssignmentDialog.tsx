@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Loader2, FileText, Calendar, AlertCircle, ClipboardList } from 'lucide-react';
 import { toast } from 'sonner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -84,7 +83,7 @@ export function ViewStaffAssignmentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl! w-full! mx-auto max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ClipboardList className="h-5 w-5" />
@@ -106,10 +105,7 @@ export function ViewStaffAssignmentDialog({
                 Total Assignments: <span className="font-semibold text-foreground">{assignments.length}</span>
               </p>
             </div>
-
-            <Separator />
-
-            <Table>
+            <Table className='border rounded-lg'>
               <TableHeader>
                 <TableRow>
                   <TableHead>Report</TableHead>

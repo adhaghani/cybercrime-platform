@@ -80,7 +80,7 @@ router.get('/', authenticateToken, async (req, res) => {
 // GET /api/teams/my-team - Get current user's team
 router.get('/my-team', authenticateToken, async (req, res) => {
   try {
-    const currentUserId = req.user.accountId;
+    const currentUserId = req.user.accountId || req.user.ACCOUNT_ID || req.user.id;
     
     // Get current user's details
     const userSql = `
