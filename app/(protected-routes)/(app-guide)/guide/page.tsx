@@ -19,7 +19,7 @@ export default function GuidePage() {
               <p className="text-muted-foreground">Complete manual for CyberSafe Platform</p>
             </div>
           </div>
-          
+            
           <Alert>
             <Info className="h-4 w-4" />
             <AlertTitle>Welcome to the CyberSafe Platform</AlertTitle>
