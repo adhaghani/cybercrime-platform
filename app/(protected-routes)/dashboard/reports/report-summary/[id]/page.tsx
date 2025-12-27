@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
-import { MOCK_GENERATED_REPORTS } from "@/lib/api/mock-data";
 import { GeneratedReport } from "@/lib/types";
 
 export default function ReportSummaryDetailPage() {
@@ -50,7 +49,7 @@ export default function ReportSummaryDetailPage() {
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${report.generateId}-${report.title.replace(/\s+/g, "-").toLowerCase()}.json`;
+    link.download = `${report.GENERATE_ID}-${report.TITLE.replace(/\s+/g, "-").toLowerCase()}.json`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -59,51 +58,51 @@ export default function ReportSummaryDetailPage() {
     if (!report) return;
     
     // Create a formatted text version for download
-    let content = `${report.title}\n`;
-    content += `${"=".repeat(report.title.length)}\n\n`;
-    content += `Generated: ${format(new Date(report.requestedAt), "PPP")}\n`;
-    content += `Period: ${format(new Date(report.dateRangeStart), "PP")} - ${format(new Date(report.dateRangeEnd), "PP")}\n`;
-    content += `Category: ${report.reportCategory}\n`;
-    content += `Type: ${report.reportDataType}\n\n`;
-    content += `Summary\n${"=".repeat(50)}\n${report.summary}\n\n`;
+    let content = `${report.TITLE}\n`;
+    content += `${"=".repeat(report.TITLE.length)}\n\n`;
+    content += `Generated: ${format(new Date(report.REQUESTED_AT), "PPP")}\n`;
+    content += `Period: ${format(new Date(report.DATE_RANGE_START), "PP")} - ${format(new Date(report.DATE_RANGE_END), "PP")}\n`;
+    content += `Category: ${report.REPORT_CATEGORY}\n`;
+    content += `Type: ${report.REPORT_DATA_TYPE}\n\n`;
+    content += `Summary\n${"=".repeat(50)}\n${report.SUMMARY}\n\n`;
     
-    if (report.reportData?.executiveSummary) {
-      content += `Executive Summary\n${"=".repeat(50)}\n${report.reportData.executiveSummary}\n\n`;
+    if (report.REPORT_DATA?.executiveSummary) {
+      content += `Executive Summary\n${"=".repeat(50)}\n${report.REPORT_DATA.executiveSummary}\n\n`;
     }
     
-    if (report.reportData?.detailedAnalysis) {
-      content += `Detailed Analysis\n${"=".repeat(50)}\n${report.reportData.detailedAnalysis}\n\n`;
+    if (report.REPORT_DATA?.detailedAnalysis) {
+      content += `Detailed Analysis\n${"=".repeat(50)}\n${report.REPORT_DATA.detailedAnalysis}\n\n`;
     }
     
-    if (report.reportData?.riskAssessment) {
+    if (report.REPORT_DATA?.riskAssessment) {
       content += `Risk Assessment\n${"=".repeat(50)}\n`;
-      content += `Level: ${report.reportData.riskAssessment.level}\n\n`;
-      if (report.reportData.riskAssessment.factors) {
+      content += `Level: ${report.REPORT_DATA.riskAssessment.level}\n\n`;
+      if (report.REPORT_DATA.riskAssessment.factors) {
         content += `Key Factors:\n`;
-        report.reportData.riskAssessment.factors.forEach((factor: string, i: number) => {
+        report.REPORT_DATA.riskAssessment.factors.forEach((factor: string, i: number) => {
           content += `${i + 1}. ${factor}\n`;
         });
         content += `\n`;
       }
     }
     
-    if (report.reportData?.recommendations) {
+    if (report.REPORT_DATA?.recommendations) {
       content += `Recommendations\n${"=".repeat(50)}\n`;
-      report.reportData.recommendations.forEach((rec: string, i: number) => {
+      report.REPORT_DATA.recommendations.forEach((rec: string, i: number) => {
         content += `${i + 1}. ${rec}\n`;
       });
       content += `\n`;
     }
     
-    if (report.reportData?.conclusion) {
-      content += `Conclusion\n${"=".repeat(50)}\n${report.reportData.conclusion}\n`;
+    if (report.REPORT_DATA?.conclusion) {
+      content += `Conclusion\n${"=".repeat(50)}\n${report.REPORT_DATA.conclusion}\n`;
     }
     
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${report.generateId}-report.txt`;
+    link.download = `${report.GENERATE_ID}-report.txt`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -181,18 +180,18 @@ export default function ReportSummaryDetailPage() {
             <CardHeader>
               <div className="space-y-4">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="outline" className={getCategoryColor(report.reportCategory)}>
-                    {report.reportCategory}
+                  <Badge variant="outline" className={getCategoryColor(report.REPORT_CATEGORY)}>
+                    {report.REPORT_CATEGORY}
                   </Badge>
-                  <Badge variant="outline" className={getGeneratedReportTypeColor(report.reportDataType)}>
-                    {report.reportDataType}
+                  <Badge variant="outline" className={getGeneratedReportTypeColor(report.REPORT_DATA_TYPE)}>
+                    {report.REPORT_DATA_TYPE}
                   </Badge>
                 </div>
                 
                 <div>
-                  <CardTitle className="text-2xl">{report.title}</CardTitle>
+                  <CardTitle className="text-2xl">{report.TITLE}</CardTitle>
                   <CardDescription className="mt-2">
-                    {report.summary}
+                    {report.SUMMARY}
                   </CardDescription>
                 </div>
               </div>
@@ -206,7 +205,7 @@ export default function ReportSummaryDetailPage() {
                 <div>
                   <CardTitle>Generated Report</CardTitle>
                   <CardDescription>
-                    AI-powered analysis of {report.reportCategory.toLowerCase()} data
+                    AI-powered analysis of {report.REPORT_CATEGORY.toLowerCase()} data
                   </CardDescription>
                 </div>
                 <Button variant="outline" size="sm" onClick={handleDownload}>
@@ -220,40 +219,40 @@ export default function ReportSummaryDetailPage() {
               <div className="space-y-2">
                 <h3 className="font-semibold text-lg">Executive Summary</h3>
                 <p className="text-sm text-muted-foreground">
-                  {report.reportData?.executiveSummary || report.summary}
+                  {report.REPORT_DATA?.executiveSummary || report.SUMMARY}
                 </p>
               </div>
 
               {/* Key Statistics */}
-              {report.reportData?.keyStatistics && (
+              {report.REPORT_DATA?.keyStatistics && (
                 <div className="space-y-2">
                   <h3 className="font-semibold text-lg">Key Statistics</h3>
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="rounded-lg border p-4">
                       <p className="text-sm text-muted-foreground">Total Incidents</p>
                       <p className="text-2xl font-bold">
-                        {report.reportData.keyStatistics.totalIncidents || 
-                         report.reportData.keyStatistics.totalReports || 0}
+                        {report.REPORT_DATA.keyStatistics.totalIncidents || 
+                         report.REPORT_DATA.keyStatistics.totalReports || 0}
                       </p>
                     </div>
-                    {report.reportData.keyStatistics.byStatus && (
+                    {report.REPORT_DATA.keyStatistics.byStatus && (
                       <>
                         <div className="rounded-lg border p-4 bg-yellow-50 dark:bg-yellow-950">
                           <p className="text-sm text-muted-foreground">Pending</p>
                           <p className="text-2xl font-bold text-yellow-600">
-                            {report.reportData.keyStatistics.byStatus.pending}
+                            {report.REPORT_DATA.keyStatistics.byStatus.pending}
                           </p>
                         </div>
                         <div className="rounded-lg border p-4 bg-blue-50 dark:bg-blue-950">
                           <p className="text-sm text-muted-foreground">In Progress</p>
                           <p className="text-2xl font-bold text-blue-600">
-                            {report.reportData.keyStatistics.byStatus.inProgress}
+                            {report.REPORT_DATA.keyStatistics.byStatus.inProgress}
                           </p>
                         </div>
                         <div className="rounded-lg border p-4 bg-green-50 dark:bg-green-950">
                           <p className="text-sm text-muted-foreground">Resolved</p>
                           <p className="text-2xl font-bold text-green-600">
-                            {report.reportData.keyStatistics.byStatus.resolved}
+                            {report.REPORT_DATA.keyStatistics.byStatus.resolved}
                           </p>
                         </div>
                       </>
@@ -263,36 +262,36 @@ export default function ReportSummaryDetailPage() {
               )}
 
               {/* Detailed Analysis */}
-              {report.reportData?.detailedAnalysis && (
+              {report.REPORT_DATA?.detailedAnalysis && (
                 <div className="space-y-2">
                   <h3 className="font-semibold text-lg">Detailed Analysis</h3>
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                    {report.reportData.detailedAnalysis}
+                    {report.REPORT_DATA.detailedAnalysis}
                   </p>
                 </div>
               )}
 
               {/* Risk Assessment */}
-              {report.reportData?.riskAssessment && (
+              {report.REPORT_DATA?.riskAssessment && (
                 <div className="space-y-2">
                   <h3 className="font-semibold text-lg">Risk Assessment</h3>
                   <div className="rounded-lg border p-4">
                     <p className="text-sm text-muted-foreground mb-2">Risk Level</p>
                     <div className="flex items-center gap-2">
                       <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                        report.reportData.riskAssessment.level === 'CRITICAL' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
-                        report.reportData.riskAssessment.level === 'HIGH' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
-                        report.reportData.riskAssessment.level === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                        report.REPORT_DATA.riskAssessment.level === 'CRITICAL' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
+                        report.REPORT_DATA.riskAssessment.level === 'HIGH' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
+                        report.REPORT_DATA.riskAssessment.level === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
                         'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
                       }`}>
-                        {report.reportData.riskAssessment.level}
+                        {report.REPORT_DATA.riskAssessment.level}
                       </span>
                     </div>
-                    {report.reportData.riskAssessment.factors && (
+                    {report.REPORT_DATA.riskAssessment.factors && (
                       <div className="mt-4">
                         <p className="text-sm text-muted-foreground mb-2">Key Factors:</p>
                         <ul className="list-disc list-inside space-y-1">
-                          {report.reportData.riskAssessment.factors.map((factor: string, index: number) => (
+                          {report.REPORT_DATA.riskAssessment.factors.map((factor: string, index: number) => (
                             <li key={index} className="text-sm">{factor}</li>
                           ))}
                         </ul>
@@ -303,11 +302,11 @@ export default function ReportSummaryDetailPage() {
               )}
 
               {/* Recommendations */}
-              {report.reportData?.recommendations && (
+              {report.REPORT_DATA?.recommendations && (
                 <div className="space-y-2">
                   <h3 className="font-semibold text-lg">Recommendations</h3>
                   <ul className="list-decimal list-inside space-y-2">
-                    {report.reportData.recommendations.map((rec: string, index: number) => (
+                    {report.REPORT_DATA.recommendations.map((rec: string, index: number) => (
                       <li key={index} className="text-sm text-muted-foreground">{rec}</li>
                     ))}
                   </ul>
@@ -315,11 +314,11 @@ export default function ReportSummaryDetailPage() {
               )}
 
               {/* Conclusion */}
-              {report.reportData?.conclusion && (
+              {report.REPORT_DATA?.conclusion && (
                 <div className="space-y-2">
                   <h3 className="font-semibold text-lg">Conclusion</h3>
                   <p className="text-sm text-muted-foreground">
-                    {report.reportData.conclusion}
+                    {report.REPORT_DATA.conclusion}
                   </p>
                 </div>
               )}
@@ -336,19 +335,19 @@ export default function ReportSummaryDetailPage() {
             <CardContent className="space-y-4 text-sm">
               <div>
                 <p className="text-muted-foreground mb-1">Generated</p>
-                <p className="font-mono text-xs">{format(new Date(report.requestedAt), "PPp")}</p>
+                <p className="font-mono text-xs">{format(new Date(report.REQUESTED_AT), "PPp")}</p>
               </div>
               <Separator />
               <div>
                 <p className="text-muted-foreground mb-1">Report ID</p>
-                <p className="font-mono text-xs">{report.generateId}</p>
+                <p className="font-mono text-xs">{report.GENERATE_ID}</p>
               </div>
               <Separator />
               <div>
                 <p className="text-muted-foreground mb-1">Period</p>
                 <p className="flex items-center gap-1 text-xs">
                   <Calendar className="h-3 w-3" />
-                  {format(new Date(report.dateRangeStart), "PP")} - {format(new Date(report.dateRangeEnd), "PP")}
+                  {format(new Date(report.DATE_RANGE_START), "PP")} - {format(new Date(report.DATE_RANGE_END), "PP")}
                 </p>
               </div>
               <Separator />
@@ -379,7 +378,7 @@ export default function ReportSummaryDetailPage() {
           </Card>
 
           {/* Top Locations - Sidebar version */}
-          {report.reportData?.topLocations && report.reportData.topLocations.length > 0 && (
+          {report.REPORT_DATA?.topLocations && report.REPORT_DATA.topLocations.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm flex items-center gap-2">
@@ -389,7 +388,7 @@ export default function ReportSummaryDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {report.reportData.topLocations.slice(0, 5).map((location: { location: string; count: number }, index: number) => (
+                  {report.REPORT_DATA.topLocations.slice(0, 5).map((location: { location: string; count: number }, index: number) => (
                     <div key={index} className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-2">
                         <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">

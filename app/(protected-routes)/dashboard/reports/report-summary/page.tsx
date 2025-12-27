@@ -56,12 +56,12 @@ export default function AllGeneratedReportsPage() {
   // Filter reports
   const filteredReports = reports.filter((report) => {
     const matchesSearch =
-      report.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.summary.toLowerCase().includes(searchQuery.toLowerCase());
+      report.TITLE.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      report.SUMMARY.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory =
-      categoryFilter === "ALL" || report.reportCategory === categoryFilter;
+      categoryFilter === "ALL" || report.REPORT_CATEGORY === categoryFilter;
     const matchesType =
-      typeFilter === "ALL" || report.reportDataType === typeFilter;
+      typeFilter === "ALL" || report.REPORT_DATA_TYPE === typeFilter;
     return matchesSearch && matchesCategory && matchesType;
   });
 
@@ -83,16 +83,16 @@ export default function AllGeneratedReportsPage() {
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${report.generateId}-${report.title.replace(/\s+/g, "-").toLowerCase()}.json`;
+    link.download = `${report.GENERATE_ID}-${report.TITLE.replace(/\s+/g, "-").toLowerCase()}.json`;
     link.click();
     URL.revokeObjectURL(url);
   };
 
   const stats = {
     total: reports.length,
-    crime: reports.filter((r) => r.reportCategory === "CRIME").length,
-    facility: reports.filter((r) => r.reportCategory === "FACILITY").length,
-    all: reports.filter((r) => r.reportCategory === "ALL REPORTS").length,
+    crime: reports.filter((r) => r.REPORT_CATEGORY === "CRIME").length,
+    facility: reports.filter((r) => r.REPORT_CATEGORY === "FACILITY").length,
+    all: reports.filter((r) => r.REPORT_CATEGORY === "ALL REPORTS").length,
   };
 
   if (loading) {
@@ -257,35 +257,35 @@ export default function AllGeneratedReportsPage() {
                   </TableHeader>
                   <TableBody>
                     {paginatedReports.map((report) => (
-                      <TableRow key={report.generateId}>
+                      <TableRow key={report.GENERATE_ID}>
                         <TableCell>
                           <div>
-                            <div className="font-medium">{report.title}</div>
+                            <div className="font-medium">{report.TITLE}</div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={getCategoryColor(report.reportCategory)}>
-                            {report.reportCategory}
+                          <Badge variant="outline" className={getCategoryColor(report.REPORT_CATEGORY)}>
+                            {report.REPORT_CATEGORY}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={getGeneratedReportTypeColor(report.reportDataType)}>
-                            {report.reportDataType}
+                          <Badge variant="outline" className={getGeneratedReportTypeColor(report.REPORT_DATA_TYPE)}>
+                            {report.REPORT_DATA_TYPE}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-sm">
                           <div className="flex items-center gap-1 text-muted-foreground">
                             <Calendar className="h-3 w-3" />
                             <span>
-                              {format(new Date(report.dateRangeStart), "MMM d")} -{" "}
-                              {format(new Date(report.dateRangeEnd), "MMM d, yyyy")}
+                              {format(new Date(report.DATE_RANGE_START), "MMM d")} -{" "}
+                              {format(new Date(report.DATE_RANGE_END), "MMM d, yyyy")}
                             </span>
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
                             <Button variant="ghost" size="sm" asChild>
-                              <Link href={`/dashboard/reports/report-summary/${report.generateId}`}>
+                              <Link href={`/dashboard/reports/report-summary/${report.GENERATE_ID}`}>
                                 <Eye className="h-4 w-4" />
                               </Link>
                             </Button>

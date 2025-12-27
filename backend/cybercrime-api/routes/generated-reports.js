@@ -57,12 +57,13 @@ router.post('/', authenticateToken, async (req, res) => {
       date_range_end, 
       report_category, 
       report_data_type, 
-      report_data 
+      report_data,
+      generated_by
     } = req.body;
     
-    if (!title || !summary || !date_range_start || !date_range_end || !report_category) {
+    if (!title || !summary || !date_range_start || !date_range_end || !report_category || !generated_by) {
       return res.status(400).json({ 
-        error: 'Title, summary, date range, and category are required' 
+        error: 'Title, summary, date range, category, and generated_by are required' 
       });
     }
 
@@ -78,15 +79,17 @@ router.post('/', authenticateToken, async (req, res) => {
       ) RETURNING GENERATE_ID INTO :id
     `;
     
+    const reportDataString = report_data ? JSON.stringify(report_data) : null;
+    
     const binds = {
-      generated_by: req.user.accountId,
+      generated_by: generated_by,
       title,
       summary,
       date_start: date_range_start,
       date_end: date_range_end,
       category: report_category,
       data_type: report_data_type || 'JSON',
-      data: report_data ? JSON.stringify(report_data) : null,
+      data: reportDataString ? { val: reportDataString, type: oracledb.CLOB } : null,
       id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
     };
 

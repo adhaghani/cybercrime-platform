@@ -23,7 +23,7 @@ export async function GET(
       );
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/generated_reports/${id}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/generated-reports/${id}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -62,7 +62,7 @@ export async function DELETE(
       );
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/generated_reports/${id}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/generated-reports/${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,

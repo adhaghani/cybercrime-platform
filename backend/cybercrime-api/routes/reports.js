@@ -8,7 +8,7 @@ const router = express.Router();
 // GET /api/reports
 router.get('/', authenticateToken, async (req, res) => {
   try {
-    const { type, status, submitted_by, page = 1, limit = 10 } = req.query;
+    const { type, status, submitted_by, start_date, end_date, page = 1, limit = 10 } = req.query;
     
     let whereClauses = [];
     const binds = {};
@@ -24,6 +24,14 @@ router.get('/', authenticateToken, async (req, res) => {
     if (submitted_by) {
       whereClauses.push('SUBMITTED_BY = :submitted_by');
       binds.submitted_by = submitted_by;
+    }
+    if (start_date) {
+      whereClauses.push('TRUNC(SUBMITTED_AT) >= TO_DATE(:start_date, \'YYYY-MM-DD\')');
+      binds.start_date = start_date;
+    }
+    if (end_date) {
+      whereClauses.push('TRUNC(SUBMITTED_AT) <= TO_DATE(:end_date, \'YYYY-MM-DD\')');
+      binds.end_date = end_date;
     }
 
     const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';

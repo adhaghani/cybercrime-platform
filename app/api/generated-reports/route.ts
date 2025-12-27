@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/generated_reports`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/generated-reports`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/generated_reports`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/generated-reports`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,

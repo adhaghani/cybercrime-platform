@@ -104,16 +104,18 @@ export interface EmergencyInfo {
 
 // 7. Generated Report Table
 export interface GeneratedReport {
-  generateId: string;
-  generatedBy: string; // FK → staff.account_id
-  title: string;
-  summary: string;
-  dateRangeStart: string;
-  dateRangeEnd: string;
-  reportCategory: GeneratedReportCategory;
-  reportDataType: GeneratedReportDataType;
-  reportData: any;
-  requestedAt: string;
+  GENERATE_ID: string;
+  GENERATED_BY: string; // FK → staff.account_id
+  TITLE: string;
+  SUMMARY: string;
+  DATE_RANGE_START: string;
+  DATE_RANGE_END: string;
+  REPORT_CATEGORY: GeneratedReportCategory;
+  REPORT_DATA_TYPE: GeneratedReportDataType;
+  REPORT_DATA: any;
+  REQUESTED_AT: string;
+  GENERATED_BY_NAME?: string; // Joined field from staff.name
+  GENERATED_BY_EMAIL?: string; // Joined field from staff.email
 }
 
 // 8. Announcement Table
