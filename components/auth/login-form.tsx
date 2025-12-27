@@ -1,3 +1,4 @@
+
 "use client";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -25,10 +26,16 @@ import { useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { passwordComplexity } from "@/lib/constant";
-
+import { passwordComplexity,  StaffEmailRegex, StudentEmailRegex } from "@/lib/constant";
+import { toast } from "sonner";
 const formSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z
+    .string()
+    .email("Invalid email address")
+    .refine(
+      (email) => StudentEmailRegex.test(email) || StaffEmailRegex.test(email),
+      "Need to use UiTM email"
+    ),
   password: z
     .string()
     .min(8, "invalid password")
@@ -59,22 +66,31 @@ export function LoginForm({
       setIsLoading(true);
 
       const { user } = await login({
-        email: form.getValues("email"),
-        password: form.getValues("password"),
+        email: value.email,
+        password: value.password,
       });
 
-      // Set user claims
+      // Set user claims  
       setClaims({
-        sub: user.id,
-        email: user.email,
-        user_metadata: {
-          full_name: user.full_name || "",
-          username: user.username || "",
-          avatar_url: user.avatar_url || "",
-        },
-        role: user.role,
-        created_at: user.created_at,
-        updated_at: user.updated_at,
+        ACCOUNT_ID: user.ACCOUNT_ID,
+        EMAIL: user.EMAIL,
+        NAME: user.NAME,
+        CONTACT_NUMBER: user.CONTACT_NUMBER,
+        AVATAR_URL: user.AVATAR_URL,
+        ACCOUNT_TYPE: user.ACCOUNT_TYPE,
+        ...(( "STUDENT_ID" in user) ? {
+          STUDENT_ID: user.STUDENT_ID,
+          PROGRAM: user.PROGRAM,
+          SEMESTER: user.SEMESTER,
+          YEAR_OF_STUDY: user.YEAR_OF_STUDY,
+        } : {
+          STAFF_ID: user.STAFF_ID,
+          DEPARTMENT: user.DEPARTMENT,
+          POSITION: user.POSITION,
+          ROLE: user.ROLE,
+        }),
+        CREATED_AT: user.CREATED_AT,
+        UPDATED_AT: user.UPDATED_AT,
       });
 
       // Get redirect URL from searchParams or default to dashboard
@@ -86,6 +102,10 @@ export function LoginForm({
       setIsLoading(false);
     }
   };
+
+  if(error){
+    toast.error(error);
+  }
 
   return (
     <div className={cn("flex", className)} {...props}>
@@ -107,6 +127,8 @@ export function LoginForm({
                     <FormLabel>Email Address</FormLabel>
                     <FormControl>
                       <Input
+                        disabled={isLoading}
+                        type="email"
                         placeholder="youremailaddress@example.com"
                         {...field}
                       />
@@ -131,6 +153,7 @@ export function LoginForm({
                     </FormLabel>
                     <FormControl>
                       <Input
+                        disabled={isLoading}
                         type="password"
                         placeholder="********"
                         {...field}
@@ -140,8 +163,8 @@ export function LoginForm({
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full">
-                Login
+              <Button type="submit" disabled={isLoading} className="w-full">
+                {isLoading ? "Logging in..." : "Login"}
               </Button>
             </form>
           </Form>

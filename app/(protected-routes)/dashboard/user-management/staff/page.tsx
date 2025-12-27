@@ -11,8 +11,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   ArrowLeft, Search, MoreVertical, Mail, Phone, 
-  Briefcase, Building2, Edit, UserX, Shield, Loader2, UserPlus,
-  ShieldCheck
+  Briefcase, Building2, UserX, Shield, Loader2, UserPlus,
+  ShieldCheck,
+  UserCheck,
+  Download
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -25,6 +27,12 @@ import {
 import Link from "next/link";
 import { Staff } from "@/lib/types";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import { ViewUserDetailDialog } from "@/components/users/viewUserDetailDialog";
+import { ViewStaffAssignmentDialog } from "@/components/users/viewStaffAssignmentDialog";
+import { PromoteStaffDialog } from "@/components/users/promoteStaffDialog";
+import { DeleteUserDialog } from "@/components/users/deleteUserDialog";
+import { useAuth } from "@/lib/context/auth-provider";
+import { useHasAnyRole } from "@/hooks/use-user-role";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -35,7 +43,18 @@ export default function StaffManagementPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [staffMembers, setStaffMembers] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
+  const [openViewDialog, setOpenViewDialog] = useState(false);
+  const [openAssignmentsDialog, setOpenAssignmentsDialog] = useState(false);
+  const [openPromoteDialog, setOpenPromoteDialog] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
+  const [selectedStaffName, setSelectedStaffName] = useState<string>("");
+  const [selectedStaffEmail, setSelectedStaffEmail] = useState<string>("");
+  const {claims} = useAuth();
+  const ACCOUNT_ID = claims?.ACCOUNT_ID || null;
+  const hasAnyRole = useHasAnyRole();
 
+  const isAdmin = hasAnyRole(['ADMIN', 'SUPERADMIN']);
   useEffect(() => {
     fetchStaff();
   }, []);
@@ -53,18 +72,36 @@ export default function StaffManagementPage() {
       setLoading(false);
     }
   };
+
+  const handleDownloadCSV = async () => {
+    try {
+      const response = await fetch('/api/staff/export');
+      if (response.ok) {
+        const data = await response.blob();
+        const url = window.URL.createObjectURL(new Blob([data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'staff_members.csv');
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode?.removeChild(link);
+      }
+    } catch (error) {
+      console.error('Failed to download CSV:', error);
+    }
+  }
   // Get unique departments for filter
-  const departments = Array.from(new Set(staffMembers.map(s => s.department)));
+  const departments = Array.from(new Set(staffMembers.map(s => s.DEPARTMENT)));
 
   const filteredStaff = staffMembers.filter((member) => {
     const matchesSearch = 
-      member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.position.toLowerCase().includes(searchQuery.toLowerCase());
+      member.NAME.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      member.EMAIL.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      member.DEPARTMENT.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      member.POSITION.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesDepartment = departmentFilter === "ALL" || member.department === departmentFilter;
-    const matchesRole = roleFilter === "ALL" || member.role === roleFilter;
+    const matchesDepartment = departmentFilter === "ALL" || member.DEPARTMENT === departmentFilter;
+    const matchesRole = roleFilter === "ALL" || member.ROLE === roleFilter;
 
     return matchesSearch && matchesDepartment && matchesRole;
   });
@@ -81,10 +118,43 @@ export default function StaffManagementPage() {
     setCurrentPage(1);
   };
 
-  const handlePromoteToAdmin = (staffId: string) => {
-    // TODO: API call to promote staff to admin
-    console.log("Promoting staff to admin:", staffId);
-    alert("Promotion functionality will be implemented with backend API");
+  const handleViewDetails = (accountId: string) => {
+    setSelectedStaffId(accountId);
+    setOpenViewDialog(true);
+  };
+
+  const handleViewAssignments = (accountId: string, name: string) => {
+    setSelectedStaffId(accountId);
+    setSelectedStaffName(name);
+    setOpenAssignmentsDialog(true);
+  };
+
+  const handlePromoteToAdmin = (accountId: string, name: string) => {
+    setSelectedStaffId(accountId);
+    setSelectedStaffName(name);
+    setOpenPromoteDialog(true);
+  };
+
+  const handleDeleteAccount = (accountId: string, name: string, email: string) => {
+    setSelectedStaffId(accountId);
+    setSelectedStaffName(name);
+    setSelectedStaffEmail(email);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleRefreshStaff = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/staff');
+      if (response.ok) {
+        const data = await response.json();
+        setStaffMembers(data.staff || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch staff:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) {
@@ -165,16 +235,13 @@ export default function StaffManagementPage() {
       {/* Staff Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Staff List ({filteredStaff.length})</CardTitle>
-          {totalPages > 1 && paginatedStaff.length > 0 && (
-            <PaginationControls
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              itemsPerPage={ITEMS_PER_PAGE}
-              totalItems={filteredStaff.length}
-            />
-          )}
+          <CardTitle className="flex items-center gap-2 justify-between">
+            <p>Staff List ({filteredStaff.length})</p>
+            {isAdmin && <Button onClick={handleDownloadCSV} variant={"secondary"}>
+              <Download  />
+              Download as CSV</Button>}
+            </CardTitle>
+
         </CardHeader>
         <CardContent>
           <Table>
@@ -190,37 +257,46 @@ export default function StaffManagementPage() {
             </TableHeader>
             <TableBody>
               {paginatedStaff.map((member) => (
-                <TableRow key={member.accountId}>
+                <TableRow key={member.ACCOUNT_ID}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
-                        <AvatarImage src={member.avatarUrl} />
-                        <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
+                        <AvatarImage src={member.AVATAR_URL} />
+                        <AvatarFallback className="bg-green-500/10 text-green-500">{getInitials(member.NAME)}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="font-medium">{member.name}</div>
+                        <div className="font-medium flex gap-1 items-center">
+                          <p>
+                          {member.NAME}
+                          </p>
+                          <p>
+                            <Badge variant="outline" className={getDepartmentColor(member.DEPARTMENT) + " text-green-500 border-green-500/50"}>
+                              {member.ROLE}
+                            </Badge>
+                          </p>
+                          </div>
                         <div className="text-sm text-muted-foreground flex items-center gap-1">
                           <Mail className="h-3 w-3" />
-                          {member.email}
+                          {member.EMAIL}
                         </div>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell className="font-mono text-sm">
-                    {member.staffId}
+                    {member.STAFF_ID}
                   </TableCell>
                   <TableCell>
-                    <Badge className={getDepartmentColor(member.department)}>
-                      {member.department}
+                    <Badge className={getDepartmentColor(member.DEPARTMENT)}>
+                      {member.DEPARTMENT}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="font-medium text-sm">{member.position}</div>
+                    <div className="font-medium text-sm">{member.POSITION}</div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1 text-sm">
                       <Phone className="h-3 w-3" />
-                      {member.contactNumber}
+                      {member.CONTACT_NUMBER}
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
@@ -233,22 +309,28 @@ export default function StaffManagementPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit Profile
+                        <DropdownMenuItem onClick={() => handleViewDetails(member.ACCOUNT_ID)}>
+                          <UserCheck className="h-4 w-4 mr-2" />
+                          Staff Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        {ACCOUNT_ID !== member.ACCOUNT_ID && <>
+                        <DropdownMenuItem onClick={() => handleViewAssignments(member.ACCOUNT_ID, member.NAME)}>
                           <Briefcase className="h-4 w-4 mr-2" />
                           View Assignments
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handlePromoteToAdmin(member.accountId)}>
+                        {isAdmin && <DropdownMenuItem onClick={() => handlePromoteToAdmin(member.ACCOUNT_ID, member.NAME)}>
                           <Shield className="h-4 w-4 mr-2" />
-                          Promote to Admin
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
+                          Promote Staff
+                        </DropdownMenuItem>}
+                        </>}
+                        <DropdownMenuSeparator />
+
+                        <DropdownMenuItem 
+                          className="text-destructive"
+                          onClick={() => handleDeleteAccount(member.ACCOUNT_ID, member.NAME, member.EMAIL)}
+                        >
                           <UserX className="h-4 w-4 mr-2" />
-                          Suspend Account
+                          Delete Account
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -265,6 +347,44 @@ export default function StaffManagementPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+          {paginatedStaff.length > 0 && (
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={ITEMS_PER_PAGE}
+              totalItems={filteredStaff.length}
+            />
+          )}
+      {/* Dialogs */}
+      <ViewUserDetailDialog
+        accountId={selectedStaffId}
+        open={openViewDialog}
+        onOpenChange={setOpenViewDialog}
+      />
+
+      <ViewStaffAssignmentDialog
+        accountId={selectedStaffId}
+        staffName={selectedStaffName}
+        open={openAssignmentsDialog}
+        onOpenChange={setOpenAssignmentsDialog}
+      />
+
+      <PromoteStaffDialog
+        accountId={selectedStaffId}
+        staffName={selectedStaffName}
+        open={openPromoteDialog}
+        onOpenChange={setOpenPromoteDialog}
+        onSuccess={handleRefreshStaff}
+      />
+
+      <DeleteUserDialog
+        accountId={selectedStaffId}
+        userName={selectedStaffName}
+        userEmail={selectedStaffEmail}
+        open={openDeleteDialog}
+        onOpenChange={setOpenDeleteDialog}
+        onSuccess={handleRefreshStaff}
+      />    </div>
   );
 }

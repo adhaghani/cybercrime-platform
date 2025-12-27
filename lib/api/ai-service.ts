@@ -48,10 +48,10 @@ export class AIService {
     
     // Check if starts with markdown code block
     if (cleaned.startsWith('```')) {
-      // Remove opening ```json or ```
-      cleaned = cleaned.replace(/^```(?:json)?\n?/, '');
-      // Remove closing ```
-      cleaned = cleaned.replace(/\n?```$/, '');
+      // Remove opening ```json or ``` with any following whitespace/newlines
+      cleaned = cleaned.replace(/^```(?:json|JSON)?[\s\n\r]*/, '');
+      // Remove closing ``` with any preceding whitespace/newlines
+      cleaned = cleaned.replace(/[\s\n\r]*```\s*$/, '');
     }
     
     return cleaned.trim();

@@ -1,39 +1,27 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useMemo, useCallback } from "react";
 import { Role } from "@/lib/types";
 
 interface Claims {
-  email?: string;
-  sub?: string;
-  aud?: string;
-  iat?: number;
-  exp?: number;
-  role?: Role;
-  session_id?: string;
-  user_metadata?: {
-    name?: string;
-    contactNumber?: string;
-    avatarUrl?: string;
-    // Student specific
-    studentId?: string;
-    program?: string;
-    semester?: number;
-    yearOfStudy?: number;
-    // Staff specific
-    staffId?: string;
-    department?: string;
-    position?: string;
-    [key: string]: string | number | boolean | null | undefined;
-  };
-  app_metadata?: {
-    provider?: string;
-    providers?: string[];
-    [key: string]: string | number | boolean | string[] | null | undefined;
-  };
-  created_at?: string;
-  updated_at?: string;
-  [key: string]: string | number | boolean | object | null | undefined;
+  ACCOUNT_ID?: string; // accountId
+  EMAIL?: string;
+  ROLE?: Role;
+  NAME?: string;
+  CONTACT_NUMBER?: string;
+  AVATAR_URL?: string;
+  ACCOUNT_TYPE?: string;
+  // student specific fields
+  STUDENT_ID?: string;
+  PROGRAM?: string;
+  SEMESTER?: number;
+  YEAR_OF_STUDY?: number;
+  // Staff specific fields
+  STAFF_ID?: string;
+  DEPARTMENT?: string;
+  POSITION?: string;
+  CREATED_AT?: string;
+  UPDATED_AT?: string;
 }
 
 type AuthContextValue = {
@@ -53,38 +41,16 @@ export default function AuthProvider({
 }) {
   const [claims, setClaims] = useState<Claims | null>(initialClaims);
 
-  // Load claims from sessionStorage on mount
-  useEffect(() => {
-    // Skip sessionStorage loading if we already have initialClaims
-    if (initialClaims !== null) return;
-
-    const savedClaims = sessionStorage.getItem("user-claims");
-    if (savedClaims) {
-      try {
-        const parsedClaims = JSON.parse(savedClaims);
-        setClaims(parsedClaims);
-      } catch (error) {
-        console.error("Failed to parse saved claims:", error);
-        sessionStorage.removeItem("user-claims");
-      }
-    }
-  }, [initialClaims]);
-
-  // Save claims to sessionStorage whenever they change
-  const updateClaims = (newClaims: Claims | null) => {
+  // No sessionStorage - auth state is managed by HttpOnly cookies server-side
+  const updateClaims = useCallback((newClaims: Claims | null) => {
     setClaims(newClaims);
-    if (newClaims && Object.keys(newClaims).length > 0) {
-      sessionStorage.setItem("user-claims", JSON.stringify(newClaims));
-    } else {
-      sessionStorage.removeItem("user-claims");
-    }
-  };
+  }, []);
 
-  const value: AuthContextValue = {
+  const value: AuthContextValue = useMemo(() => ({
     claims: claims,
     isAuthenticated: !!claims && Object.keys(claims).length > 0,
     setClaims: updateClaims,
-  };
+  }), [claims, updateClaims]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

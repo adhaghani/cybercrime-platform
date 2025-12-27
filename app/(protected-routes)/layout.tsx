@@ -1,4 +1,5 @@
 import { ProtectedLayoutContent } from "@/components/auth/protected-layout-content";
+import { StyleProvider } from "@/lib/context/style-provider";
 
 import { AppSidebar } from "@/components/dashboard/app-sidebar"
 import { SiteHeader } from "@/components/dashboard/site-header"
@@ -12,15 +13,20 @@ export default function ProtectedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <ProtectedLayoutContent>    <div className="w-full">
-      <SidebarProvider className="flex flex-col">
-        <SiteHeader />
-        <div className="flex flex-1">
-          <AppSidebar />
-          <SidebarInset className="p-4">
-            {children}
-          </SidebarInset>
-        </div>
-      </SidebarProvider>
-    </div></ProtectedLayoutContent>;
+  return (
+  <ProtectedLayoutContent>
+    <StyleProvider>
+      <div className="w-full">
+        <SidebarProvider className="flex flex-col">
+          <SiteHeader />
+          <div className="flex flex-1">
+            <AppSidebar />
+            <SidebarInset>
+              {children}
+            </SidebarInset>
+          </div>
+        </SidebarProvider>
+      </div>
+    </StyleProvider>
+    </ProtectedLayoutContent>);
 }

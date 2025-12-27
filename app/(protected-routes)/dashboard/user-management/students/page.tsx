@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import { Download, Loader2, UserCheck, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getInitials, getYearBadgeColor } from "@/lib/utils/badge-helpers";
@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   ArrowLeft, Search, Filter, MoreVertical, Mail, Phone, 
-  GraduationCap, BookOpen, Edit, UserX, FileText
+  GraduationCap, BookOpen, UserX, FileText
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -22,9 +22,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
 import Link from "next/link";
 import { Student } from "@/lib/types";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import { UITM_PROGRAMS } from "@/lib/constant";
+import { ViewUserDetailDialog } from "@/components/users/viewUserDetailDialog";
+import { ViewStudentReportDialog } from "@/components/users/viewStudentReportDialog";
+import { DeleteUserDialog } from "@/components/users/deleteUserDialog";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -37,6 +48,12 @@ export default function StudentsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
+  const [openViewDialog, setOpenViewDialog] = useState(false);
+  const [openReportsDialog, setOpenReportsDialog] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [selectedStudentName, setSelectedStudentName] = useState<string>("");
+  const [selectedStudentEmail, setSelectedStudentEmail] = useState<string>("");
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -44,7 +61,7 @@ export default function StudentsPage() {
         const response = await fetch('/api/students');
         if (!response.ok) throw new Error('Failed to fetch students');
         const data = await response.json();
-        setStudents(data);
+        setStudents(data.students);
       } catch (error) {
         console.error('Error fetching students:', error);
       } finally {
@@ -55,20 +72,20 @@ export default function StudentsPage() {
   }, []);
 
   // Get unique programs for filter
-  const programs = Array.from(new Set(students.map(s => s.program)));
+  const programs = UITM_PROGRAMS;
 
-  const filteredStudents = students.filter((student) => {
+  const filteredStudents = students.length > 0 ? students.filter((student) => {
     const matchesSearch = 
-      student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.studentId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.program.toLowerCase().includes(searchQuery.toLowerCase());
+      student.NAME.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.EMAIL.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.STUDENT_ID.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.PROGRAM.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesYear = yearFilter === "ALL" || student.yearOfStudy.toString() === yearFilter;
-    const matchesProgram = programFilter === "ALL" || student.program === programFilter;
+    const matchesYear = yearFilter === "ALL" || student.YEAR_OF_STUDY.toString() === yearFilter;
+    const matchesProgram = programFilter === "ALL" || student.PROGRAM === programFilter;
 
     return matchesSearch && matchesYear && matchesProgram;
-  });
+  }) : [];
 
   // Pagination
   const totalPages = Math.ceil(filteredStudents.length / ITEMS_PER_PAGE);
@@ -81,6 +98,56 @@ export default function StudentsPage() {
     callback();
     setCurrentPage(1);
   };
+
+  const handleViewDetails = (accountId: string) => {
+    setSelectedStudentId(accountId);
+    setOpenViewDialog(true);
+  };
+
+  const handleViewReports = (accountId: string, name: string) => {
+    setSelectedStudentId(accountId);
+    setSelectedStudentName(name);
+    setOpenReportsDialog(true);
+  };
+
+  const handleDeleteAccount = (accountId: string, name: string, email: string) => {
+    setSelectedStudentId(accountId);
+    setSelectedStudentName(name);
+    setSelectedStudentEmail(email);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleRefreshStudents = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/students');
+      if (!response.ok) throw new Error('Failed to fetch students');
+      const data = await response.json();
+      setStudents(data.students);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownloadCSV = async () => {
+    try {
+      const response = await fetch('/api/students/export');
+      if (response.ok) {
+        const data = await response.blob();
+        const url = window.URL.createObjectURL(new Blob([data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'students.csv');
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode?.removeChild(link);
+      }
+    } catch (error) {
+      console.error('Failed to download CSV:', error);
+    }
+  }
 
   if (loading) {
     return (
@@ -152,19 +219,16 @@ export default function StudentsPage() {
       {/* Students Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Student List ({filteredStudents.length})</CardTitle>
-          {totalPages > 1 && paginatedStudents.length > 0 && (
-            <PaginationControls
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              itemsPerPage={ITEMS_PER_PAGE}
-              totalItems={filteredStudents.length}
-            />
-          )}
+          <CardTitle className="flex items-center gap-2 justify-between">
+            <p>Student List ({filteredStudents.length})</p>
+            <Button onClick={handleDownloadCSV} variant={"secondary"}>
+              <Download  />
+              Download as CSV</Button>
+            </CardTitle>
+
         </CardHeader>
         <CardContent>
-          <Table>
+          <Table className="overflow-hidden">
             <TableHeader>
               <TableRow>
                 <TableHead>Student</TableHead>
@@ -177,42 +241,42 @@ export default function StudentsPage() {
             </TableHeader>
             <TableBody>
               {paginatedStudents.map((student) => (
-                <TableRow key={student.accountId}>
+                <TableRow key={student.STUDENT_ID}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
-                        <AvatarImage src={student.avatarUrl} />
-                        <AvatarFallback>{getInitials(student.name)}</AvatarFallback>
+                        <AvatarImage src={student.AVATAR_URL} />
+                        <AvatarFallback className="bg-blue-500/10 text-blue-500">{getInitials(student.NAME)}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="font-medium">{student.name}</div>
+                        <div className="font-medium">{student.NAME}</div>
                         <div className="text-sm text-muted-foreground flex items-center gap-1">
                           <Mail className="h-3 w-3" />
-                          {student.email}
+                          {student.EMAIL}
                         </div>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell className="font-mono text-sm">
-                    {student.studentId}
+                    {student.STUDENT_ID}
                   </TableCell>
                   <TableCell>
-                    <div className="font-medium text-sm">{student.program}</div>
+                    <div className="font-medium text-sm">{student.PROGRAM}</div>
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Badge className={getYearBadgeColor(student.yearOfStudy)}>
-                        Year {student.yearOfStudy}
+                      <Badge className={getYearBadgeColor(student.YEAR_OF_STUDY)}>
+                        Year {student.YEAR_OF_STUDY}
                       </Badge>
                       <Badge variant="outline">
-                        Sem {student.semester}
+                        Sem {student.SEMESTER}
                       </Badge>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1 text-sm">
                       <Phone className="h-3 w-3" />
-                      {student.contactNumber}
+                      {student.CONTACT_NUMBER}
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
@@ -225,22 +289,21 @@ export default function StudentsPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit Profile
+                        <DropdownMenuItem onClick={() => handleViewDetails(student.ACCOUNT_ID)}>
+                          <UserCheck className="h-4 w-4 mr-2" />
+                          Student Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewReports(student.ACCOUNT_ID, student.NAME)}>
                           <FileText className="h-4 w-4 mr-2" />
                           View Reports
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <GraduationCap className="h-4 w-4 mr-2" />
-                          Academic Details
-                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive">
+                        <DropdownMenuItem 
+                          className="text-destructive"
+                          onClick={() => handleDeleteAccount(student.ACCOUNT_ID, student.NAME, student.EMAIL)}
+                        >
                           <UserX className="h-4 w-4 mr-2" />
-                          Suspend Account
+                          Delete Account
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -249,14 +312,59 @@ export default function StudentsPage() {
               ))}
             </TableBody>
           </Table>
-
-          {filteredStudents.length === 0 && (
+          {
+            students.length === 0 && (
+                  <Empty className="border border-dashed">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Users />
+        </EmptyMedia>
+        <EmptyTitle>No Students currently available</EmptyTitle>
+        <EmptyDescription>
+          The system currently has no students. Try registering some students to populate this list.
+        </EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+            )
+          }
+          {students.length !== 0 && filteredStudents.length === 0 && (
             <div className="text-center py-12 text-muted-foreground">
               No students found matching your filters.
             </div>
           )}
         </CardContent>
       </Card>
+          {paginatedStudents.length > 0 && (
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={ITEMS_PER_PAGE}
+              totalItems={filteredStudents.length}
+            />
+          )}
+      {/* Dialogs */}
+      <ViewUserDetailDialog
+        accountId={selectedStudentId}
+        open={openViewDialog}
+        onOpenChange={setOpenViewDialog}
+      />
+
+      <ViewStudentReportDialog
+        accountId={selectedStudentId}
+        studentName={selectedStudentName}
+        open={openReportsDialog}
+        onOpenChange={setOpenReportsDialog}
+      />
+
+      <DeleteUserDialog
+        accountId={selectedStudentId}
+        userName={selectedStudentName}
+        userEmail={selectedStudentEmail}
+        open={openDeleteDialog}
+        onOpenChange={setOpenDeleteDialog}
+        onSuccess={handleRefreshStudents}
+      />
     </div>
   );
 }

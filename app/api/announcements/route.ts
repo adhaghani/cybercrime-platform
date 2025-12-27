@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    console.log('Next.js API route - Request body:', body);
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/announcements`, {
       method: 'POST',
@@ -59,6 +60,7 @@ export async function POST(request: NextRequest) {
     });
 
     const data = await response.json();
+    console.log('Backend response:', { status: response.status, data });
 
     if (!response.ok) {
       return NextResponse.json(data, { status: response.status });
@@ -66,9 +68,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
-    console.error('Create announcement error:', error);
+    console.error('Create announcement error in Next.js API route:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

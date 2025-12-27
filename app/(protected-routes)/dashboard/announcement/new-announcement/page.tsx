@@ -21,7 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Bell, ArrowLeft, Save, Send, Image as ImageIcon, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -30,6 +29,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useAuth } from "@/lib/context/auth-provider";
 
 const announcementSchema = z.object({
   title: z.string().min(1, "Title is required").max(200, "Title must be less than 200 characters"),
@@ -39,7 +39,6 @@ const announcementSchema = z.object({
   targetAudience: z.enum(["ALL", "STUDENTS", "STAFF", "ADMIN"]),
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().min(1, "End date is required"),
-  isPinned: z.boolean(),
   photo: z.any().optional(),
 }).refine((data) => {
   if (data.startDate && data.endDate) {
@@ -55,6 +54,8 @@ export default function NewAnnouncementPage() {
   const router = useRouter();
   const [photoPreview, setPhotoPreview] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
+  const { claims } = useAuth();
+  const ACCOUNT_ID = claims?.ACCOUNT_ID || null;
 
   const form = useForm<z.infer<typeof announcementSchema>>({
     resolver: zodResolver(announcementSchema),
@@ -66,7 +67,6 @@ export default function NewAnnouncementPage() {
       targetAudience: undefined,
       startDate: "",
       endDate: "",
-      isPinned: false,
     },
   });
 
@@ -101,8 +101,8 @@ export default function NewAnnouncementPage() {
           audience: data.targetAudience,
           start_date: data.startDate,
           end_date: data.endDate,
+          created_by: ACCOUNT_ID,
           status,
-          is_pinned: data.isPinned,
         }),
       });
       if (!response.ok) throw new Error('Failed to create announcement');
@@ -193,7 +193,7 @@ export default function NewAnnouncementPage() {
                           <FormLabel>Type *</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
-                              <SelectTrigger>
+                              <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select type" />
                               </SelectTrigger>
                             </FormControl>
@@ -216,7 +216,7 @@ export default function NewAnnouncementPage() {
                           <FormLabel>Priority *</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
-                              <SelectTrigger>
+                              <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select priority" />
                               </SelectTrigger>
                             </FormControl>
@@ -351,7 +351,7 @@ export default function NewAnnouncementPage() {
                       <FormLabel>Target Audience *</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select audience" />
                           </SelectTrigger>
                         </FormControl>
@@ -363,27 +363,6 @@ export default function NewAnnouncementPage() {
                         </SelectContent>
                       </Select>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="isPinned"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                      <div className="space-y-0.5">
-                        <FormLabel>Pin Announcement</FormLabel>
-                        <FormDescription className="text-sm">
-                          Display at the top of dashboard
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
                     </FormItem>
                   )}
                 />

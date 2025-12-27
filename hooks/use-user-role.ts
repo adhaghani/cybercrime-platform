@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/context/auth-provider";
 export function useUserRole() {
   const { claims } = useAuth();
   
-  return claims?.role || null;
+  return claims?.ROLE || null;
 }
 
 /**
@@ -19,7 +19,7 @@ export function useUserRole() {
 export function useHasRole() {
   const { claims } = useAuth();
   
-  return (role: string) => claims?.role === role;
+  return (role: string) => claims?.ROLE === role;
 }
 
 /**
@@ -30,8 +30,8 @@ export function useHasAnyRole() {
   const { claims } = useAuth();
   
   return (roles: string[]) => {
-    if (!claims?.role) return false;
-    return roles.includes(claims.role);
+    if (!claims?.ROLE) return false;
+    return roles.includes(claims.ROLE);
   };
 }
 

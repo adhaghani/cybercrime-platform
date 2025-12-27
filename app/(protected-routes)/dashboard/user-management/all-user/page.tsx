@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   ArrowLeft, Search, Filter, MoreVertical, Mail, Phone, 
-  UserCheck, UserX, Edit, Trash2 
+  UserCheck, Trash2 
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -25,10 +25,12 @@ import {
 import Link from "next/link";
 import {  Student, Staff } from "@/lib/types";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import { DeleteUserDialog } from "@/components/users/deleteUserDialog";
+import { ViewUserDetailDialog } from "@/components/users/viewUserDetailDialog";
 
 const ITEMS_PER_PAGE = 10;
 
-type RoleFilter = "ALL" | "STUDENT" | "STAFF" | "ADMIN";
+type RoleFilter = "ALL" | "STUDENT" | "STAFF";
 
 export default function AllUsersPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -36,11 +38,16 @@ export default function AllUsersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [users, setUsers] = useState<(Student | Staff)[]>([]);
   const [loading, setLoading] = useState(true);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [openViewDialog, setOpenViewDialog] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedUserName, setSelectedUserName] = useState<string>("");
+  const [selectedUserEmail, setSelectedUserEmail] = useState<string>("");
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch('/api/users');
+        const response = await fetch('/api/accounts');
         if (!response.ok) throw new Error('Failed to fetch users');
         const data = await response.json();
         setUsers(data);
@@ -55,12 +62,12 @@ export default function AllUsersPage() {
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch = 
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ("studentId" in user && user.studentId.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      ("staffId" in user && user.staffId.toLowerCase().includes(searchQuery.toLowerCase()));
+      user.NAME.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.EMAIL.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ("STUDENT_ID" in user && user.STUDENT_ID.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      ("STAFF_ID" in user && user.STAFF_ID.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    const matchesRole = roleFilter === "ALL" || ("role" in user && user.role === roleFilter) || (roleFilter === "STUDENT" && user.accountType === "STUDENT");
+    const matchesRole = roleFilter === "ALL" || ("ROLE" in user && user.ROLE === roleFilter) || user.ACCOUNT_TYPE === "STUDENT";
 
     return matchesSearch && matchesRole;
   });
@@ -77,19 +84,32 @@ export default function AllUsersPage() {
     setCurrentPage(1);
   };
 
-  const handleDeactivate = (userId: string) => {
-    // TODO: API call to deactivate user
-    console.log("Deactivating user:", userId);
-    alert("User deactivation functionality will be implemented with backend API");
+  const handleViewDetails = (accountId: string) => {
+    setSelectedUserId(accountId);
+    setOpenViewDialog(true);
   };
 
-  const handleDelete = (userId: string) => {
-    if (confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
-      // TODO: API call to delete user
-      console.log("Deleting user:", userId);
-      alert("User deletion functionality will be implemented with backend API");
+  const handleDeleteUser = (accountId: string, userName: string, userEmail: string) => {
+    setSelectedUserId(accountId);
+    setSelectedUserName(userName);
+    setSelectedUserEmail(userEmail);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleRefreshUsers = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/accounts');
+      if (!response.ok) throw new Error('Failed to fetch users');
+      const data = await response.json();
+      setUsers(data);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    } finally {
+      setLoading(false);
     }
   };
+  
 
   if (loading) {
     return (
@@ -135,7 +155,6 @@ export default function AllUsersPage() {
             <SelectItem value="ALL">All Roles</SelectItem>
             <SelectItem value="STUDENT">Students</SelectItem>
             <SelectItem value="STAFF">Staff</SelectItem>
-            <SelectItem value="ADMIN">Administrators</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -143,16 +162,7 @@ export default function AllUsersPage() {
       {/* Users Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Users ({filteredUsers.length})</CardTitle>
-          {totalPages > 1 && paginatedUsers.length > 0 && (
-            <PaginationControls
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              itemsPerPage={ITEMS_PER_PAGE}
-              totalItems={filteredUsers.length}
-            />
-          )}
+          <CardTitle>Users ({filteredUsers.length})</CardTitle> 
         </CardHeader>
         <CardContent>
           <Table>
@@ -162,56 +172,42 @@ export default function AllUsersPage() {
                 <TableHead>ID</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Contact</TableHead>
-                <TableHead>Details</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginatedUsers.map((user) => (
-                <TableRow key={user.accountId}>
+                <TableRow key={user.ACCOUNT_ID}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
-                        <AvatarImage src={user.avatarUrl} />
-                        <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                        <AvatarImage src={user.AVATAR_URL} />
+                        <AvatarFallback
+                        className={user.ACCOUNT_TYPE === "STUDENT" ? "bg-blue-500/10 text-blue-500" : "bg-green-500/10 text-green-500"}
+                        >{getInitials(user.NAME)}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="font-medium">{user.name}</div>
+                        <div className="font-medium">{user.NAME}</div>
                         <div className="text-sm text-muted-foreground flex items-center gap-1">
                           <Mail className="h-3 w-3" />
-                          {user.email}
+                          {user.EMAIL}
                         </div>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell className="font-mono text-sm">
-                    {"studentId" in user ? user.studentId : user.staffId}
+                    {"STUDENT_ID" in user ? user.STUDENT_ID : user.STAFF_ID}
                   </TableCell>
                   <TableCell>
-                    <Badge className={getRoleBadgeColor("role" in user ? user.role : user.accountType)}>
-                      {"role" in user ? user.role : user.accountType}
+                    <Badge className={getRoleBadgeColor("ROLE" in user ? user.ROLE : user.ACCOUNT_TYPE)}>
+                      {"ROLE" in user ? user.ROLE : user.ACCOUNT_TYPE}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1 text-sm">
                       <Phone className="h-3 w-3" />
-                      {user.contactNumber}
+                      {user.CONTACT_NUMBER}
                     </div>
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {"program" in user ? (
-                      <div>
-                        <div className="font-medium">{user.program}</div>
-                        <div className="text-muted-foreground">
-                          Sem {user.semester} • Year {user.yearOfStudy}
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        <div className="font-medium">{user.department}</div>
-                        <div className="text-muted-foreground">{user.position}</div>
-                      </div>
-                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -223,22 +219,13 @@ export default function AllUsersPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit Profile
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewDetails(user.ACCOUNT_ID)}>
                           <UserCheck className="h-4 w-4 mr-2" />
                           View Details
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleDeactivate(user.accountId)}>
-                          <UserX className="h-4 w-4 mr-2" />
-                          Deactivate
-                        </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => handleDelete(user.accountId)}
                           className="text-destructive"
+                          onClick={() => handleDeleteUser(user.ACCOUNT_ID, user.NAME, user.EMAIL)}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Delete User
@@ -258,6 +245,30 @@ export default function AllUsersPage() {
           )}
         </CardContent>
       </Card>
+          {paginatedUsers.length > 0 && (
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={ITEMS_PER_PAGE}
+              totalItems={filteredUsers.length}
+            />
+          )}
+      {/* Dialogs */}
+      <ViewUserDetailDialog
+        accountId={selectedUserId}
+        open={openViewDialog}
+        onOpenChange={setOpenViewDialog}
+      />
+      
+      <DeleteUserDialog
+        accountId={selectedUserId}
+        userName={selectedUserName}
+        userEmail={selectedUserEmail}
+        open={openDeleteDialog}
+        onOpenChange={setOpenDeleteDialog}
+        onSuccess={handleRefreshUsers}
+      />
     </div>
   );
 }

@@ -6,15 +6,108 @@
 import { apiClient } from './client';
 import { Staff, Student } from '@/lib/types';
 
+// Toggle between mock and real API
+const USE_MOCK_AUTH = false;
+
+// Mock users for testing
+const MOCK_USERS = {
+  superadmin: {
+    email: 'superadmin@staff.uitm.edu.my',
+    password: 'SuperAdmin123!',
+    user: {
+      ACCOUNT_ID: '9999',
+      NAME: 'Super Admin',
+      EMAIL: 'superadmin@staff.uitm.edu.my',
+      CONTACT_NUMBER: '0123456789',
+      ACCOUNT_TYPE: 'STAFF',
+      STAFF_ID: '99999999',
+      ROLE: 'SUPERADMIN',
+      DEPARTMENT: 'IT Security',
+      POSITION: 'Chief Security Officer',
+    } as Staff,
+  },
+  admin: {
+    email: 'admin@staff.uitm.edu.my',
+    password: 'Admin123!',
+    user: {
+      ACCOUNT_ID: '8888',
+      NAME: 'Admin User',
+      EMAIL: 'admin@staff.uitm.edu.my',
+      CONTACT_NUMBER: '0123456788',
+      ACCOUNT_TYPE: 'STAFF',
+      STAFF_ID: '88888888',
+      ROLE: 'ADMIN',
+      DEPARTMENT: 'Administration',
+      POSITION: 'Administrator',
+    } as Staff,
+  },
+  supervisor: {
+    email: 'supervisor@staff.uitm.edu.my',
+    password: 'Supervisor123!',
+    user: {
+      ACCOUNT_ID: '7777',
+      NAME: 'Supervisor User',
+      EMAIL: 'supervisor@staff.uitm.edu.my',
+      CONTACT_NUMBER: '0123456777',
+      ACCOUNT_TYPE: 'STAFF',
+      STAFF_ID: '77777777',
+      ROLE: 'SUPERVISOR',
+      DEPARTMENT: 'Security',
+      POSITION: 'Security Supervisor',
+    } as Staff,
+  },
+  staff: {
+    email: 'staff@staff.uitm.edu.my',
+    password: 'Staff123!',
+    user: {
+      ACCOUNT_ID: '6666',
+      NAME: 'Staff User',
+      EMAIL: 'staff@staff.uitm.edu.my',
+      CONTACT_NUMBER: '0123456666',
+      ACCOUNT_TYPE: 'STAFF',
+      STAFF_ID: '66666666',
+      ROLE: 'STAFF',
+      DEPARTMENT: 'Security',
+      POSITION: 'Security Officer',
+    } as Staff,
+  },
+  student: {
+    email: 'student@student.uitm.edu.my',
+    password: 'Student123!',
+    user: {
+      ACCOUNT_ID: '5555',
+      NAME: 'Student User',
+      EMAIL: 'student@student.uitm.edu.my',
+      CONTACT_NUMBER: '0123456555',
+      ACCOUNT_TYPE: 'STUDENT',
+      STUDENT_ID: '2025160493',
+      PROGRAM: 'Computer Science',
+      SEMESTER: 3,
+      YEAR_OF_STUDY: 2,
+    } as Student,
+  },
+};
+
 export interface LoginCredentials {
   email: string;
   password: string;
 }
 
 export interface SignUpData {
+  name: string;
   email: string;
+  contact_number: string;
   password: string;
-  full_name?: string;
+  account_type: string;
+  studentID?: string;
+  program?: string;
+  semester?: number;
+  year_of_study?: number;
+  staffID?: string;
+  department?: string;
+  position?: string;
+  role?: string;
+  supervisorID?: string;
 }
 
 export interface AuthResponse {
@@ -28,161 +121,109 @@ export type UserProfile = Student | Staff;
  * Login with email and password
  */
 export async function login(credentials: LoginCredentials): Promise<AuthResponse> {
-  // TODO: Replace with actual backend API call when auth endpoints are ready
-  // const response = await apiClient.post<AuthResponse>('/api/auth/login', credentials);
-  
-  // Mock implementation for now
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (credentials.email && credentials.password) {
-        // Mock successful login
-        
-        const mockUser: Staff = {
-          accountId: '1',
-          email: credentials.email,
-          name: 'John Doe',
-          contactNumber: '012-3456789',
-          accountType: 'STAFF',
-          staffId: 'S12345',
-          role: 'SUPERADMIN',
-          department: 'IT Department',
-          position: 'System Administrator',
-          // supervisorId: undefined,
-          // studentId: '2023123456',
-          // program: 'Computer Science',
-          // semester: 4,
-          // yearOfStudy: 2,
-          passwordHash: '',
-          createdAt: '',
-          updatedAt: ''
-        };
+  if (USE_MOCK_AUTH) {
+    // Mock authentication
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const mockUser = Object.values(MOCK_USERS).find(
+          (u) => u.email === credentials.email && u.password === credentials.password
+        );
 
-        const mockToken = btoa(JSON.stringify({ 
-          accountId: mockUser.accountId,
-          name: mockUser.name,
-          email: mockUser.email,
-          accountType: mockUser.accountType,
-          contactNumber: mockUser.contactNumber,
-          // studentId: mockUser.studentId,
-          // program: mockUser.program,
-          // semester: mockUser.semester,
-          // yearOfStudy: mockUser.yearOfStudy,
-          staffId: mockUser.staffId,
-          role: mockUser.role,
-          department: mockUser.department,
-          position: mockUser.position,
-          supervisorId: mockUser.supervisorId,
-          exp: Date.now() + 86400000 // 24 hours
-        }));
+        if (mockUser) {
+          const mockToken = `mock-token-${mockUser.user.ACCOUNT_ID}-${Date.now()}`;
+          
+          resolve({
+            token: mockToken,
+            user: mockUser.user,
+          });
+        } else {
+          reject(new Error('Invalid email or password'));
+        }
+      }, 500); // Simulate network delay
+    });
+  }
 
-        apiClient.setToken(mockToken);
-        
-        resolve({
-          token: mockToken,
-          user: mockUser,
-        });
-      } else {
-        reject({ message: 'Invalid credentials', status: 401 });
-      }
-    }, 500);
+  // Call Next.js API route (same origin) for proper cookie handling
+  const response = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(credentials),
   });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Login failed');
+  }
+
+  const data = await response.json();
+  
+  // Token is set as HttpOnly cookie by the server, no client-side handling needed
+  return data;
 }
 
 /**
  * Sign up new user
  */
 export async function signUp(data: SignUpData): Promise<{ message: string }> {
-  // TODO: Replace with actual backend API call when auth endpoints are ready
-  // const response = await apiClient.post<{ message: string }>('/api/auth/register', data);
-  
-  // Mock implementation for now
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (data.email && data.password) {
-        resolve({
-          message: 'Registration successful. Please check your email to verify your account.',
-        });
-      } else {
-        reject({ message: 'Invalid registration data', status: 400 });
-      }
-    }, 500);
-  });
+  if (USE_MOCK_AUTH) {
+    // Mock signup
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({ message: 'Account created successfully' });
+      }, 500);
+    });
+  }
+
+  const response = await apiClient.post<{ message: string }>('/api/auth/register', data);
+  return response;
 }
 
 /**
  * Logout user
  */
 export async function logout(): Promise<void> {
-  // TODO: Replace with actual backend API call when auth endpoints are ready
-  // await apiClient.post('/api/auth/logout');
+  // Call Next.js API route (same origin) for proper cookie handling
+  await fetch('/api/auth/logout', {
+    method: 'POST',
+    credentials: 'include',
+  });
   
-  // Clear token
-  apiClient.clearToken();
-  
-  // Mock implementation
-  return Promise.resolve();
+  // Cookie is cleared by the server (HttpOnly)
 }
 
 /**
  * Get current user profile
  */
 export async function getCurrentUser(): Promise<UserProfile | null> {
-  const token = apiClient.getToken();
-  
-  if (!token) {
-    return null;
+  if (USE_MOCK_AUTH) {
+    // Mock get current user - for mock mode, check if we have stored user data
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // In mock mode, we'll check the first mock user as fallback
+        // In a real scenario, you'd check against a mock session
+        resolve(MOCK_USERS.student.user);
+      }, 200);
+    });
   }
 
-  // TODO: Replace with actual backend API call when auth endpoints are ready
-  // const response = await apiClient.get<UserProfile>('/api/auth/me');
-  
-  // Mock implementation - decode token
   try {
-    const decoded = JSON.parse(atob(token));
-    
-    // Check if token is expired
-    if (decoded.exp && decoded.exp < Date.now()) {
-      apiClient.clearToken();
+    // Call Next.js API route (same origin) for proper cookie handling
+    const response = await fetch('/api/auth/me', {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      console.error("Failed to fetch user, status:", response.status);
       return null;
     }
 
-    // Mock user data
-    // In a real app, we would fetch the full profile from the backend
-    // Here we reconstruct it from the token or return a default mock
-    if (decoded.accountType === 'STUDENT') {
-      return {
-          accountId: decoded.accountId || '1',
-          email: decoded.email || "email@john.com",
-          name: decoded.name || 'John Doe',
-          contactNumber: decoded.contactNumber || '012-3456789',
-          accountType: 'STUDENT',
-          studentId: decoded.studentId || '2023123456',
-          program: decoded.program || 'Computer Science',
-          semester: decoded.semester || 4,
-          yearOfStudy: decoded.yearOfStudy || 2,
-          passwordHash: '',
-          createdAt: '',
-          updatedAt: ''
-      } as Student;
-    } else {
-      return {
-          accountId: decoded.accountId || '1',
-          email: decoded.email || "john@gmail.com",
-          name: decoded.name || 'John Doe',
-          contactNumber: decoded.contactNumber || '012-3456789',
-          accountType: 'STAFF',
-          staffId: decoded.staffId || 'S12345',
-          role: decoded.role || 'SUPERADMIN',
-          department: decoded.department || 'IT Department',
-          position: decoded.position || 'System Administrator',
-          supervisorId: decoded.supervisorId,
-          passwordHash: '',
-          createdAt: '',
-          updatedAt: ''
-      } as Staff;
-    }
-  } catch {
-    apiClient.clearToken();
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    // If unauthorized or token invalid, return null
+    console.error("Error fetching current user:", error);
     return null;
   }
 }
@@ -191,40 +232,14 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
  * Request password reset
  */
 export async function requestPasswordReset(email: string): Promise<{ message: string }> {
-  // TODO: Replace with actual backend API call when auth endpoints are ready
-  // const response = await apiClient.post<{ message: string }>('/api/auth/forgot-password', { email });
-  
-  // Mock implementation
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (email) {
-        resolve({
-          message: 'Password reset email sent. Please check your inbox.',
-        });
-      } else {
-        reject({ message: 'Invalid email address', status: 400 });
-      }
-    }, 500);
-  });
+  const response = await apiClient.post<{ message: string }>('/api/auth/forgot-password', { email });
+  return response;
 }
 
 /**
  * Update password
  */
 export async function updatePassword(newPassword: string): Promise<{ message: string }> {
-  // TODO: Replace with actual backend API call when auth endpoints are ready
-  // const response = await apiClient.post<{ message: string }>('/api/auth/update-password', { password: newPassword });
-  
-  // Mock implementation
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (newPassword && newPassword.length >= 8) {
-        resolve({
-          message: 'Password updated successfully.',
-        });
-      } else {
-        reject({ message: 'Password must be at least 8 characters', status: 400 });
-      }
-    }, 500);
-  });
+  const response = await apiClient.post<{ message: string }>('/api/auth/update-password', { password: newPassword });
+  return response;
 }

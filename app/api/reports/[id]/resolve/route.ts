@@ -48,7 +48,7 @@ export async function POST(
     }
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/reports/${id}/resolve`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/resolutions`,
       {
         method: 'POST',
         headers: {
@@ -56,9 +56,10 @@ export async function POST(
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          resolutionType,
-          resolutionSummary,
-          evidencePath,
+          report_id: id,
+          resolution_type: resolutionType,
+          resolution_summary: resolutionSummary,
+          evidence_path: evidencePath || null,
         }),
       }
     );

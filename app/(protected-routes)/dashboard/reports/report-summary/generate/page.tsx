@@ -12,13 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, FileText, Download, Sparkles, Calendar, Clock, Loader2 } from "lucide-react";
+import { ArrowLeft, FileText, Download, Sparkles, Calendar, Clock } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
-import { GeneratedReportCategory, GeneratedReportDataType, GeneratedReport, Report } from "@/lib/types";
+import { useState } from "react";
+import { GeneratedReportCategory, GeneratedReportDataType, GeneratedReport } from "@/lib/types";
 import { aiService } from "@/lib/api/ai-service";
 import { format } from "date-fns";
-
+import { useAuth } from "@/lib/context/auth-provider";
 export default function GenerateReportPage() {
   // Form state
   const [title, setTitle] = useState("");
@@ -32,25 +32,9 @@ export default function GenerateReportPage() {
   const [generatedReport, setGeneratedReport] = useState<GeneratedReport | null>(null);
   const [error, setError] = useState<string>("");
   
-  // Reports data
-  const [reports, setReports] = useState<Report[]>([]);
-  const [loadingReports, setLoadingReports] = useState(true);
 
-  useEffect(() => {
-    const fetchReports = async () => {
-      try {
-        const response = await fetch('/api/reports');
-        if (!response.ok) throw new Error('Failed to fetch reports');
-        const data = await response.json();
-        setReports(data);
-      } catch (error) {
-        console.error('Error fetching reports:', error);
-      } finally {
-        setLoadingReports(false);
-      }
-    };
-    fetchReports();
-  }, []);
+  const { claims } = useAuth();
+  const AcconutID = claims?.ACCOUNT_ID || "staff-1";
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,39 +43,34 @@ export default function GenerateReportPage() {
     setGeneratedReport(null);
 
     try {
-      // Filter reports based on category and date range
-      const filteredReports = reports.filter((report) => {
-        let matchesCategory;
-        if(category === "ALL REPORTS") {
-            matchesCategory = true;
-        }
-        else {
-            matchesCategory = report.type === category;
-        }
-        const reportDate = new Date(report.submittedAt);
-        const startDate = new Date(dateRangeStart);
-        const endDate = new Date(dateRangeEnd);
-        
-        const withinDateRange = reportDate >= startDate && reportDate <= endDate;
-        
-        return matchesCategory && withinDateRange;
-      });
+      // Fetch reports with filters from API
+      const params = new URLSearchParams();
+      if (category !== "ALL REPORTS") {
+        params.append('type', category);
+      }
+      params.append('start_date', dateRangeStart);
+      params.append('end_date', dateRangeEnd);
+
+      const response = await fetch(`/api/reports?${params.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch filtered reports');
+      const data = await response.json();
+      const filteredReports = data.reports || data;
 
       // Prepare report data for AI
       const reportData = {
         totalReports: filteredReports.length,
         byStatus: {
-          pending: filteredReports.filter(r => r.status === "PENDING").length,
-          inProgress: filteredReports.filter(r => r.status === "IN_PROGRESS").length,
-          resolved: filteredReports.filter(r => r.status === "RESOLVED").length,
-          rejected: filteredReports.filter(r => r.status === "REJECTED").length,
+          pending: filteredReports.filter(r => r.STATUS === "PENDING").length,
+          inProgress: filteredReports.filter(r => r.STATUS === "IN_PROGRESS").length,
+          resolved: filteredReports.filter(r => r.STATUS === "RESOLVED").length,
+          rejected: filteredReports.filter(r => r.STATUS === "REJECTED").length,
         },
         reports: filteredReports.map(r => ({
-          title: r.title,
-          location: r.location,
-          status: r.status,
-          submittedAt: r.submittedAt,
-          type: r.type,
+          title: r.TITLE,
+          location: r.LOCATION,
+          status: r.STATUS,
+          submittedAt: r.SUBMITTED_AT,
+          type: r.TYPE,
         })),
       };
 
@@ -131,18 +110,49 @@ export default function GenerateReportPage() {
       }
 
       // Create generated report object
-      const generatedReportData = {
-        generateId: `gen-${Date.now()}`,
-        generatedBy: "staff-1",
-        title,
-        summary: parsedData.executiveSummary || "Report generated",
-        dateRangeStart,
-        dateRangeEnd,
-        reportCategory: category,
-        reportDataType: dataType,
-        reportData: parsedData,
-        requestedAt: new Date().toISOString(),
+      const generatedReportData : GeneratedReport = {
+        GENERATE_ID: `gen-${Date.now()}`,
+        GENERATED_BY: AcconutID,
+        TITLE: title,
+        SUMMARY: parsedData.executiveSummary || "Report generated",
+        DATE_RANGE_START: dateRangeStart,
+        DATE_RANGE_END: dateRangeEnd,
+        REPORT_CATEGORY: category,
+        REPORT_DATA_TYPE: dataType,
+        REPORT_DATA: parsedData,
+        REQUESTED_AT: new Date().toISOString(),
       };
+
+      // Save generated report to server
+      try {
+        const saveResponse = await fetch('/api/generated-reports', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title,
+            summary: parsedData.executiveSummary || "Report generated",
+            date_range_start: dateRangeStart,
+            date_range_end: dateRangeEnd,
+            report_category: category,
+            report_data_type: dataType,
+            report_data: parsedData,
+            generated_by: AcconutID,
+          }),
+        });
+
+        if (saveResponse.ok) {
+          const savedReport = await saveResponse.json();
+          // Update with server-generated ID
+          generatedReportData.GENERATE_ID = `gen-${savedReport.generate_id}`;
+        } else {
+          console.warn('Failed to save report to server, but showing generated report');
+        }
+      } catch (saveError) {
+        console.error('Error saving report to server:', saveError);
+        // Continue to show the report even if saving fails
+      }
 
       setGeneratedReport(generatedReportData);
     } catch (err) {
@@ -165,7 +175,7 @@ export default function GenerateReportPage() {
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `report-${generatedReport.generateId}.json`;
+    link.download = `report-${generatedReport.GENERATE_ID}.json`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -300,7 +310,7 @@ export default function GenerateReportPage() {
                   <div>
                     <CardTitle>Generated Report</CardTitle>
                     <CardDescription>
-                      AI-powered analysis of {generatedReport.reportCategory.toLowerCase()} data
+                      AI-powered analysis of {generatedReport.REPORT_CATEGORY.toLowerCase()} data
                     </CardDescription>
                   </div>
                   <Button variant="outline" size="sm" onClick={handleDownload}>
@@ -314,40 +324,40 @@ export default function GenerateReportPage() {
                 <div className="space-y-2">
                   <h3 className="font-semibold text-lg">Executive Summary</h3>
                   <p className="text-sm text-muted-foreground">
-                    {generatedReport.reportData.executiveSummary || generatedReport.summary}
+                    {generatedReport.REPORT_DATA.executiveSummary || generatedReport.SUMMARY}
                   </p>
                 </div>
 
                 {/* Key Statistics */}
-                {generatedReport.reportData.keyStatistics && (
+                {generatedReport.REPORT_DATA.keyStatistics && (
                   <div className="space-y-2">
                     <h3 className="font-semibold text-lg">Key Statistics</h3>
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="rounded-lg border p-4">
                         <p className="text-sm text-muted-foreground">Total Incidents</p>
                         <p className="text-2xl font-bold">
-                          {generatedReport.reportData.keyStatistics.totalIncidents || 
-                           generatedReport.reportData.keyStatistics.totalReports || 0}
+                          {generatedReport.REPORT_DATA.keyStatistics.totalIncidents || 
+                           generatedReport.REPORT_DATA.keyStatistics.totalReports || 0}
                         </p>
                       </div>
-                      {generatedReport.reportData.keyStatistics.byStatus && (
+                      {generatedReport.REPORT_DATA.keyStatistics.byStatus && (
                         <>
                           <div className="rounded-lg border p-4 bg-yellow-50 dark:bg-yellow-950">
                             <p className="text-sm text-muted-foreground">Pending</p>
                             <p className="text-2xl font-bold text-yellow-600">
-                              {generatedReport.reportData.keyStatistics.byStatus.pending}
+                              {generatedReport.REPORT_DATA.keyStatistics.byStatus.pending}
                             </p>
                           </div>
                           <div className="rounded-lg border p-4 bg-blue-50 dark:bg-blue-950">
                             <p className="text-sm text-muted-foreground">In Progress</p>
                             <p className="text-2xl font-bold text-blue-600">
-                              {generatedReport.reportData.keyStatistics.byStatus.inProgress}
+                              {generatedReport.REPORT_DATA.keyStatistics.byStatus.inProgress}
                             </p>
                           </div>
                           <div className="rounded-lg border p-4 bg-green-50 dark:bg-green-950">
                             <p className="text-sm text-muted-foreground">Resolved</p>
                             <p className="text-2xl font-bold text-green-600">
-                              {generatedReport.reportData.keyStatistics.byStatus.resolved}
+                              {generatedReport.REPORT_DATA.keyStatistics.byStatus.resolved}
                             </p>
                           </div>
                         </>
@@ -357,36 +367,36 @@ export default function GenerateReportPage() {
                 )}
 
                 {/* Detailed Analysis */}
-                {generatedReport.reportData.detailedAnalysis && (
+                {generatedReport.REPORT_DATA.detailedAnalysis && (
                   <div className="space-y-2">
                     <h3 className="font-semibold text-lg">Detailed Analysis</h3>
                     <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                      {generatedReport.reportData.detailedAnalysis}
+                      {generatedReport.REPORT_DATA.detailedAnalysis}
                     </p>
                   </div>
                 )}
 
                 {/* Risk Assessment */}
-                {generatedReport.reportData.riskAssessment && (
+                {generatedReport.REPORT_DATA.riskAssessment && (
                   <div className="space-y-2">
                     <h3 className="font-semibold text-lg">Risk Assessment</h3>
                     <div className="rounded-lg border p-4">
                       <p className="text-sm text-muted-foreground mb-2">Risk Level</p>
                       <div className="flex items-center gap-2">
                         <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                          generatedReport.reportData.riskAssessment.level === 'CRITICAL' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
-                          generatedReport.reportData.riskAssessment.level === 'HIGH' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
-                          generatedReport.reportData.riskAssessment.level === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                          generatedReport.REPORT_DATA.riskAssessment.level === 'CRITICAL' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
+                          generatedReport.REPORT_DATA.riskAssessment.level === 'HIGH' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
+                          generatedReport.REPORT_DATA.riskAssessment.level === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
                           'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
                         }`}>
-                          {generatedReport.reportData.riskAssessment.level}
+                          {generatedReport.REPORT_DATA.riskAssessment.level}
                         </span>
                       </div>
-                      {generatedReport.reportData.riskAssessment.factors && (
+                      {generatedReport.REPORT_DATA.riskAssessment.factors && (
                         <div className="mt-4">
                           <p className="text-sm text-muted-foreground mb-2">Key Factors:</p>
                           <ul className="list-disc list-inside space-y-1">
-                            {generatedReport.reportData.riskAssessment.factors.map((factor: string, index: number) => (
+                            {generatedReport.REPORT_DATA.riskAssessment.factors.map((factor: string, index: number) => (
                               <li key={index} className="text-sm">{factor}</li>
                             ))}
                           </ul>
@@ -397,11 +407,11 @@ export default function GenerateReportPage() {
                 )}
 
                 {/* Recommendations */}
-                {generatedReport.reportData.recommendations && (
+                {generatedReport.REPORT_DATA.recommendations && (
                   <div className="space-y-2">
                     <h3 className="font-semibold text-lg">Recommendations</h3>
                     <ul className="list-decimal list-inside space-y-2">
-                      {generatedReport.reportData.recommendations.map((rec: string, index: number) => (
+                      {generatedReport.REPORT_DATA.recommendations.map((rec: string, index: number) => (
                         <li key={index} className="text-sm text-muted-foreground">{rec}</li>
                       ))}
                     </ul>
@@ -409,11 +419,11 @@ export default function GenerateReportPage() {
                 )}
 
                 {/* Conclusion */}
-                {generatedReport.reportData.conclusion && (
+                {generatedReport.REPORT_DATA.conclusion && (
                   <div className="space-y-2">
                     <h3 className="font-semibold text-lg">Conclusion</h3>
                     <p className="text-sm text-muted-foreground">
-                      {generatedReport.reportData.conclusion}
+                      {generatedReport.REPORT_DATA.conclusion}
                     </p>
                   </div>
                 )}
@@ -480,17 +490,17 @@ export default function GenerateReportPage() {
               <CardContent className="space-y-2 text-xs">
                 <div>
                   <p className="text-muted-foreground">Generated</p>
-                  <p className="font-mono">{format(new Date(generatedReport.requestedAt), "PPp")}</p>
+                  <p className="font-mono">{format(new Date(generatedReport.REQUESTED_AT), "PPp")}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Report ID</p>
-                  <p className="font-mono">{generatedReport.generateId}</p>
+                  <p className="font-mono">{generatedReport.GENERATE_ID}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Period</p>
                   <p className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
-                    {format(new Date(generatedReport.dateRangeStart), "PP")} - {format(new Date(generatedReport.dateRangeEnd), "PP")}
+                    {format(new Date(generatedReport.DATE_RANGE_START), "PP")} - {format(new Date(generatedReport.DATE_RANGE_END), "PP")}
                   </p>
                 </div>
               </CardContent>

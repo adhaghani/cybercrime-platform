@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,} from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Save, Loader2, Siren, Phone, Mail, MapPin } from "lucide-react";
 import Link from "next/link";
@@ -59,12 +60,12 @@ export default function UpdateEmergencyContactPage() {
         const data = await response.json();
         setContact(data);
         form.reset({
-          name: data.name,
-          type: data.type,
-          state: data.state,
-          address: data.address,
-          phone: data.phone,
-          email: data.email || '',
+          name: data.NAME,
+          type: data.TYPE,
+          state: data.STATE,
+          address: data.ADDRESS,
+          phone: data.PHONE,
+          email: data.EMAIL || '',
         });
       } catch (error) {
         console.error('Error fetching emergency contact:', error);
@@ -267,6 +268,51 @@ export default function UpdateEmergencyContactPage() {
             <Button type="button" variant="outline" onClick={() => router.back()}>
               Cancel
             </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="destructive">
+                  Delete Contact
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Are you sure you want to delete this contact?</DialogTitle>
+                  <DialogDescription>
+                    This action cannot be undone. Please confirm if you want to proceed with deleting this emergency contact.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
+                  <Button
+                    variant="destructive"
+                    onClick={async () => {
+                      try {
+                        setIsLoading(true);
+                        const response = await fetch(`/api/emergency/${params.id}`, {
+                          method: 'DELETE',
+                        });
+                        if (!response.ok) throw new Error('Failed to delete');
+                        router.push("/dashboard/emergency-services/emergency-contacts");
+                      } catch (error) {
+                        console.error("Error deleting emergency contact:", error);
+                        alert("Failed to delete emergency contact. Please try again.");
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      "Delete Contact"
+                    )}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? (
                 <>

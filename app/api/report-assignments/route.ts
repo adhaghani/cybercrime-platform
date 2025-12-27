@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/report_assignments`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/report-assignments`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,

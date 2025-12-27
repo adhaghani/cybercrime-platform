@@ -15,7 +15,7 @@ export function AnnouncementsSection({ announcements }: AnnouncementsSectionProp
   return (
     <div className="space-y-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {announcements.map((announcement) => (
-        <AnnouncementCard key={announcement.announcementId} announcement={announcement} />
+        <AnnouncementCard key={announcement.ANNOUNCEMENT_ID} announcement={announcement} />
       ))}
     </div>
   );

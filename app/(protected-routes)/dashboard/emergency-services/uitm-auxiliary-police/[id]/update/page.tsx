@@ -11,8 +11,9 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,} from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-
+import { UiTMAuxiliaryPolice } from "@/lib/types";
 const uitmPoliceSchema = z.object({
   campus: z.string().min(3, "Campus name must be at least 3 characters").max(100, "Campus name is too long"),
   state: z.string().min(2, "State is required").max(50, "State name is too long"),
@@ -25,23 +26,11 @@ const uitmPoliceSchema = z.object({
 
 type UitmPoliceFormValues = z.infer<typeof uitmPoliceSchema>;
 
-// Mock data for demonstration
-const MOCK_UITM_POLICE = {
-  id: "1",
-  campus: "UiTM Shah Alam (Main Campus)",
-  state: "Selangor",
-  address: "Bangunan Keselamatan, UiTM Shah Alam, 40450 Shah Alam, Selangor",
-  phone: "03-5544 2000",
-  hotline: "03-5544 2222",
-  email: "pb_uitm@uitm.edu.my",
-  operatingHours: "24 Hours",
-};
-
 export default function UpdateUitmPolicePage() {
   const router = useRouter();
   const params = useParams();
   const [isLoading, setIsLoading] = useState(false);
-  const [policeStation, setPoliceStation] = useState<typeof MOCK_UITM_POLICE | null>(null);
+  const [policeStation, setPoliceStation] = useState<UiTMAuxiliaryPolice | null>(null);
 
   const form = useForm<UitmPoliceFormValues>({
     resolver: zodResolver(uitmPoliceSchema),
@@ -64,13 +53,13 @@ export default function UpdateUitmPolicePage() {
         const data = await response.json();
         setPoliceStation(data);
         form.reset({
-          campus: data.campus,
-          state: data.state,
-          address: data.address,
-          phone: data.phone,
-          hotline: data.hotline,
-          email: data.email,
-          operatingHours: data.operating_hours || '24 Hours',
+          campus: data.CAMPUS,
+          state: data.STATE,
+          address: data.ADDRESS,
+          phone: data.PHONE,
+          hotline: data.HOTLINE,
+          email: data.EMAIL,
+          operatingHours: data.OPERATING_HOURS || '24 Hours',
         });
       } catch (error) {
         console.error('Error fetching police station:', error);
@@ -271,6 +260,51 @@ export default function UpdateUitmPolicePage() {
             <Button type="button" variant="outline" onClick={() => router.back()}>
               Cancel
             </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="destructive">
+                  Delete Station
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Are you sure?</DialogTitle>
+                  <DialogDescription>
+                    This action cannot be undone. This will permanently delete the police station record.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button variant="outline">Cancel</Button>
+                  <Button
+                    variant="destructive"
+                    onClick={async () => {
+                      try {
+                        setIsLoading(true);
+                        const response = await fetch(`/api/police/${params.id}`, {
+                          method: 'DELETE',
+                        });
+                        if (!response.ok) throw new Error('Failed to delete');
+                        router.push("/dashboard/emergency-services/uitm-auxiliary-police");
+                      } catch (error) {
+                        console.error("Error deleting police station:", error);
+                        alert("Failed to delete police station. Please try again.");
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      "Delete"
+                    )}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? (
                 <>

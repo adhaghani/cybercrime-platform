@@ -1,20 +1,29 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 "use client";
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Pencil, MapPin, Search, Mail, Clock, Loader2 } from "lucide-react";
+import { Pencil, MapPin, Search, Mail, Clock, Loader2, Shield } from "lucide-react";
 import { useHasAnyRole } from "@/hooks/use-user-role";
 import Link from "next/link";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import { UiTMAuxiliaryPolice } from "@/lib/types";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
 
 const ITEMS_PER_PAGE = 9;
 
 export default function UitmAuxiliaryPolicePage() {
   const hasAnyRole = useHasAnyRole();
-  const [policeStations, setPoliceStations] = useState<any[]>([]);
+  const [policeStations, setPoliceStations] = useState<UiTMAuxiliaryPolice[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -26,6 +35,7 @@ export default function UitmAuxiliaryPolicePage() {
         if (!response.ok) throw new Error('Failed to fetch');
         const data = await response.json();
         setPoliceStations(data);
+        console.log(data);
       } catch (error) {
         console.error('Error fetching police stations:', error);
       } finally {
@@ -36,13 +46,13 @@ export default function UitmAuxiliaryPolicePage() {
   }, []);
 
   const isAuthorizedForEdit = () => {
-    if(hasAnyRole(['ADMIN', 'SUPERADMIN'])) return true;
+    if(hasAnyRole(['STAFF','SUPERVISOR','ADMIN', 'SUPERADMIN'])) return true;
     return false;
   };
 
   const filteredStations = policeStations.filter((station) =>
-    station.campus.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    station.state.toLowerCase().includes(searchQuery.toLowerCase())
+    station.CAMPUS.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    station.STATE.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Pagination
@@ -66,7 +76,7 @@ export default function UitmAuxiliaryPolicePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">UiTM Auxiliary Police</h1>
         <p className="text-muted-foreground">
@@ -74,11 +84,11 @@ export default function UitmAuxiliaryPolicePage() {
         </p>
       </div>
 
-      <div className="relative">
+      <div className="relative ">
         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Search by campus or state..."
-          className="pl-8"
+          className="pl-8 max-w-xl"
           value={searchQuery}
           onChange={(e) => handleSearchChange(e.target.value)}
         />
@@ -86,42 +96,42 @@ export default function UitmAuxiliaryPolicePage() {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {paginatedStations.map((station) => (
-          <Card key={station.id} className="flex flex-col">
+          <Card key={station.EMERGENCY_ID} className="flex flex-col">
             <CardHeader>
-              <CardTitle className="flex justify-between items-start gap-2 w-full text-lg">{station.campus}
+              <CardTitle className="flex justify-between items-start gap-2 w-full text-lg">{station.CAMPUS}
                 {isAuthorizedForEdit() ? <Button variant={"ghost"} asChild>
-                  <Link href={`/dashboard/emergency-services/uitm-auxiliary-police/${station.id}/update`}>
+                  <Link href={`/dashboard/emergency-services/uitm-auxiliary-police/${station.EMERGENCY_ID}/update`}>
                  <Pencil size={10} /> 
                  </Link>
                 </Button> : null}
               </CardTitle>
-              <CardDescription>{station.state}</CardDescription>
+              <CardDescription>{station.STATE}</CardDescription>
             </CardHeader>
             <CardContent className="flex-1 space-y-2">
               <div className="flex items-start gap-3 text-sm">
                 <MapPin className="h-4 w-4 mt-1 shrink-0" />
-                <span>{station.address}</span>
+                <span>{station.ADDRESS}</span>
               </div>
               
               <div className="flex flex-wrap gap-3 items-center ">
                 <div className="flex items-center gap-3 text-sm">
                    <Mail className="h-4 w-4 shrink-0" />
-                   <span>{station.email}</span>
+                   <span>{station.EMAIL}</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm">
                    <Clock className="h-4 w-4 shrink-0" />
-                   <span>{station.operatingHours}</span>
+                   <span>{station.OPERATING_HOURS}</span>
                 </div>
 
               </div>
             </CardContent>
             <CardFooter className="gap-2 flex-wrap">                
                 <Button className="w-full" variant="destructive">
-                        Emergency: {station.hotline}
+                        Emergency: {station.HOTLINE}
                 </Button>
-                 {station.phone && (
+                 {station.PHONE && (
                     <Button className="w-full" variant="outline">
-                            Office: {station.phone}
+                            Office: {station.PHONE}
                     </Button>
                  )}</CardFooter>
           </Card>
@@ -137,8 +147,29 @@ export default function UitmAuxiliaryPolicePage() {
           totalItems={filteredStations.length}
         />
       )}
-      
-      {filteredStations.length === 0 && (
+      {
+        policeStations.length === 0 && (
+    <Empty className="border border-dashed">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Shield />
+        </EmptyMedia>
+        <EmptyTitle>No UiTM Auxiliary Police Data Yet</EmptyTitle>
+        <EmptyDescription>
+          The system currently has no records of UiTM Auxiliary Police units.
+        </EmptyDescription>
+      </EmptyHeader>
+      {isAuthorizedForEdit() && <EmptyContent>
+        <div className="flex gap-2">
+          <Button>
+            <Link href="/dashboard/emergency-services/add">Add UiTM Auxiliary Police Unit</Link>
+            </Button>
+        </div>
+      </EmptyContent>}
+    </Empty>
+        )
+      }
+      {policeStations.length !== 0 && filteredStations.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">
           No results found for &quot;{searchQuery}&quot;
         </div>

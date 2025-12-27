@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -9,13 +8,22 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Phone, MapPin, Search, Siren, Flame, Stethoscope, ShieldAlert, Pencil, Loader2 } from "lucide-react";
 import { useHasAnyRole } from "@/hooks/use-user-role";
 import Link from "next/link";
+import { EmergencyInfo } from "@/lib/types";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
 
 const ITEMS_PER_PAGE = 9;
 
 
 export default function EmergencyContactsPage() {
-  const [contacts, setContacts] = useState<any[]>([]);
+  const [contacts, setContacts] = useState<EmergencyInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
@@ -43,15 +51,15 @@ export default function EmergencyContactsPage() {
     return false;
   };
 
+  console.log(contacts)
 
   const filteredContacts = contacts.filter((contact) => {
     const matchesSearch = 
-      contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      contact.state.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      contact.address.toLowerCase().includes(searchQuery.toLowerCase());
+      contact.NAME.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      contact.STATE.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      contact.ADDRESS.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesType = activeTab === "all" || contact.type.toLowerCase().replace(" ", "-") === activeTab;
-
+    const matchesType = activeTab === "all" || contact.TYPE?.toLowerCase().replace(" ", "-") === activeTab;
     return matchesSearch && matchesType;
   });
 
@@ -86,7 +94,7 @@ export default function EmergencyContactsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">National Emergency Contacts</h1>
         <p className="text-muted-foreground">
@@ -118,31 +126,31 @@ export default function EmergencyContactsPage() {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {paginatedContacts.map((contact) => (
-          <Card key={contact.id} className="flex flex-col">
+          <Card key={contact.EMERGENCY_ID} className="flex flex-col">
             <CardHeader>
               <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg font-semibold leading-tight">{contact.name}</CardTitle>
-                  {getIcon(contact.type)}
+                  <CardTitle className="text-lg font-semibold leading-tight">{contact.NAME}</CardTitle>
+                  {getIcon(contact.TYPE || "")}
               </div>
-              <CardDescription className="font-medium text-primary">{contact.type} • {contact.state}</CardDescription>
+              <CardDescription className="font-medium text-primary">{contact.TYPE} • {contact.STATE}</CardDescription>
             </CardHeader>
             <CardContent className="flex-1 space-y-4">
               <div className="flex items-start gap-3 text-sm">
                 <MapPin className="h-4 w-4 mt-1 text-muted-foreground shrink-0" />
-                <span>{contact.address}</span>
+                <span>{contact.ADDRESS}</span>
               </div>
               
               <div className="mt-auto flex gap-2 w-full items-center pt-4">
 
-                  {contact.phone && (
+                  {contact.PHONE && (
                     <Button className="" variant="outline" asChild>
-                        <a href={`tel:${contact.phone.replace(/\s/g, '')}`}>
-                            Office: {contact.phone}
+                        <a href={`tel:${contact.PHONE.replace(/\s/g, '')}`}>
+                            Office: {contact.PHONE}
                         </a>
                     </Button>
                   )}
                   {isAuthorizedForEdit() ? <Button variant={"ghost"} asChild>
-                  <Link href={`/dashboard/emergency-services/emergency-contacts/${contact.id}/update`}>
+                  <Link href={`/dashboard/emergency-services/emergency-contacts/${contact.EMERGENCY_ID}/update`}>
                  <Pencil size={10} /> 
                  </Link>
                 </Button> : null}
@@ -161,8 +169,29 @@ export default function EmergencyContactsPage() {
           totalItems={filteredContacts.length}
         />
       )}
-      
-      {filteredContacts.length === 0 && (
+      {
+        contacts.length === 0 && (
+    <Empty className="border border-dashed">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Flame />
+        </EmptyMedia>
+        <EmptyTitle>No Emergency Contacts Data Yet</EmptyTitle>
+        <EmptyDescription>
+          The system currently has no records of Emergency Contacts.
+        </EmptyDescription>
+      </EmptyHeader>
+      {isAuthorizedForEdit() && <EmptyContent>
+        <div className="flex gap-2">
+          <Button>
+            <Link href="/dashboard/emergency-services/add">Add Emergency Contact</Link>
+            </Button>
+        </div>
+      </EmptyContent>}
+    </Empty>
+        )
+      }
+      {contacts.length !== 0 && filteredContacts.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">
           No results found for &quot;{searchQuery}&quot; in {activeTab === 'all' ? 'all categories' : activeTab}.
         </div>

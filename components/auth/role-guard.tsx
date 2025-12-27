@@ -30,7 +30,7 @@ export function RoleGuard({
   const router = useRouter();
   const hasAnyRole = useHasAnyRole();
   const hasAccess = hasAnyRole(allowedRoles);
-
+ 
   useEffect(() => {
     if (!hasAccess) {
       toast.error("You do not have permission to access this page.");

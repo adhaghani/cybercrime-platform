@@ -20,8 +20,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const queryString = searchParams.toString();
     const url = queryString 
-      ? `${process.env.NEXT_PUBLIC_API_URL}/api/report_assignments/my-assignments?${queryString}`
-      : `${process.env.NEXT_PUBLIC_API_URL}/api/report_assignments/my-assignments`;
+      ? `${process.env.NEXT_PUBLIC_API_URL}/api/report-assignments/my-assignments?${queryString}`
+      : `${process.env.NEXT_PUBLIC_API_URL}/api/report-assignments/my-assignments`;
 
     const response = await fetch(url, {
       method: 'GET',

@@ -13,6 +13,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useAuth } from "@/lib/context/auth-provider";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 const crimeReportSchema = z.object({
@@ -32,6 +33,8 @@ type CrimeReportFormValues = z.infer<typeof crimeReportSchema>;
 export default function SubmitCrimeReportPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const {claims} = useAuth();
+  const AccountID = claims?.ACCOUNT_ID;
 
   const form = useForm<CrimeReportFormValues>({
     resolver: zodResolver(crimeReportSchema),
@@ -57,15 +60,18 @@ export default function SubmitCrimeReportPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'CRIME',
+          status: 'PENDING',
           title: data.title,
           description: data.description,
           location: data.location,
           crime_category: data.crimeCategory,
-          suspect_description: data.suspectDescription,
-          victim_involved: data.victimInvolved,
-          weapon_involved: data.weaponInvolved,
-          injury_level: data.injuryLevel,
-          evidence_details: data.evidenceDetails,
+          suspect_description: data.suspectDescription || null,
+          victim_involved: data.victimInvolved || null,
+          weapon_involved: data.weaponInvolved || null,
+          injury_level: data.injuryLevel === "" ? null : data.injuryLevel,
+          evidence_details: data.evidenceDetails || null,
+          attachment_path: null, // File upload handling to be implemented
+          submitted_by: AccountID,
         }),
       });
       

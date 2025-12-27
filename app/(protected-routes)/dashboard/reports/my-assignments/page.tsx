@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,24 +53,12 @@ export default function MyAssignmentsPage() {
   useEffect(() => {
     const fetchAssignedReports = async () => {
       try {
-        // Fetch all reports and filter by assigned staff
-        const response = await fetch('/api/reports');
-        if (!response.ok) throw new Error('Failed to fetch reports');
-        const allReports = await response.json();
         
         // Fetch report assignments to find reports assigned to current user
-        const assignmentsResponse = await fetch('/api/report-assignments');
+        const assignmentsResponse = await fetch('/api/report-assignments/my-assignments');
         if (!assignmentsResponse.ok) throw new Error('Failed to fetch assignments');
         const assignments = await assignmentsResponse.json();
-        
-        // Filter reports assigned to current staff member
-        const userAssignments = assignments.filter((a: any) => a.staffId === claims?.user_metadata?.staffId);
-        const assignedReportIds = userAssignments.map((a: any) => a.reportId);
-        const assignedReports = allReports.filter((r: Report) => 
-          assignedReportIds.includes(r.reportId)
-        );
-        
-        setReports(assignedReports);
+        setReports(assignments);
       } catch (error) {
         console.error('Error fetching assigned reports:', error);
       } finally {
@@ -82,12 +70,12 @@ export default function MyAssignmentsPage() {
 
   const filteredReports = reports.filter((report) => {
     const matchesSearch = 
-      report.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.location.toLowerCase().includes(searchQuery.toLowerCase());
+      report.TITLE?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      report.DESCRIPTION?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      report.LOCATION?.toLowerCase().includes(searchQuery.toLowerCase()) || null;
     
-    const matchesStatus = statusFilter === "ALL" || report.status === statusFilter;
-    const matchesType = typeFilter === "ALL" || report.type === typeFilter;
+    const matchesStatus = statusFilter === "ALL" || report.STATUS === statusFilter;
+    const matchesType = typeFilter === "ALL" || report.TYPE === typeFilter;
 
     return matchesSearch && matchesStatus && matchesType;
   });
@@ -107,9 +95,9 @@ export default function MyAssignmentsPage() {
 
   const stats = {
     total: reports.length,
-    pending: reports.filter(r => r.status === "PENDING").length,
-    inProgress: reports.filter(r => r.status === "IN_PROGRESS").length,
-    resolved: reports.filter(r => r.status === "RESOLVED").length,
+    pending: reports.filter(r => r.STATUS === "PENDING").length,
+    inProgress: reports.filter(r => r.STATUS === "IN_PROGRESS").length,
+    resolved: reports.filter(r => r.STATUS === "RESOLVED").length,
   };
 
   if (loading) {
@@ -265,37 +253,37 @@ export default function MyAssignmentsPage() {
                 </TableHeader>
                 <TableBody>
                   {paginatedReports.map((report) =>   (
-                    <TableRow key={report.reportId}>
+                    <TableRow key={report.REPORT_ID}>
                       <TableCell>
                         <div className="space-y-1">
-                          <div className="font-medium">{report.title}</div>
+                          <div className="font-medium">{report.TITLE}</div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getReportTypeColor(report.type)} variant="outline">
-                          {report.type}
+                        <Badge className={getReportTypeColor(report.TYPE)} variant="outline">
+                          {report.TYPE}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1 text-sm">
                           <MapPin className="h-3 w-3" />
-                          {report.location}
+                          {report.LOCATION}
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1 text-sm">
                           <Calendar className="h-3 w-3" />
-                          {format(new Date(report.submittedAt), "MMM d, yyyy")}
+                          {format(new Date(report.SUBMITTED_AT), "MMM d, yyyy")}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <StatusBadge status={report.status} />
+                        <StatusBadge status={report.STATUS} />
                       </TableCell>
                       <TableCell className="text-right">
                         <Button asChild variant="ghost" size="sm">
-                          <Link href={`/dashboard/reports/${report.reportId}`}>
+                          <Link href={`/dashboard/reports/${report.REPORT_ID}`}>
                             <Eye className="h-4 w-4 mr-2" />
-                            View & Manage
+                            {report.STATUS === "RESOLVED" ? "View Report" : "View & Manage"}
                           </Link>
                         </Button>
                       </TableCell>

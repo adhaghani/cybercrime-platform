@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, MapPin, Calendar, Clock, ShieldAlert, FileText, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { MOCK_REPORTS } from "@/lib/api/mock-data";
 import { Crime } from "@/lib/types";
 import { format } from "date-fns";
 import StatusBadge from "@/components/ui/statusBadge";
@@ -24,7 +23,7 @@ export default function CrimeReportDetailPage({ params }: { params: Promise<{ id
         const response = await fetch(`/api/reports/${id}`);
         if (!response.ok) throw new Error('Not found');
         const data = await response.json();
-        if (data.type === 'CRIME') {
+        if (data.TYPE === 'CRIME') {
           setReport(data as Crime);
         }
       } catch (error) {
@@ -74,12 +73,12 @@ export default function CrimeReportDetailPage({ params }: { params: Promise<{ id
           </Link>
         </Button>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold tracking-tight">{report.title}</h1>
-          <p className="text-muted-foreground">Report ID: {report.reportId}</p>
+          <h1 className="text-3xl font-bold tracking-tight">{report.TITLE}</h1>
+          <p className="text-muted-foreground">Report ID: {report.REPORT_ID}</p>
         </div>
         <div className="flex gap-2">
-          <StatusBadge status={report.status} />
-          <CrimeCategoryBadge category={report.crimeCategory} />
+          <StatusBadge status={report.STATUS} />
+          <CrimeCategoryBadge category={report.CRIME_CATEGORY} />
         </div>
       </div>
 
@@ -91,7 +90,7 @@ export default function CrimeReportDetailPage({ params }: { params: Promise<{ id
           <CardContent className="space-y-4">
             <div>
               <h3 className="font-semibold mb-2">Description</h3>
-              <p className="text-muted-foreground">{report.description}</p>
+              <p className="text-muted-foreground">{report.DESCRIPTION}</p>
             </div>
 
             <Separator />
@@ -101,7 +100,7 @@ export default function CrimeReportDetailPage({ params }: { params: Promise<{ id
                 <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
                   <p className="text-sm font-medium">Location</p>
-                  <p className="text-sm text-muted-foreground">{report.location}</p>
+                  <p className="text-sm text-muted-foreground">{report.LOCATION}</p>
                 </div>
               </div>
 
@@ -109,7 +108,7 @@ export default function CrimeReportDetailPage({ params }: { params: Promise<{ id
                 <ShieldAlert className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
                   <p className="text-sm font-medium">Crime Category</p>
-                  <p className="text-sm text-muted-foreground">{report.crimeCategory}</p>
+                  <p className="text-sm text-muted-foreground">{report.CRIME_CATEGORY}</p>
                 </div>
               </div>
 
@@ -118,7 +117,7 @@ export default function CrimeReportDetailPage({ params }: { params: Promise<{ id
                 <div>
                   <p className="text-sm font-medium">Submitted</p>
                   <p className="text-sm text-muted-foreground">
-                    {format(new Date(report.submittedAt), "MMM d, yyyy 'at' h:mm a")}
+                    {format(new Date(report.SUBMITTED_AT), "MMM d, yyyy 'at' h:mm a")}
                   </p>
                 </div>
               </div>
@@ -128,58 +127,58 @@ export default function CrimeReportDetailPage({ params }: { params: Promise<{ id
                 <div>
                   <p className="text-sm font-medium">Last Updated</p>
                   <p className="text-sm text-muted-foreground">
-                    {format(new Date(report.updatedAt), "MMM d, yyyy 'at' h:mm a")}
+                    {format(new Date(report.UPDATED_AT), "MMM d, yyyy 'at' h:mm a")}
                   </p>
                 </div>
               </div>
             </div>
 
-            {report.suspectDescription && (
+            {report.SUSPECT_DESCRIPTION && (
               <>
                 <Separator />
                 <div>
                   <h3 className="font-semibold mb-2">Suspect Description</h3>
-                  <p className="text-muted-foreground">{report.suspectDescription}</p>
+                  <p className="text-muted-foreground">{report.SUSPECT_DESCRIPTION}</p>
                 </div>
               </>
             )}
 
-            {report.victimInvolved && (
+            {report.VICTIM_INVOLVED && (
               <>
                 <Separator />
                 <div>
                   <h3 className="font-semibold mb-2">Victim Information</h3>
-                  <p className="text-muted-foreground">{report.victimInvolved}</p>
+                  <p className="text-muted-foreground">{report.VICTIM_INVOLVED}</p>
                 </div>
               </>
             )}
 
-            {report.weaponInvolved && (
+            {report.WEAPON_INVOLVED && (
               <>
                 <Separator />
                 <div>
                   <h3 className="font-semibold mb-2">Weapon Involved</h3>
-                  <p className="text-muted-foreground">{report.weaponInvolved}</p>
+                  <p className="text-muted-foreground">{report.WEAPON_INVOLVED}</p>
                 </div>
               </>
             )}
 
-            {report.injuryLevel && (
+            {report.INJURY_LEVEL && (
               <>
                 <Separator />
                 <div>
                   <h3 className="font-semibold mb-2">Injury Level</h3>
-                  <p className="text-muted-foreground">{report.injuryLevel}</p>
+                  <p className="text-muted-foreground">{report.INJURY_LEVEL}</p>
                 </div>
               </>
             )}
 
-            {report.evidenceDetails && (
+            {report.EVIDENCE_DETAILS && (
               <>
                 <Separator />
                 <div>
                   <h3 className="font-semibold mb-2">Evidence Details</h3>
-                  <p className="text-muted-foreground">{report.evidenceDetails}</p>
+                  <p className="text-muted-foreground">{report.EVIDENCE_DETAILS}</p>
                 </div>
               </>
             )}
@@ -194,11 +193,11 @@ export default function CrimeReportDetailPage({ params }: { params: Promise<{ id
             <CardContent className="space-y-4">
               <div>
                 <p className="text-sm font-medium mb-1">Current Status</p>
-                <StatusBadge status={report.status} />
+                <StatusBadge status={report.STATUS} />
               </div>
               <div>
                 <p className="text-sm font-medium mb-1">Category</p>
-                <CrimeCategoryBadge category={report.crimeCategory} />
+                <CrimeCategoryBadge category={report.CRIME_CATEGORY} />
               </div>
             </CardContent>
           </Card>

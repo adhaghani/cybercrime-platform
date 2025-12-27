@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Crime, Facility, Announcement } from "@/lib/types";
-import { useHasAnyRole, useUserRole } from "@/hooks/use-user-role";
+import { useHasAnyRole } from "@/hooks/use-user-role";
 import { StudentDashboard } from "@/components/dashboard/student-dashboard";
 import { StaffDashboard } from "@/components/dashboard/staff-dashboard";
 import { AnnouncementsSection } from "@/components/dashboard/announcements-section";
@@ -11,24 +11,19 @@ import { Loader2 } from "lucide-react";
 
 export default function DashboardPage() {
   const hasAnyRole = useHasAnyRole();
-  const role = useUserRole();
   const { claims } = useAuth();
+  const UserAccounType = claims?.ACCOUNT_TYPE;
   const [reports, setReports] = useState<(Crime | Facility)[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   
-  const isStudent = role === 'STUDENT';
-  const isStaff = hasAnyRole(['STAFF']);
+  const isStudent = UserAccounType === 'STUDENT';
+  const isStaff = hasAnyRole(['STAFF', 'SUPERVISOR']);
   const isAdmin = hasAnyRole(['ADMIN', 'SUPERADMIN']);
   
-  useEffect(() => {
-    if (role) {
-      fetchDashboardData();
-    }
-  }, [role]);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
+      setLoading(true);
       const [reportsRes, announcementsRes] = await Promise.all([
         fetch('/api/reports'),
         fetch('/api/announcements')
@@ -48,10 +43,16 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (UserAccounType) {
+      fetchDashboardData();
+    }
+  }, [UserAccounType, fetchDashboardData]);
   
   // Handle null role - user not authenticated or role not set
-  if (role === null || loading) {
+  if (UserAccounType === null || loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-4">
@@ -65,23 +66,23 @@ export default function DashboardPage() {
     );
   }
   
-  const crimeReports = reports.filter((r) => r.type === "CRIME") as Crime[];
-  const facilityReports = reports.filter((r) => r.type === "FACILITY") as Facility[];
-  const currentUserId = claims?.sub || '';
-  const myReports = reports.filter((r) => r.submittedBy === currentUserId);
+  const crimeReports = reports.filter((r) => r.TYPE === "CRIME") as Crime[];
+  const facilityReports = reports.filter((r) => r.TYPE === "FACILITY") as Facility[];
+  const currentUserId = claims?.ACCOUNT_ID || '';
+  const myReports = reports.filter((r) => r.SUBMITTED_BY === currentUserId);
 
   // Filter active announcements (published and within date range)
   const now = new Date();
   const activeAnnouncements = announcements
     .filter(a => 
-      a.status === 'PUBLISHED' && 
-      new Date(a.startDate) <= now && 
-      new Date(a.endDate) >= now
+      a.STATUS === 'PUBLISHED' && 
+      new Date(a.START_DATE) <= now && 
+      new Date(a.END_DATE) >= now
     )
     .sort((a, b) => {
       // Sort by priority
       const priorityOrder = { HIGH: 3, MEDIUM: 2, LOW: 1 };
-      return priorityOrder[b.priority] - priorityOrder[a.priority];
+      return priorityOrder[b.PRIORITY] - priorityOrder[a.PRIORITY];
     })
     .slice(0, 3); // Show top 3 announcements
 
@@ -89,12 +90,12 @@ export default function DashboardPage() {
     totalCrime: crimeReports.length,
     totalFacility: facilityReports.length,
     myReports: myReports.length,
-    pendingReports: myReports.filter(r => r.status === "PENDING").length,
-    resolvedReports: myReports.filter(r => r.status === "RESOLVED").length,
+    pendingReports: myReports.filter(r => r.STATUS === "PENDING").length,
+    resolvedReports: myReports.filter(r => r.STATUS === "RESOLVED").length,
     // System-wide stats for staff/admin
-    allPending: reports.filter(r => r.status === "PENDING").length,
-    allInProgress: reports.filter(r => r.status === "IN_PROGRESS").length,
-    allResolved: reports.filter(r => r.status === "RESOLVED").length,
+    allPending: reports.filter(r => r.STATUS === "PENDING").length,
+    allInProgress: reports.filter(r => r.STATUS === "IN_PROGRESS").length,
+    allResolved: reports.filter(r => r.STATUS === "RESOLVED").length,
     totalReports: reports.length,
   };
 

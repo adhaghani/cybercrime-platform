@@ -1,18 +1,19 @@
 "use client";
 
 import { useTheme } from "next-themes";
+import { useStyle } from "@/lib/context/style-provider";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Moon, Sun, Monitor } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { THEME_COLORS, ThemeColor } from "@/lib/config/theme-colors";
 
 export default function DisplaySettingsPage() {
   const { setTheme, theme } = useTheme();
+  const { themeColor, textSize, setThemeColor, setTextSize } = useStyle();
   const [mounted, setMounted] = useState(false);
-  const [textSize, setTextSize] = useState("medium");
-  const [themeColor, setThemeColor] = useState("blue");
 
   // useEffect only runs on the client, so now we can safely show the UI
   useEffect(() => {
@@ -131,28 +132,30 @@ export default function DisplaySettingsPage() {
             </p>
           </div>
           <div className="grid grid-cols-5 gap-4">
-            {[
-              { name: "blue", class: "bg-blue-500" },
-              { name: "green", class: "bg-green-500" },
-              { name: "orange", class: "bg-orange-500" },
-              { name: "red", class: "bg-red-500" },
-              { name: "violet", class: "bg-violet-500" },
-            ].map((color) => (
+            {(Object.keys(THEME_COLORS) as ThemeColor[]).map((color) => (
               <div
-                key={color.name}
-                className={`cursor-pointer rounded-md border-2 p-1 ${
-                  themeColor === color.name
-                    ? "border-primary"
+                key={color}
+                className={`cursor-pointer rounded-md border-2 p-1 transition-all ${
+                  themeColor === color
+                    ? "border-primary ring-2 ring-primary/20"
                     : "border-transparent hover:border-muted"
                 }`}
                 onClick={() => {
-                  setThemeColor(color.name);
-                  toast.success(`Theme color set to ${color.name}`);
+                  setThemeColor(color);
+                  toast.success(`Theme color set to ${THEME_COLORS[color].name}`);
                 }}
               >
-                <div className={`h-10 w-full rounded-sm ${color.class}`} />
+                <div 
+                  className={`h-10 w-full rounded-sm ${
+                    color === 'blue' ? 'bg-blue-500' :
+                    color === 'green' ? 'bg-green-500' :
+                    color === 'orange' ? 'bg-orange-500' :
+                    color === 'red' ? 'bg-red-500' :
+                    'bg-violet-500'
+                  }`} 
+                />
                 <div className="mt-2 text-center text-xs capitalize">
-                  {color.name}
+                  {THEME_COLORS[color].name}
                 </div>
               </div>
             ))}

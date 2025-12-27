@@ -25,7 +25,7 @@ export default function MyReportsPage() {
   useEffect(() => {
     const fetchMyReports = async () => {
       try {
-        const response = await fetch(`/api/reports?type=FACILITY&submittedBy=${claims?.user_metadata?.userId  }`);
+        const response = await fetch(`/api/reports/my-reports?type=FACILITY`);
         if (!response.ok) throw new Error('Failed to fetch reports');
         const data = await response.json();
         setReports(data as Facility[]);
@@ -35,14 +35,14 @@ export default function MyReportsPage() {
         setLoading(false);
       }
     };
-    if (claims?.user_metadata?.userId) fetchMyReports();
-  }, [claims]);
+    if (claims?.ACCOUNT_ID) fetchMyReports();
+  },[]);
 
   const filteredReports = reports.filter((report) => {
     const matchesSearch =
-      report.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.location.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "ALL" || report.status === statusFilter;
+      report.TITLE.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      report.LOCATION.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "ALL" || report.STATUS === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -60,9 +60,9 @@ export default function MyReportsPage() {
 
   const statusCounts = {
     total: reports.length,
-    pending: reports.filter(r => r.status === "PENDING").length,
-    inProgress: reports.filter(r => r.status === "IN_PROGRESS").length,
-    resolved: reports.filter(r => r.status === "RESOLVED").length,
+    pending: reports.filter(r => r.STATUS === "PENDING").length,
+    inProgress: reports.filter(r => r.STATUS === "IN_PROGRESS").length,
+    resolved: reports.filter(r => r.STATUS === "RESOLVED").length,
   };
 
   if (loading) {
@@ -142,7 +142,7 @@ export default function MyReportsPage() {
 
       <div className="grid md:grid-cols-2 gap-4">
         {paginatedReports.map((report) => (
-          <ReportCard key={report.reportId} report={report} />
+          <ReportCard key={report.REPORT_ID} report={report} />
         ))}
       </div>
 

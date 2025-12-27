@@ -8,6 +8,8 @@ export async function GET(request: NextRequest) {
   try {
     const token = request.cookies.get('auth_token')?.value;
 
+    console.log('[API /auth/me] Token exists:', !!token);
+
     if (!token) {
       return NextResponse.json(
         { error: 'Not authenticated' },
@@ -26,13 +28,24 @@ export async function GET(request: NextRequest) {
 
     const data = await response.json();
 
+    console.log('[API /auth/me] Backend response status:', response.status);
+
     if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
+      // Clear invalid cookie
+      const errorResponse = NextResponse.json(data, { status: response.status });
+      errorResponse.cookies.set('auth_token', '', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 0,
+        path: '/',
+      });
+      return errorResponse;
     }
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Get user error:', error);
+    console.error('[API /auth/me] Error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

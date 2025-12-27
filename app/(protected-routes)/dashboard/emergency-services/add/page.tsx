@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Shield, Siren, Save, Phone, Mail, MapPin, Clock } from "lucide-react";
 import Link from "next/link";
@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-
+import { UITM_CAMPUS } from "@/lib/constant";
 // UiTM States for campus selection
 const UITM_STATES = [
   "Selangor", "Kuala Lumpur", "Johor", "Kedah", "Kelantan", "Melaka", 
@@ -115,6 +115,7 @@ export default function AddEmergencyServicePage() {
   };
 
   const onNationalSubmit = async (data: NationalEmergencyFormData) => {
+    console.log(data);
     setIsSubmitting(true);
 
     try {
@@ -183,10 +184,28 @@ export default function AddEmergencyServicePage() {
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="campus">Campus Name *</Label>
-                    <Input
-                      id="campus"
-                      placeholder="e.g., UiTM Shah Alam (Main Campus)"
-                      {...uitmForm.register("campus")}
+                    <Controller
+                      name="campus"
+                      control={uitmForm.control}
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger className="w-full" id="campus">
+                            <SelectValue placeholder="Select campus" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {UITM_CAMPUS.map((state, stateIndex) => (
+                              <div key={state.name}>
+                                {state.campuses.map((campus) => (
+                                  <SelectItem key={`${state.name}-${campus}`} value={`UiTM ${campus} (${state.name})`}>
+                                    {campus} ({state.name})
+                                  </SelectItem>
+                                ))}
+                                {stateIndex < UITM_CAMPUS.length - 1 && <SelectSeparator />}
+                              </div>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
                     />
                     {uitmForm.formState.errors.campus && (
                       <p className="text-sm text-destructive">{uitmForm.formState.errors.campus.message}</p>
@@ -200,7 +219,7 @@ export default function AddEmergencyServicePage() {
                       control={uitmForm.control}
                       render={({ field }) => (
                         <Select value={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger id="uitm-state">
+                          <SelectTrigger className="w-full" id="uitm-state">
                             <SelectValue placeholder="Select state" />
                           </SelectTrigger>
                           <SelectContent>
@@ -344,7 +363,7 @@ export default function AddEmergencyServicePage() {
                       control={nationalForm.control}
                       render={({ field }) => (
                         <Select value={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger id="service-type">
+                          <SelectTrigger className="w-full" id="service-type">
                             <SelectValue placeholder="Select service type" />
                           </SelectTrigger>
                           <SelectContent>
@@ -369,7 +388,7 @@ export default function AddEmergencyServicePage() {
                       control={nationalForm.control}
                       render={({ field }) => (
                         <Select value={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger id="national-state">
+                          <SelectTrigger className="w-full" id="national-state">
                             <SelectValue placeholder="Select state" />
                           </SelectTrigger>
                           <SelectContent>

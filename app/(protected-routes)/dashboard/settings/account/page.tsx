@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useAuth } from "@/lib/context/auth-provider";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,36 +14,45 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
-import {  Mail, Phone, Shield, BadgeCheck, GraduationCap, Briefcase, Building2, Calendar, Hash } from "lucide-react";
+import {  Mail, Phone, Shield, BadgeCheck, GraduationCap, Briefcase, Building2, Calendar, Hash, AlertTriangle } from "lucide-react";
+import { DeleteUserDialog } from "@/components/users/deleteUserDialog";
+import { useRouter } from "next/navigation";
 
 export default function AccountPage() {
   const { claims } = useAuth();
-  const role = claims?.role;
-  const metadata = claims?.user_metadata;
-
+  const router = useRouter();
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const role = claims?.ROLE || "STUDENT";
+  const ACCOUNT_TYPE = claims?.ACCOUNT_TYPE;
+  console.log(claims);
   // Common fields
   const user = {
-    name: metadata?.name || "User",
-    email: claims?.email || "user@example.com",
-    role: role || "USER",
-    avatarUrl: metadata?.avatarUrl || "",
-    contactNumber: (metadata?.contactNumber as string) || "Not set",
+    NAME: claims?.NAME || "User",
+    EMAIL: claims?.EMAIL || "user@example.com",
+    ROLE: role || "STUDENT",
+    AVATAR_URL: claims?.AVATAR_URL || "",
+    CONTACT_NUMBER: (claims?.CONTACT_NUMBER as string) || "Not set",
   };
 
   // Student specific
-  const studentInfo = role === 'STUDENT' ? {
-    studentId: metadata?.studentId as string,
-    program: metadata?.program as string,
-    semester: metadata?.semester as number,
-    yearOfStudy: metadata?.yearOfStudy as number,
+  const studentInfo = ACCOUNT_TYPE === 'STUDENT' ? {
+    studentId: claims?.STUDENT_ID as string,
+    program: claims?.PROGRAM as string,
+    semester: claims?.SEMESTER as number,
+    yearOfStudy: claims?.YEAR_OF_STUDY as number,
   } : null;
 
   // Staff specific
-  const staffInfo = (role === 'STAFF' || role === 'ADMIN' || role === 'SUPERADMIN') ? {
-    staffId: metadata?.staffId as string,
-    department: metadata?.department as string,
-    position: metadata?.position as string,
+  const staffInfo = ACCOUNT_TYPE === 'STAFF' ? {
+    staffId: claims?.STAFF_ID as string,
+    department: claims?.DEPARTMENT as string,
+    position: claims?.POSITION as string,
   } : null;
+
+  const handleDeleteSuccess = () => {
+    // After successful deletion, redirect to login
+    router.push('/auth/login');
+  };
 
   return (
     <div className="space-y-6">
@@ -58,9 +68,9 @@ export default function AccountPage() {
         <Card className="md:col-span-2">
           <CardHeader className="flex flex-row items-center gap-4 space-y-0">
             <Avatar className="h-20 w-20">
-              <AvatarImage src={user.avatarUrl} alt={user.name} />
+              <AvatarImage src={user.AVATAR_URL} alt={user.NAME} />
               <AvatarFallback className="text-lg">
-                {user.name
+                {user.NAME
                   .split(" ")
                   .map((n) => n[0])
                   .join("")
@@ -69,10 +79,10 @@ export default function AccountPage() {
               </AvatarFallback>
             </Avatar>
             <div className="space-y-1">
-              <CardTitle className="text-2xl">{user.name}</CardTitle>
+              <CardTitle className="text-2xl">{user.NAME}</CardTitle>
               <CardDescription className="flex items-center gap-1">
                 <Shield className="h-3 w-3" />
-                {user.role}
+                {user.ROLE}
               </CardDescription>
             </div>
           </CardHeader>
@@ -82,7 +92,7 @@ export default function AccountPage() {
                 <Mail className="h-4 w-4" />
                 Email
               </div>
-              <div className="text-sm">{user.email}</div>
+              <div className="text-sm">{user.EMAIL}</div>
             </div>
             
             <div className="grid gap-1">
@@ -90,7 +100,7 @@ export default function AccountPage() {
                 <Phone className="h-4 w-4" />
                 Contact Number
               </div>
-              <div className="text-sm">{user.contactNumber}</div>
+              <div className="text-sm">{user.CONTACT_NUMBER}</div>
             </div>
 
             <div className="grid gap-1">
@@ -190,7 +200,47 @@ export default function AccountPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Danger Zone */}
+        <Card className="md:col-span-2 border-destructive/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Danger Zone
+            </CardTitle>
+            <CardDescription>
+              Irreversible and destructive actions
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-start justify-between rounded-lg border border-destructive/50 p-4">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Delete Account</p>
+                <p className="text-sm text-muted-foreground">
+                  Permanently delete your account and all associated data. This action cannot be undone.
+                </p>
+              </div>
+              <Button 
+                variant="destructive" 
+                onClick={() => setOpenDeleteDialog(true)}
+                className="ml-4 shrink-0"
+              >
+                Delete Account
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Delete Account Dialog */}
+      <DeleteUserDialog
+        accountId={claims?.ACCOUNT_ID as string || null}
+        userName={user.NAME}
+        userEmail={user.EMAIL}
+        open={openDeleteDialog}
+        onOpenChange={setOpenDeleteDialog}
+        onSuccess={handleDeleteSuccess}
+      />
     </div>
   );
 }

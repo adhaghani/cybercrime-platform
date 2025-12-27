@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, MapPin, Calendar, Clock, Wrench, FileText, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { MOCK_REPORTS } from "@/lib/api/mock-data";
 import { Facility } from "@/lib/types";
 import { format } from "date-fns";
 import FacilitySeverityBadge from "@/components/ui/facilitySeverityBadge";
@@ -19,22 +18,44 @@ export default function ReportDetailPage({ params }: { params: Promise<{ id: str
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchReport = async () => {
-      try {
-        const response = await fetch(`/api/reports/${id}`);
-        if (!response.ok) throw new Error('Not found');
-        const data = await response.json();
-        if (data.type === 'FACILITY') {
-          setReport(data as Facility);
-        }
-      } catch (error) {
-        console.error('Error fetching report:', error);
-      } finally {
-        setLoading(false);
+  const fetchReport = async () => {
+    try {
+      const response = await fetch(`/api/reports/${id}`);
+      if (!response.ok) throw new Error('Not found');
+      const data = await response.json();
+      
+      console.log('Fetched report data:', data); // Debug log
+      
+      if (data.TYPE === 'FACILITY' || data.type === 'FACILITY') {
+        // Transform Oracle column names to camelCase
+        const transformedReport: Facility = {
+          REPORT_ID: data.REPORT_ID || data.reportId,
+          TITLE: data.TITLE || data.title,
+          DESCRIPTION: data.DESCRIPTION || data.description,
+          LOCATION: data.LOCATION || data.location,
+          STATUS: data.STATUS || data.status,
+          TYPE: 'FACILITY',
+          SUBMITTED_BY: data.SUBMITTED_BY || data.submittedBy,
+          SUBMITTED_AT: data.SUBMITTED_AT || data.submittedAt,
+          UPDATED_AT: data.UPDATED_AT || data.updatedAt,
+          FACILITY_TYPE: data.FACILITY_TYPE || data.facilityType,
+          SEVERITY_LEVEL: data.SEVERITY_LEVEL || data.severityLevel,
+          AFFECTED_EQUIPMENT: data.AFFECTED_EQUIPMENT || data.affectedEquipment,
+        };
+        
+        console.log('Transformed report:', transformedReport); // Debug log
+        setReport(transformedReport);
+      } else {
+        throw new Error('Report is not a facility report');
       }
-    };
-    fetchReport();
-  }, [id]);
+    } catch (error) {
+      console.error('Error fetching report:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchReport();
+}, [id]);
 
   if (loading) {
     return (
@@ -74,12 +95,12 @@ export default function ReportDetailPage({ params }: { params: Promise<{ id: str
           </Link>
         </Button>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold tracking-tight">{report.title}</h1>
-          <p className="text-muted-foreground">Report ID: {report.reportId}</p>
+          <h1 className="text-3xl font-bold tracking-tight">{report.TITLE}</h1>
+          <p className="text-muted-foreground">Report ID: {report.REPORT_ID}</p>
         </div>
         <div className="flex gap-2">
-          <StatusBadge status={report.status} />
-          <FacilitySeverityBadge severityLevel={report.severityLevel} />
+          <StatusBadge status={report.STATUS} />
+          <FacilitySeverityBadge severityLevel={report.SEVERITY_LEVEL} />
         </div>
       </div>
 
@@ -91,7 +112,7 @@ export default function ReportDetailPage({ params }: { params: Promise<{ id: str
           <CardContent className="space-y-4">
             <div>
               <h3 className="font-semibold mb-2">Description</h3>
-              <p className="text-muted-foreground">{report.description}</p>
+              <p className="text-muted-foreground">{report.DESCRIPTION}</p>
             </div>
 
             <Separator />
@@ -101,7 +122,7 @@ export default function ReportDetailPage({ params }: { params: Promise<{ id: str
                 <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
                   <p className="text-sm font-medium">Location</p>
-                  <p className="text-sm text-muted-foreground">{report.location}</p>
+                  <p className="text-sm text-muted-foreground">{report.LOCATION}</p>
                 </div>
               </div>
 
@@ -109,7 +130,7 @@ export default function ReportDetailPage({ params }: { params: Promise<{ id: str
                 <Wrench className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
                   <p className="text-sm font-medium">Facility Type</p>
-                  <p className="text-sm text-muted-foreground">{report.facilityType}</p>
+                  <p className="text-sm text-muted-foreground">{report.FACILITY_TYPE}</p>
                 </div>
               </div>
 
@@ -118,7 +139,7 @@ export default function ReportDetailPage({ params }: { params: Promise<{ id: str
                 <div>
                   <p className="text-sm font-medium">Submitted</p>
                   <p className="text-sm text-muted-foreground">
-                    {format(new Date(report.submittedAt), "MMM d, yyyy 'at' h:mm a")}
+                    {format(new Date(report.SUBMITTED_AT), "MMM d, yyyy 'at' h:mm a")}
                   </p>
                 </div>
               </div>
@@ -128,18 +149,18 @@ export default function ReportDetailPage({ params }: { params: Promise<{ id: str
                 <div>
                   <p className="text-sm font-medium">Last Updated</p>
                   <p className="text-sm text-muted-foreground">
-                    {format(new Date(report.updatedAt), "MMM d, yyyy 'at' h:mm a")}
+                    {format(new Date(report.UPDATED_AT), "MMM d, yyyy 'at' h:mm a")}
                   </p>
                 </div>
               </div>
             </div>
 
-            {report.affectedEquipment && (
+            {report.AFFECTED_EQUIPMENT && (
               <>
                 <Separator />
                 <div>
                   <h3 className="font-semibold mb-2">Affected Equipment</h3>
-                  <p className="text-muted-foreground">{report.affectedEquipment}</p>
+                  <p className="text-muted-foreground">{report.AFFECTED_EQUIPMENT}</p>
                 </div>
               </>
             )}
@@ -154,11 +175,11 @@ export default function ReportDetailPage({ params }: { params: Promise<{ id: str
             <CardContent className="space-y-4">
               <div>
                 <p className="text-sm font-medium mb-1">Current Status</p>
-                <StatusBadge status={report.status} />
+                <StatusBadge status={report.STATUS} />
               </div>
               <div>
                 <p className="text-sm font-medium mb-1">Severity Level</p>
-               <FacilitySeverityBadge severityLevel={report.severityLevel} />
+               <FacilitySeverityBadge severityLevel={report.SEVERITY_LEVEL} />
               </div>
             </CardContent>
           </Card>

@@ -30,7 +30,7 @@ import {
   Loader2
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Crime, Facility,  ReportAssignment } from "@/lib/types";
+import { Crime, Facility, ReportWithAssignedStaffDetails } from "@/lib/types";
 import { format } from "date-fns";
 import StatusBadge from "@/components/ui/statusBadge";
 import { notFound, useSearchParams } from "next/navigation";
@@ -38,19 +38,21 @@ import { useAuth } from "@/lib/context/auth-provider";
 import { ResolveReportDialog } from "@/components/report/resolve-report-dialog";
 import { AssignStaffDialog } from "@/components/report/assign-staff-dialog";
 import { useHasAnyRole } from "@/hooks/use-user-role";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert"
 
 export default function ReportDetailsPage({ params }: { params: { id: string } }) {
   const searchParams = useSearchParams();
   const showAssignDialog = searchParams.get("action") === "assign";
   const { claims } = useAuth();
-  const [report, setReport] = useState<Crime | Facility | null>(null);
+  const [report, setReport] = useState<ReportWithAssignedStaffDetails | null>(null);
   const [loading, setLoading] = useState(true);
 
   const isSupervisorOrAdmin = useHasAnyRole()(["SUPERVISOR", "ADMIN", "SUPERADMIN"]);
 
-  useEffect(() => {
-    fetchReport();
-  }, [params.id]);
 
   const fetchReport = async () => {
     try {
@@ -64,13 +66,18 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
         throw new Error('Failed to fetch report');
       }
       const data = await response.json();
-      setReport(data.report);
+      setReport(data);
     } catch (error) {
       console.error('Failed to fetch report:', error);
     } finally {
       setLoading(false);
     }
   };
+
+
+  useEffect(() => {
+    fetchReport();
+  }, [params.id]);
   
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(showAssignDialog);
   const [isResolveDialogOpen, setIsResolveDialogOpen] = useState(false);
@@ -78,8 +85,17 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
   const [updateActionTaken, setUpdateActionTaken] = useState("");
   const [updateFeedback, setUpdateFeedback] = useState("");
   // Get current user info for auto-fill
-  const currentUserName = claims?.user_metadata?.name || "Current User";
-  const currentUserId = claims?.sub || "user-1";
+  const currentUserName = claims?.NAME|| "Current User";
+  const currentUserId = claims?.ACCOUNT_ID || "-";
+
+  const isCurrentUserAssignedToThisReport = report?.STAFF_ASSIGNED?.some(assignment => 
+    assignment.ACCOUNT_ID === currentUserId
+  );
+  const isCurrentUserCompletedAssignment = report?.STAFF_ASSIGNED?.some(assignment =>
+    assignment.ACCOUNT_ID === currentUserId && assignment.ACTION_TAKEN && assignment.ACTION_TAKEN.trim() !== ""
+  );
+  const isReportResolved = report?.STATUS === "RESOLVED";
+  const isReportRejected = report?.STATUS === "REJECTED";
 
   if (loading) {
     return (
@@ -93,23 +109,47 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
     notFound();
   }
 
-  const isCrimeReport = report.type === "CRIME";
+  const isCrimeReport = report.TYPE === "CRIME";
   const crimeData = isCrimeReport ? (report as Crime) : null;
   const facilityData = !isCrimeReport ? (report as Facility) : null;
 
-  const handleUpdateReport = () => {
-    // TODO: Implement API call to update assignment
-    const updateData: Partial<ReportAssignment> = {
-      reportId: params.id,
-      accountId: currentUserId,
-      actionTaken: updateActionTaken,
-      additionalFeedback: updateFeedback,
-    };
-    
-    console.log("Updating report:", updateData);
-    setIsUpdateDialogOpen(false);
-    setUpdateActionTaken("");
-    setUpdateFeedback("");
+  const handleUpdateReport = async () => {
+    try {
+      // Find the current user's assignment for this report
+      const currentUserAssignment = report?.STAFF_ASSIGNED?.find(
+        assignment => assignment.ACCOUNT_ID === currentUserId
+      );
+
+      if (!currentUserAssignment) {
+        console.error("No assignment found for current user");
+        return;
+      }
+
+      const response = await fetch(`/api/report-assignments/${currentUserAssignment.ASSIGNMENT_ID}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action_taken: updateActionTaken,
+          additional_feedback: updateFeedback,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update assignment');
+      }
+
+      // Close dialog and reset form
+      setIsUpdateDialogOpen(false);
+      setUpdateActionTaken("");
+      setUpdateFeedback("");
+
+      // Refresh report data to show updated information
+      await fetchReport();
+    } catch (error) {
+      console.error("Failed to update assignment:", error);
+    }
   };
 
   return (
@@ -117,7 +157,7 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
       {/* Header */}
       
         <div className="w-full flex gap-2 justify-end">
-          {report.status !== "RESOLVED" && (
+          {!isReportResolved && !isReportRejected && (
             <>
             {isSupervisorOrAdmin ? <>
               <Button variant="outline" onClick={() => setIsAssignDialogOpen(true)}>
@@ -126,8 +166,8 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
               </Button>
 
               <AssignStaffDialog
-                reportId={report.reportId}
-                reportTitle={report.title}
+                reportId={report.REPORT_ID}
+                reportTitle={report.TITLE}
                 open={isAssignDialogOpen}
                 onOpenChange={setIsAssignDialogOpen}
                 onSuccess={() => {
@@ -142,19 +182,19 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
               <ResolveReportDialog 
                 open={isResolveDialogOpen} 
                 onOpenChange={setIsResolveDialogOpen} 
-                reportTitle={report.title} 
+                reportTitle={report.TITLE} 
                 onSuccess={() => {
                   fetchReport(); // Refresh report data
                 }}
-                reportId={report.reportId}
+                reportId={report.REPORT_ID}
               />
               </> : null}
               
-              <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
+              {isCurrentUserAssignedToThisReport && <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button>
+                  <Button disabled={isCurrentUserCompletedAssignment} variant={isCurrentUserCompletedAssignment ? "ghost" : "default"}>
                     <FileText className="h-4 w-4 mr-2" />
-                    Update Assignment
+                    {isCurrentUserCompletedAssignment ? "Assignment Completed" : "Update Assignment"}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl">
@@ -204,7 +244,7 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
                     </Button>
                   </DialogFooter>
                 </DialogContent>
-              </Dialog>
+              </Dialog>}
             </>
           )}
         </div>
@@ -219,16 +259,31 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
             <Wrench className="h-10 w-10 text-orange-500" />
           )}
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{report.title}</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{report.TITLE}</h1>
             <div className="flex items-center gap-2 mt-1">
-              <StatusBadge status={report.status} />
+              <StatusBadge status={report.STATUS} />
               <Badge variant="outline">
-                {report.type}
+                {report.TYPE}
               </Badge>
             </div>
           </div>
         </div>
       </div>
+
+      {
+        report.RESOLUTIONS && (
+      <div className="grid w-full items-start gap-4">
+      <Alert className={isReportResolved ? "bg-green-500/10 border-green-500/20 text-green-500" : isReportRejected ? "bg-red-500/10 border-red-500/20 text-red-500" : ""}>
+        <AlertTitle>This report has been {report.STATUS.toLowerCase()}</AlertTitle>
+        <AlertDescription>
+          This report was {report.STATUS.toLowerCase()} on {format(new Date(report.RESOLUTIONS.RESOLVED_AT), "PPP 'at' p")} with the following summary:
+          <p className="mt-2 font-medium">{report.RESOLUTIONS.RESOLUTION_SUMMARY}</p>
+        </AlertDescription>
+      </Alert>
+
+    </div>
+        )
+      }
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Content */}
@@ -242,7 +297,7 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
             <CardContent className="space-y-4">
               <div>
                 <Label className="text-muted-foreground">Description</Label>
-                <p className="mt-1">{report.description}</p>
+                <p className="mt-1">{report.DESCRIPTION}</p>
               </div>
 
               <Separator />
@@ -253,7 +308,7 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
                     <MapPin className="h-4 w-4" />
                     Location
                   </Label>
-                  <p className="mt-1 font-medium">{report.location}</p>
+                  <p className="mt-1 font-medium">{report.LOCATION}</p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground flex items-center gap-2">
@@ -261,12 +316,12 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
                     Submitted At
                   </Label>
                   <p className="mt-1 font-medium">
-                    {format(new Date(report.submittedAt), "PPP 'at' p")}
+                    {format(new Date(report.SUBMITTED_AT), "PPP 'at' p")}
                   </p>
                 </div>
               </div>
 
-              {report.attachmentPath && (
+              {report.ATTACHMENT_PATH && (
                 <>
                   <Separator />
                   <div>
@@ -296,37 +351,37 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
                     <Label className="text-muted-foreground">Crime Category</Label>
-                    <p className="mt-1 font-medium">{crimeData.crimeCategory}</p>
+                    <p className="mt-1 font-medium">{crimeData.CRIME_CATEGORY}</p>
                   </div>
-                  {crimeData.injuryLevel && (
+                  {crimeData.INJURY_LEVEL && (
                     <div>
                       <Label className="text-muted-foreground">Injury Level</Label>
-                      <p className="mt-1 font-medium">{crimeData.injuryLevel}</p>
+                      <p className="mt-1 font-medium">{crimeData.INJURY_LEVEL}</p>
                     </div>
                   )}
                 </div>
-                {crimeData.suspectDescription && (
+                {crimeData.SUSPECT_DESCRIPTION && (
                   <div>
                     <Label className="text-muted-foreground">Suspect Description</Label>
-                    <p className="mt-1">{crimeData.suspectDescription}</p>
+                    <p className="mt-1">{crimeData.SUSPECT_DESCRIPTION}</p>
                   </div>
                 )}
-                {crimeData.victimInvolved && (
+                {crimeData.VICTIM_INVOLVED && (
                   <div>
                     <Label className="text-muted-foreground">Victim Information</Label>
-                    <p className="mt-1">{crimeData.victimInvolved}</p>
+                    <p className="mt-1">{crimeData.VICTIM_INVOLVED}</p>
                   </div>
                 )}
-                {crimeData.weaponInvolved && (
+                {crimeData.WEAPON_INVOLVED && (
                   <div>
                     <Label className="text-muted-foreground">Weapon Involved</Label>
-                    <p className="mt-1">{crimeData.weaponInvolved}</p>
+                    <p className="mt-1">{crimeData.WEAPON_INVOLVED}</p>
                   </div>
                 )}
-                {crimeData.evidenceDetails && (
+                {crimeData.EVIDENCE_DETAILS && (
                   <div>
                     <Label className="text-muted-foreground">Evidence Details</Label>
-                    <p className="mt-1">{crimeData.evidenceDetails}</p>
+                    <p className="mt-1">{crimeData.EVIDENCE_DETAILS}</p>
                   </div>
                 )}
               </CardContent>
@@ -343,27 +398,69 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
                     <Label className="text-muted-foreground">Facility Type</Label>
-                    <p className="mt-1 font-medium">{facilityData.facilityType}</p>
+                    <p className="mt-1 font-medium">{facilityData.FACILITY_TYPE}</p>
                   </div>
                   <div>
                     <Label className="text-muted-foreground">Severity Level</Label>
                     <Badge variant={
-                      facilityData.severityLevel === "CRITICAL" ? "destructive" : 
-                      facilityData.severityLevel === "HIGH" ? "default" : "outline"
+                      facilityData.SEVERITY_LEVEL === "CRITICAL" ? "destructive" : 
+                      facilityData.SEVERITY_LEVEL === "HIGH" ? "default" : "outline"
                     }>
-                      {facilityData.severityLevel}
+                      {facilityData.SEVERITY_LEVEL}
                     </Badge>
                   </div>
                 </div>
-                {facilityData.affectedEquipment && (
+                {facilityData.AFFECTED_EQUIPMENT && (
                   <div>
                     <Label className="text-muted-foreground">Affected Equipment</Label>
-                    <p className="mt-1">{facilityData.affectedEquipment}</p>
+                    <p className="mt-1">{facilityData.AFFECTED_EQUIPMENT}</p>
                   </div>
                 )}
               </CardContent>
             </Card>
           )}
+
+          {/* Report Assignment Feedback and action Taken */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Assignments and Feedback</CardTitle>
+              <CardDescription>Staff assignments and their feedback</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-0">
+              {
+                report.STAFF_ASSIGNED && report.STAFF_ASSIGNED.length > 0 ? report.STAFF_ASSIGNED.map((assignment) => (
+                  <div key={assignment.ASSIGNMENT_ID} className="space-y-0 p-4 rounded-lg border border-dashed mb-2">
+                    <div className="flex items-center gap-2">
+                      <User className="h-5 w-5 text-primary" />
+                      <span className="font-medium text-primary">{assignment.NAME}</span>
+                      <span className="text-sm text-muted-foreground">
+                        (Assigned on {format(new Date(assignment.ASSIGNED_AT), "PPP")})
+                      </span>
+    
+                    </div>
+                    {
+                        assignment.UPDATED_AT && assignment.ACTION_TAKEN && (
+                          <span className="text-sm text-muted-foreground block mb-4">
+                            - Updated on {format(new Date(assignment.UPDATED_AT), "PPP")}
+                          </span>
+                        )
+                      }
+                    <div>
+                      <Label className="text-muted-foreground">Action Taken</Label>
+                      <p className="mt-1">{assignment.ACTION_TAKEN || "No action taken yet."}</p>
+                    </div>
+                    {assignment.ADDITIONAL_FEEDBACK && (
+                      <div>
+                        <Label className="text-muted-foreground">Additional Feedback</Label>
+                        <p className="mt-1">{assignment.ADDITIONAL_FEEDBACK}</p>
+                      </div>
+                    )}
+
+                  </div>
+                )) : isReportRejected ? <p className="text-sm text-muted-foreground">This report was rejected and no staff were assigned.</p> :  <p className="text-sm text-muted-foreground">No staff have been assigned to this report yet.</p>
+              }
+            </CardContent>
+          </Card>
         </div>
 
         {/* Sidebar */}
@@ -380,7 +477,7 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
                   Submitted By
                 </Label>
                 <p className="mt-1 font-medium">Student Name</p>
-                <p className="text-sm text-muted-foreground">ID: {report.submittedBy}</p>
+                <p className="text-sm text-muted-foreground">ID: {report.SUBMITTED_BY}</p>
               </div>
               <Separator />
               <div>
@@ -389,13 +486,13 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
                   Last Updated
                 </Label>
                 <p className="mt-1 font-medium">
-                  {format(new Date(report.updatedAt), "PPP")}
+                  {format(new Date(report.UPDATED_AT), "PPP")}
                 </p>
               </div>
               <Separator />
               <div>
                 <Label className="text-muted-foreground">Report ID</Label>
-                <p className="mt-1 font-mono text-sm">{report.reportId}</p>
+                <p className="mt-1 font-mono text-sm">{report.REPORT_ID}</p>
               </div>
             </CardContent>
           </Card>
@@ -408,13 +505,33 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <div className="flex items-center gap-2 p-2 rounded-lg bg-accent/50">
+                {report.STAFF_ASSIGNED && report.STAFF_ASSIGNED.length > 0 ?
+                  report.STAFF_ASSIGNED.map((assignment) => (
+                <div key={assignment.ASSIGNMENT_ID} className="flex items-center gap-2 p-2 rounded-lg bg-accent/50">
+                  <User className="h-4 w-4 text-primary" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{assignment.NAME}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Assigned on {format(new Date(assignment.ASSIGNED_AT), "PPP")}
+                    </p>
+                  </div>
+                </div>
+                ))
+                : isReportRejected ? <div>
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-red-500/10">
+                  <ShieldAlert className="h-4 w-4 text-red-500" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">This report was rejected</p>
+                    <p className="text-xs text-muted-foreground">No staff were assigned</p>
+                  </div>
+                </div>
+                </div> : <div className="flex items-center gap-2 p-2 rounded-lg bg-accent/50">
                   <User className="h-4 w-4" />
                   <div className="flex-1">
                     <p className="text-sm font-medium">No assignments yet</p>
                     <p className="text-xs text-muted-foreground">Click &quot;Assign Staff&quot; to assign</p>
                   </div>
-                </div>
+                </div>}
               </div>
             </CardContent>
           </Card>
@@ -429,18 +546,76 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
               <div className="space-y-3">
                 <div className="flex gap-3">
                   <div className="flex flex-col items-center">
-                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      <FileText className="h-4 w-4" />
+                    <div className="h-8 w-8 rounded-full flex items-center justify-center">
+                      <FileText className="h-4 w-4 text-primary" />
                     </div>
                     <div className="w-px h-full bg-border mt-2" />
                   </div>
                   <div className="flex-1 pb-4">
                     <p className="font-medium text-sm">Report Submitted</p>
                     <p className="text-xs text-muted-foreground">
-                      {format(new Date(report.submittedAt), "PPP 'at' p")}
+                      {format(new Date(report.SUBMITTED_AT), "PPP 'at' p")}
                     </p>
                   </div>
                 </div>
+              
+              {/* Combine all events and sort chronologically */}
+              {report.STAFF_ASSIGNED && report.STAFF_ASSIGNED.length > 0 && (() => {
+                const events: Array<{
+                  type: 'assignment' | 'update';
+                  timestamp: string;
+                  assignment: typeof report.STAFF_ASSIGNED[0];
+                }> = [];
+
+                // Add assignment events
+                report.STAFF_ASSIGNED.forEach(assignment => {
+                  events.push({
+                    type: 'assignment',
+                    timestamp: assignment.ASSIGNED_AT,
+                    assignment
+                  });
+
+                  // Add update event if action was taken
+                  if (assignment.ACTION_TAKEN) {
+                    events.push({
+                      type: 'update',
+                      timestamp: assignment.UPDATED_AT,
+                      assignment
+                    });
+                  }
+                });
+
+                // Sort by timestamp
+                events.sort((a, b) => 
+                  new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+                );
+
+                return events.map((event, index) => (
+                  <div key={`${event.assignment.ASSIGNMENT_ID}-${event.type}-${index}`} className="flex gap-3">
+                    <div className="flex flex-col items-center">
+                      <div className="h-8 w-8 aspect-square rounded-full flex items-center justify-center">
+                        {event.type === 'assignment' ? (
+                          <User className="h-4 w-4 rounded-full text-primary" />
+                        ) : (
+                          <FileText className="h-4 w-4 rounded-full text-primary" />
+                        )}
+                      </div>
+                      <div className="w-px h-full bg-border mt-2" />
+                    </div>
+                    <div className="flex-1 pb-4">
+                      <p className="font-medium text-sm">
+                        {event.type === 'assignment' 
+                          ? `Assigned to ${event.assignment.NAME}`
+                          : `Update from ${event.assignment.NAME}`
+                        }
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(event.timestamp), "PPP 'at' p")}
+                      </p>
+                    </div>
+                  </div>
+                ));
+              })()}
               </div>
             </CardContent>
           </Card>

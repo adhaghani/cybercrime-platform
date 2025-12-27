@@ -21,7 +21,7 @@ export type MalaysianState = 'Johor' | 'Kedah' | 'Kelantan' | 'Kuala Lumpur' | '
 export type AnnouncementAudience = 'ALL' | 'STUDENTS' | 'STAFF' | 'ADMIN';
 export type AnnouncementType = 'GENERAL' | 'EMERGENCY' | 'EVENT';
 export type AnnouncementPriority = 'LOW' | 'MEDIUM' | 'HIGH';
-export type AnnouncementStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+export type AnnouncementStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVE';
 
 export type GeneratedReportCategory = 'CRIME' | 'FACILITY' | 'USER' | "ALL REPORTS";
 export type GeneratedReportDataType = 'SUMMARY' | 'DETAILED';
@@ -34,136 +34,139 @@ export type ResolutionType = 'RESOLVED' | 'ESCALATED' | 'DISMISSED' | 'TRANSFERR
 
 // 1. Account Table
 export interface Account {
-  accountId: string;
-  name: string;
-  email: string;
-  passwordHash: string;
-  contactNumber: string;
-  accountType: AccountType;
-  createdAt: string;
-  updatedAt: string;
+  ACCOUNT_ID: string;
+  NAME: string;
+  EMAIL: string;
+  PASSWORD_HASH: string;
+  CONTACT_NUMBER: string;
+  ACCOUNT_TYPE: AccountType;
+  CREATED_AT: string;
+  UPDATED_AT: string;
 }
 
 // 2. Student Table
 export interface Student extends Account {
-  studentId: string;
-  program: string;
-  semester: number;
-  yearOfStudy: number;
-  avatarUrl?: string;
+  STUDENT_ID: string;
+  PROGRAM: string;
+  SEMESTER: number;
+  YEAR_OF_STUDY: number;
+  AVATAR_URL?: string;
 }
 
 // 3. Staff Table
 export interface Staff extends Account {
-  staffId: string;
-  role: Role;
-  department: string;
-  position: string;
-  supervisorId?: string; // FK → staff.account_id (self-referencing)
-  avatarUrl?: string;
+  STAFF_ID: string;
+  ROLE: Role;
+  DEPARTMENT: string;
+  POSITION: string;
+  SUPERVISOR_ID?: string; // FK → staff.account_id (self-referencing)
+  AVATAR_URL?: string;
 }
 
 // 4. Report Table
 export interface Report {
-  reportId: string;
-  submittedBy: string; // FK → student.account_id
-  title: string;
-  description: string;
-  location: string;
-  status: ReportStatus;
-  type: ReportType;
-  attachmentPath?: string;
-  submittedAt: string;
-  updatedAt: string;
+  REPORT_ID: string;
+  SUBMITTED_BY: string; // FK → student.account_id
+  TITLE: string;
+  DESCRIPTION: string;
+  LOCATION: string;
+  STATUS: ReportStatus;
+  TYPE: ReportType;
+  ATTACHMENT_PATH?: string;
+  SUBMITTED_AT: string;
+  UPDATED_AT: string;
 }
 
 // 5. Report Assignment Table
 export interface ReportAssignment {
-  assignmentId: string;
-  accountId: string; // FK → staff.account_id
-  reportId: string; // FK → report.report_id
-  assignedAt: string;
-  actionTaken?: string;
-  additionalFeedback?: string;
+  ASSIGNMENT_ID: string;
+  ACCOUNT_ID: string; // FK → staff.account_id
+  REPORT_ID: string; // FK → report.report_id
+  ASSIGNED_AT: string;
+  ACTION_TAKEN?: string;
+  ADDITIONAL_FEEDBACK?: string;
+  UPDATED_AT?: string;
 }
 
 // 6. Emergency Info Table
 export interface EmergencyInfo {
-  emergencyId: string;
-  name: string;
-  address: string;
-  phone: string;
-  email?: string;
-  state: MalaysianState;
-  type?: EmergencyServiceType;
-  hotline?: string;
-  createdAt: string;
-  updatedAt: string;
+  EMERGENCY_ID: string;
+  NAME: string;
+  ADDRESS: string;
+  PHONE: string;
+  EMAIL?: string;
+  STATE: MalaysianState;
+  TYPE?: EmergencyServiceType;
+  HOTLINE?: string;
+  CREATED_AT: string;
+  UPDATED_AT: string;
 }
 
 // 7. Generated Report Table
 export interface GeneratedReport {
-  generateId: string;
-  generatedBy: string; // FK → staff.account_id
-  title: string;
-  summary: string;
-  dateRangeStart: string;
-  dateRangeEnd: string;
-  reportCategory: GeneratedReportCategory;
-  reportDataType: GeneratedReportDataType;
-  reportData: any;
-  requestedAt: string;
+  GENERATE_ID: string;
+  GENERATED_BY: string; // FK → staff.account_id
+  TITLE: string;
+  SUMMARY: string;
+  DATE_RANGE_START: string;
+  DATE_RANGE_END: string;
+  REPORT_CATEGORY: GeneratedReportCategory;
+  REPORT_DATA_TYPE: GeneratedReportDataType;
+  REPORT_DATA: any;
+  REQUESTED_AT: string;
+  GENERATED_BY_NAME?: string; // Joined field from staff.name
+  GENERATED_BY_EMAIL?: string; // Joined field from staff.email
 }
 
 // 8. Announcement Table
 export interface Announcement {
-  announcementId: string;
-  createdBy: string; // FK → staff.account_id
-  title: string;
-  message: string;
-  audience: AnnouncementAudience;
-  type: AnnouncementType;
-  priority: AnnouncementPriority;
-  status: AnnouncementStatus;
-  photoPath?: string;
-  startDate: string;
-  endDate: string;
-  createdAt: string;
-  updatedAt: string;
+  ANNOUNCEMENT_ID: string;
+  CREATED_BY: string; // FK → staff.account_id
+  TITLE: string;
+  MESSAGE: string;
+  AUDIENCE: AnnouncementAudience;
+  TYPE: AnnouncementType;
+  PRIORITY: AnnouncementPriority;
+  STATUS: AnnouncementStatus;
+  PHOTO_PATH?: string;
+  START_DATE: string;
+  END_DATE: string;
+  CREATED_AT: string;
+  UPDATED_AT: string;
 }
 
 // 9. Crime Table
 export interface Crime extends Report{
-  crimeCategory: CrimeCategory;
-  suspectDescription?: string;
-  victimInvolved?: string;
-  injuryLevel?: string;
-  weaponInvolved?: string;
-  evidenceDetails?: string;
+  CRIME_CATEGORY: CrimeCategory;
+  SUSPECT_DESCRIPTION?: string;
+  VICTIM_INVOLVED?: string;
+  INJURY_LEVEL?: string;
+  WEAPON_INVOLVED?: string;
+  EVIDENCE_DETAILS?: string;
 }
 
 // 10. Facility Table
 export interface Facility extends Report{
-  facilityType: FacilityType;
-  severityLevel: SeverityLevel;
-  affectedEquipment?: string;
+  FACILITY_TYPE: FacilityType;
+  SEVERITY_LEVEL: SeverityLevel;
+  AFFECTED_EQUIPMENT?: string;
 }
 
 // 11. UiTM Auxiliary Police Table
 export interface UiTMAuxiliaryPolice extends EmergencyInfo {
-  campus: UiTMCampus;
-  operatingHours: string;
+  CAMPUS: UiTMCampus;
+  OPERATING_HOURS: string;
 }
 
 // 12. Resolution Table
 export interface Resolution {
-  resolutionId: string;
-  reportId: string; // FK → report.report_id
-  resolvedBy: string; // FK → staff.account_id
-  resolutionType: ResolutionType;
-  resolutionSummary: string;
-  evidencePath?: string;
-  resolvedAt: string;
+  RESOLUTION_ID: string;
+  REPORT_ID: string; // FK → report.report_id
+  RESOLVED_BY: string; // FK → staff.account_id
+  RESOLUTION_TYPE: ResolutionType;
+  RESOLUTION_SUMMARY: string;
+  EVIDENCE_PATH?: string;
+  RESOLVED_AT: string;
 }
 
 // ============================================================================
@@ -175,10 +178,22 @@ export type AnyAccount = Student | Staff;
 // Union type for reports
 export type AnyReport = Crime | Facility;
 
-// Report Assignment with staff details
-export interface ReportAssignmentExtended extends ReportAssignment {
-  staffName?: string;
-  reportTitle?: string;
-  reportType?: ReportType;
-  reportStatus?: ReportStatus;
+export interface AssignmentWithStaffDetails extends Staff {
+  ASSIGNMENT_ID: string;
+  REPORT_ID: string; // FK → report.report_id
+  ASSIGNED_AT: string;
+  ACTION_TAKEN?: string;
+  ADDITIONAL_FEEDBACK?: string;
 }
+
+export interface CrimeReportWithAssignedStaffDetails extends Crime {
+  STAFF_ASSIGNED?: AssignmentWithStaffDetails[];
+  RESOLUTIONS?: Resolution;
+}
+
+export interface FacilityReportWithAssignedStaffDetails extends Facility {
+    STAFF_ASSIGNED?: AssignmentWithStaffDetails[];
+    RESOLUTIONS?: Resolution;
+}
+
+export type ReportWithAssignedStaffDetails = CrimeReportWithAssignedStaffDetails | FacilityReportWithAssignedStaffDetails;

@@ -6,10 +6,22 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Users } from 'lucide-react';
 import { Staff } from '@/lib/types';
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
 
 interface Team {
   supervisor: Staff;
   members: Staff[];
+  teamSize: number;
+}
+
+interface TeamsResponse {
+  teams: Team[];
 }
 
 export default function AllTeamsPage() {
@@ -22,20 +34,11 @@ export default function AllTeamsPage() {
 
   const fetchTeams = async () => {
     try {
-      const response = await fetch('/api/staff');
-      if (!response.ok) throw new Error('Failed to fetch staff');
+      const response = await fetch('/api/teams');
+      if (!response.ok) throw new Error('Failed to fetch teams');
       
-      const data = await response.json();
-      const allStaff: Staff[] = data.staff || [];
-
-      // Group staff by supervisor
-      const supervisors = allStaff.filter(s => s.role === 'SUPERVISOR');
-      const teamsData: Team[] = supervisors.map(supervisor => ({
-        supervisor,
-        members: allStaff.filter(s => s.supervisorId === supervisor.accountId && s.accountId !== supervisor.accountId),
-      }));
-
-      setTeams(teamsData);
+      const data: TeamsResponse = await response.json();
+      setTeams(data.teams || []);
     } catch (error) {
       console.error('Failed to fetch teams:', error);
     } finally {
@@ -68,32 +71,36 @@ export default function AllTeamsPage() {
       </div>
 
       {teams.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Users className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-lg font-medium">No teams found</p>
-            <p className="text-sm text-muted-foreground">Teams will appear here once supervisors are assigned</p>
-          </CardContent>
-        </Card>
+    <Empty className="border border-dashed">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Users />
+        </EmptyMedia>
+        <EmptyTitle>No Teams currently available</EmptyTitle>
+        <EmptyDescription>
+          The system currently has no teams. try adding staff and assigning them to supervisor to form a team.
+        </EmptyDescription>
+      </EmptyHeader>
+    </Empty>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {teams.map((team) => (
-            <Card key={team.supervisor.accountId}>
+            <Card key={team.supervisor.ACCOUNT_ID}>
               <CardHeader>
                 <div className="flex items-center space-x-4">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={team.supervisor.avatarUrl} />
-                    <AvatarFallback>{getInitials(team.supervisor.name)}</AvatarFallback>
+                    <AvatarImage src={team.supervisor.AVATAR_URL} />
+                    <AvatarFallback>{getInitials(team.supervisor.NAME)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <CardTitle className="text-lg">{team.supervisor.name}</CardTitle>
-                    <CardDescription>{team.supervisor.department}</CardDescription>
+                    <CardTitle className="text-lg">{team.supervisor.NAME}&apos;s Team</CardTitle>
+                    <CardDescription>{team.supervisor.DEPARTMENT}</CardDescription>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 pt-2">
                   <Badge variant="secondary">
                     <Users className="h-3 w-3 mr-1" />
-                    {team.members.length} {team.members.length === 1 ? 'Member' : 'Members'}
+                    {team.teamSize} {team.teamSize === 1 ? 'Member' : 'Members'}
                   </Badge>
                 </div>
               </CardHeader>
@@ -103,19 +110,19 @@ export default function AllTeamsPage() {
                 ) : (
                   <div className="space-y-3">
                     {team.members.map((member) => (
-                      <div key={member.accountId} className="flex items-center space-x-3">
+                      <div key={member.ACCOUNT_ID} className="flex items-center space-x-3">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={member.avatarUrl} />
+                          <AvatarImage src={member.AVATAR_URL} />
                           <AvatarFallback className="text-xs">
-                            {getInitials(member.name)}
+                            {getInitials(member.NAME)}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{member.name}</p>
-                          <p className="text-xs text-muted-foreground truncate">{member.position}</p>
+                          <p className="text-sm font-medium truncate">{member.NAME}</p>
+                          <p className="text-xs text-muted-foreground truncate">{member.POSITION}</p>
                         </div>
                         <Badge variant="outline" className="text-xs">
-                          {member.role}
+                          {member.ROLE}
                         </Badge>
                       </div>
                     ))}
