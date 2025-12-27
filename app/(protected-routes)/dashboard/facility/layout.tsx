@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -16,14 +16,48 @@ import {
   AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
-import { MOCK_REPORTS } from "@/lib/api/mock-data";
+import { apiClient } from "@/lib/api/client";
 import { Facility } from "@/lib/types";
 import StatusBadge from "@/components/ui/statusBadge";
+import { useAuth } from "@/lib/context/auth-provider";
 
 export default function FacilityLayout({ children }: { children: React.ReactNode }) {
-  const myReports = MOCK_REPORTS.filter(
-    (r) => r.type === "FACILITY" && r.submittedBy === "user-1"
-  ) as Facility[];
+  const { claims } = useAuth();
+  const [myReports, setMyReports] = useState<Facility[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchMyReports();
+  }, [claims]);
+
+  const fetchMyReports = async () => {
+    try {
+      console.log('Fetching my facility reports for layout...');
+      const data = await apiClient.get<any[]>('/api/facilities/my-reports');
+      
+      // Transform the data
+      const transformedReports = data.map((item: any) => ({
+        reportId: item.REPORT_ID,
+        title: item.TITLE,
+        description: item.DESCRIPTION || '',
+        location: item.LOCATION,
+        status: item.STATUS,
+        type: 'FACILITY',
+        submittedBy: item.SUBMITTED_BY,
+        submittedAt: item.SUBMITTED_AT,
+        updatedAt: item.UPDATED_AT,
+        facilityType: item.FACILITY_TYPE,
+        severityLevel: item.SEVERITY_LEVEL,
+        affectedEquipment: item.AFFECTED_EQUIPMENT,
+      })) as Facility[];
+      
+      setMyReports(transformedReports);
+    } catch (error) {
+      console.error('Error fetching my reports:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const stats = {
     total: myReports.length,

@@ -7,6 +7,7 @@ import { StudentDashboard } from "@/components/dashboard/student-dashboard";
 import { StaffDashboard } from "@/components/dashboard/staff-dashboard";
 import { AnnouncementsSection } from "@/components/dashboard/announcements-section";
 import { useAuth } from "@/lib/context/auth-provider";
+import { apiClient } from "@/lib/api/client";
 import { Loader2 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -29,20 +30,58 @@ export default function DashboardPage() {
 
   const fetchDashboardData = async () => {
     try {
-      const [reportsRes, announcementsRes] = await Promise.all([
-        fetch('/api/reports'),
-        fetch('/api/announcements')
-      ]);
+      console.log('Fetching dashboard data...');
+      const reportsData = await apiClient.get<any[]>('/api/reports');
+      console.log('Raw reports data:', reportsData);
+       const transformedReports = reportsData.map((item: any) => {
+        const baseReport = {
+          reportId: item.REPORT_ID || item.reportId,
+          title: item.TITLE || item.title,
+          description: item.DESCRIPTION || item.description || '',
+          location: item.LOCATION || item.location,
+          status: item.STATUS || item.status,
+          type: item.TYPE || item.type,
+          submittedBy: item.SUBMITTED_BY || item.submittedBy,
+          submittedAt: item.SUBMITTED_AT || item.submittedAt,
+          updatedAt: item.UPDATED_AT || item.updatedAt,
+        };
+        if (item.TYPE === 'CRIME' || item.type === 'CRIME') {
+          return {
+            ...baseReport,
+            type: 'CRIME',
+            crimeCategory: item.CRIME_CATEGORY || item.crimeCategory,
+            suspectDescription: item.SUSPECT_DESCRIPTION || item.suspectDescription,
+            victimInvolved: item.VICTIM_INVOLVED || item.victimInvolved,
+            weaponInvolved: item.WEAPON_INVOLVED || item.weaponInvolved,
+            injuryLevel: item.INJURY_LEVEL || item.injuryLevel,
+            evidenceDetails: item.EVIDENCE_DETAILS || item.evidenceDetails,
+          } as Crime;
+        } else {
+          return {
+            ...baseReport,
+            type: 'FACILITY',
+            facilityType: item.FACILITY_TYPE || item.facilityType,
+            severityLevel: item.SEVERITY_LEVEL || item.severityLevel,
+            affectedEquipment: item.AFFECTED_EQUIPMENT || item.affectedEquipment,
+          } as Facility;
+        }
+      });
+      console.log('Transformed reports:', transformedReports);
+      setReports(transformedReports);
+      //const [reportsRes, announcementsRes] = await Promise.all([
+      //  fetch('/api/reports'),
+      //  fetch('/api/announcements')
+      //]);
 
-      if (reportsRes.ok) {
-        const reportsData = await reportsRes.json();
-        setReports(reportsData.reports || []);
-      }
+      //if (reportsRes.ok) {
+      //  const reportsData = await reportsRes.json();
+      //  setReports(reportsData.reports || []);
+      //}
 
-      if (announcementsRes.ok) {
-        const announcementsData = await announcementsRes.json();
-        setAnnouncements(announcementsData.announcements || []);
-      }
+      //if (announcementsRes.ok) {
+      //  const announcementsData = await announcementsRes.json();
+      //  setAnnouncements(announcementsData.announcements || []);
+      //}
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
     } finally {

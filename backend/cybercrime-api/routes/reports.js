@@ -56,11 +56,37 @@ router.get('/', async (req, res) => {
 
     const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
     
-    const sql = `SELECT REPORT_ID, SUBMITTED_BY, TITLE, TYPE, LOCATION, STATUS, SUBMITTED_AT, UPDATED_AT 
-                 FROM REPORT ${whereClause} ORDER BY SUBMITTED_AT DESC`;
+    const sql = `
+      SELECT 
+        R.REPORT_ID, R.SUBMITTED_BY, R.TITLE, R.DESCRIPTION, R.LOCATION, 
+        R.STATUS, R.TYPE, R.SUBMITTED_AT, R.UPDATED_AT,
+        C.CRIME_CATEGORY, C.SUSPECT_DESCRIPTION, C.VICTIM_INVOLVED,
+        C.WEAPON_INVOLVED, C.INJURY_LEVEL, C.EVIDENCE_DETAILS,
+        F.FACILITY_TYPE, F.SEVERITY_LEVEL, F.AFFECTED_EQUIPMENT
+      FROM REPORT R
+      LEFT JOIN CRIME C ON R.REPORT_ID = C.REPORT_ID
+      LEFT JOIN FACILITY F ON R.REPORT_ID = F.REPORT_ID
+      ${whereClause}
+      ORDER BY R.SUBMITTED_AT DESC
+    `;
     
     const result = await exec(sql, binds);
-    res.json(result.rows);
+    const serializedRows = result.rows.map(row => {
+      const serialized = {};
+      for (const key in row) {
+        const value = row[key];
+        if (value instanceof Date) {
+          serialized[key] = value.toISOString();
+        } else if (value !== null && typeof value === 'object' && value.toString) {
+          serialized[key] = value.toString();
+        } else {
+          serialized[key] = value;
+        }
+      }
+      return serialized;
+    });
+    
+    res.json(serializedRows);
   } catch (err) {
     console.error('Get reports error:', err);
     res.status(500).json({ error: 'Failed to get reports', details: err.message });

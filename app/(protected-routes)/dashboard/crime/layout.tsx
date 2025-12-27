@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -17,16 +17,52 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import StatusBadge from "@/components/ui/statusBadge";
-import { MOCK_REPORTS } from "@/lib/api/mock-data";
+import { apiClient } from "@/lib/api/client";
 import { Crime } from "@/lib/types";
+import { useAuth } from "@/lib/context/auth-provider";
 
 
 export default function CrimeLayout({ children }: { children: React.ReactNode }) {
+  const { claims } = useAuth();
+  const [myReports, setMyReports] = useState<Crime[]>([]);
+  const [loading, setLoading] = useState(true);
+  
 
-  // Get user's crime reports
-  const myReports = MOCK_REPORTS.filter(
-    (r) => r.type === "CRIME" && r.submittedBy === "user-1"
-  ) as Crime[];
+  useEffect(() => {
+    fetchMyReports();
+  }, [claims]);
+
+  const fetchMyReports = async () => {
+    try {
+      console.log('Fetching my crime reports for layout...');
+      const data = await apiClient.get<any[]>('/api/crimes/my-reports');
+      
+      // Transform the data
+      const transformedReports = data.map((item: any) => ({
+        reportId: item.REPORT_ID,
+        title: item.TITLE,
+        description: item.DESCRIPTION || '',
+        location: item.LOCATION,
+        status: item.STATUS,
+        type: 'CRIME',
+        submittedBy: item.SUBMITTED_BY,
+        submittedAt: item.SUBMITTED_AT,
+        updatedAt: item.UPDATED_AT,
+        crimeCategory: item.CRIME_CATEGORY,
+        suspectDescription: item.SUSPECT_DESCRIPTION,
+        victimInvolved: item.VICTIM_INVOLVED,
+        injuryLevel: item.INJURY_LEVEL,
+        weaponInvolved: item.WEAPON_INVOLVED,
+        evidenceDetails: item.EVIDENCE_DETAILS,
+      })) as Crime[];
+      
+      setMyReports(transformedReports);
+    } catch (error) {
+      console.error('Error fetching my reports:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const stats = {
     total: myReports.length,
