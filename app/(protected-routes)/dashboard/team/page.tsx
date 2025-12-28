@@ -13,6 +13,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
+import { generateMetadata } from '@/lib/seo';
 
 interface Team {
   supervisor: Staff;
@@ -62,6 +63,12 @@ export default function AllTeamsPage() {
       </div>
     );
   }
+
+  generateMetadata({
+    title: "Teams - Cybercrime Reporting Platform",
+    description: "View all teams and their members organized by supervisor on the Cybercrime Reporting Platform.",
+    canonical: "/dashboard/team",
+  });
 
   return (
     <div className="container mx-auto py-6 space-y-6">

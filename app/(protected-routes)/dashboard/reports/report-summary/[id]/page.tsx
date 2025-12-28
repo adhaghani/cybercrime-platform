@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 import { format } from "date-fns";
 import { GeneratedReport } from "@/lib/types";
+import { generateMetadata } from "@/lib/seo";
 
 export default function ReportSummaryDetailPage() {
   const params = useParams();
@@ -117,6 +118,12 @@ export default function ReportSummaryDetailPage() {
       </div>
     );
   }
+
+  generateMetadata({
+    title: report ? `Report Summary - ${report.TITLE} - Cybercrime Reporting Platform` : "Report Not Found - Cybercrime Reporting Platform",
+    description: report ? `Detailed summary of the report titled "${report.TITLE}" on the Cybercrime Reporting Platform.` : "The requested report could not be found on the Cybercrime Reporting Platform.",
+    canonical: `/dashboard/reports/report-summary/${reportId}`,
+  });
 
   if (!report) {
     return (

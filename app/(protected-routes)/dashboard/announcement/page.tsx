@@ -38,6 +38,7 @@ import { PaginationControls } from "@/components/ui/pagination-controls";
 import AnnouncementCard from "@/components/announcement/announcementCard";
 import DeleteAnnouncementDialog from "@/components/announcement/deleteAnnouncementDialog";
 import { toast } from "sonner";
+import { generateMetadata } from "@/lib/seo";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -103,6 +104,12 @@ export default function AnnouncementsPage() {
   const startIndex = (Page - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const paginatedAnnouncements = filteredAnnouncements.slice(startIndex, endIndex);
+  
+  generateMetadata({
+    title: "Announcements - Cybercrime Reporting Platform",
+    description: "Stay updated with the latest campus announcements and notifications.",
+    canonical: "/dashboard/announcement",
+  });
 
   if (loading) {
     return (

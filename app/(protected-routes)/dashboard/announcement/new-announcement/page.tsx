@@ -29,6 +29,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/lib/context/auth-provider";
+import { generateMetadata } from "@/lib/seo";
 
 const announcementSchema = z.object({
   title: z.string().min(1, "Title is required").max(200, "Title must be less than 200 characters"),
@@ -69,7 +70,11 @@ export default function NewAnnouncementPage() {
     },
   });
 
-
+  generateMetadata({
+    title: "Create Announcement - Cybercrime Reporting Platform",
+    description: "Create a new announcement to notify users about important updates.",
+    canonical: "/dashboard/announcement/new",
+  });
 
   const onSubmit = async (data: z.infer<typeof announcementSchema>, status: 'DRAFT' | 'PUBLISHED') => {
     try {

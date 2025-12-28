@@ -15,6 +15,7 @@ import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { UITM_CAMPUS } from "@/lib/constant";
+import { generateMetadata } from "@/lib/seo";
 // UiTM States for campus selection
 const UITM_STATES = [
   "Selangor", "Kuala Lumpur", "Johor", "Kedah", "Kelantan", "Melaka", 
@@ -60,6 +61,12 @@ export default function AddEmergencyServicePage() {
   const router = useRouter();
   const [serviceType, setServiceType] = useState<"uitm" | "national">("uitm");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  generateMetadata({
+    title: "Add Emergency Service - Cybercrime Reporting Platform",
+    description: "Add a new emergency service contact to the Cybercrime Reporting Platform.",
+    canonical: "/dashboard/emergency-services/add",
+  });
 
   const uitmForm = useForm<UitmPoliceFormData>({
     resolver: zodResolver(uitmPoliceSchema),

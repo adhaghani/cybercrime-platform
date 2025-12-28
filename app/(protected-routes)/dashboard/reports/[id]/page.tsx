@@ -32,7 +32,6 @@ import {
   User,
   UserPlus,
   Clock,
-  Image as ImageIcon,
   ShieldAlert,
   Wrench,
   Loader2
@@ -50,7 +49,8 @@ import {
   Alert,
   AlertDescription,
   AlertTitle,
-} from "@/components/ui/alert"
+} from "@/components/ui/alert";
+import { generateMetadata } from "@/lib/seo";
 
 export default function ReportDetailsPage({ params }: { params: { id: string } }) {
   const searchParams = useSearchParams();
@@ -159,6 +159,12 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
       console.error("Failed to update assignment:", error);
     }
   };
+
+  generateMetadata({
+    title: `Report Details - ${report.TITLE} - Cybercrime Reporting Platform`,
+    description: `Detailed view of the report titled "${report.TITLE}" on the Cybercrime Reporting Platform.`,
+    canonical: `/dashboard/reports/${report.REPORT_ID}`,
+  });
 
   return (
     <div className="space-y-6 mx-auto w-full max-w-7xl">

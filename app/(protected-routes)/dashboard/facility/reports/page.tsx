@@ -20,6 +20,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import ReportCard from "@/components/report/reportCard";
+import { generateMetadata } from "@/lib/seo";
 
 export default function AllReportsPage() {
   const ITEMS_PER_PAGE = 6;
@@ -86,6 +87,12 @@ export default function AllReportsPage() {
       </div>
     );
   }
+
+  generateMetadata({
+    title: "All Facility Reports - Cybercrime Reporting Platform",
+    description: "Browse all facility reports submitted across campus on the Cybercrime Reporting Platform.",
+    canonical: "/dashboard/facility/reports",
+  });
 
   return (
     <div className="space-y-6">

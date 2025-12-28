@@ -11,6 +11,7 @@ import { ReportStatus, Facility } from "@/lib/types";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { useAuth } from "@/lib/context/auth-provider";
 import ReportCard from "@/components/report/reportCard";
+import { generateMetadata } from "@/lib/seo";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -72,6 +73,12 @@ export default function MyReportsPage() {
       </div>
     );
   }
+
+  generateMetadata({
+    title: "My Facility Reports - Cybercrime Reporting Platform",
+    description: "Track the status of your submitted facility reports on the Cybercrime Reporting Platform.",
+    canonical: "/dashboard/facility/my-reports",
+  });
 
   return (
     <div className="space-y-6">

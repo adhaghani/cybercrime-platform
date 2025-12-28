@@ -26,7 +26,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { GeneratedReport, GeneratedReportCategory, GeneratedReportDataType } from "@/lib/types";
 import { PaginationControls } from "@/components/ui/pagination-controls";
-
+import { generateMetadata } from "@/lib/seo";
 const ITEMS_PER_PAGE = 10;
 
 export default function AllGeneratedReportsPage() {
@@ -102,6 +102,12 @@ export default function AllGeneratedReportsPage() {
       </div>
     );
   }
+
+  generateMetadata({
+    title: "AI-Generated Reports - Cybercrime Reporting Platform",
+    description: "View and download all AI-generated analytical reports on the Cybercrime Reporting Platform.",
+    canonical: "/dashboard/reports/report-summary",
+  });
 
   return (
     <div className="space-y-6">

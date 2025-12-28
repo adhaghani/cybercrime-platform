@@ -3,12 +3,17 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ShieldAlert, ClipboardList, PlusCircle } from "lucide-react";
-
+import { generateMetadata } from "@/lib/seo";
 import Link from "next/link";
 
 
-
 export default function CrimePage() {
+
+  generateMetadata({
+    title: "Crime Reports - Cybercrime Reporting Platform",
+    description: "Report and track crime incidents on campus using the Cybercrime Reporting Platform.",
+    canonical: "/dashboard/crime",
+  });
 
   return (
     <div className="space-y-6">

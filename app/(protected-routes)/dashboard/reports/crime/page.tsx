@@ -36,6 +36,7 @@ import CrimeCategoryBadge from "@/components/ui/crimeCategoryBadge";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { useHasAnyRole } from "@/hooks/use-user-role";
 import { Loader2 } from "lucide-react";
+import { generateMetadata } from "@/lib/seo";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -104,6 +105,12 @@ export default function CrimeReportsPage() {
       </div>
     );
   }
+
+  generateMetadata({
+    title: "Crime Reports - Cybercrime Reporting Platform",
+    description: "View and manage all crime-related reports on the Cybercrime Reporting Platform.",
+    canonical: "/dashboard/reports/crime",
+  });
 
   return (
     <div className="space-y-6">

@@ -31,6 +31,7 @@ import { useRouter } from "next/navigation";
 import { notFound } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Announcement } from "@/lib/types";
+import { generateMetadata } from "@/lib/seo";
 
 export default function AnnouncementDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -80,6 +81,12 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
   if (!announcement) {
     notFound();
   }
+
+  generateMetadata({
+    title: announcement ? `${announcement.TITLE} - Cybercrime Reporting Platform` : "Announcement Not Found - Cybercrime Reporting Platform",
+    description: announcement ? announcement.MESSAGE.slice(0, 160) : "The requested announcement could not be found.",
+    canonical: `/dashboard/announcement/${params.id}`,
+  });
 
   return (
     <div className="space-y-6">

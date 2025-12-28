@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { User, Monitor } from "lucide-react";
-
+import { generateMetadata } from "@/lib/seo";
 interface SettingsLayoutProps {
   children: React.ReactNode;
 }
@@ -26,6 +26,12 @@ const sidebarNavItems = [
 
 export default function SettingsLayout({ children }: SettingsLayoutProps) {
   const pathname = usePathname();
+
+
+  generateMetadata({    title: "Settings - Cybercrime Reporting Platform",
+    description: "Manage your account settings and set e-mail preferences on the Cybercrime Reporting Platform.",
+    canonical: "/dashboard/settings",
+  });
 
   return (
     <div className="space-y-6 pb-16 block max-w-7xl mx-auto w-full">

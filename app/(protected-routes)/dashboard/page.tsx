@@ -8,6 +8,7 @@ import { StaffDashboard } from "@/components/dashboard/staff-dashboard";
 import { AnnouncementsSection } from "@/components/dashboard/announcements-section";
 import { useAuth } from "@/lib/context/auth-provider";
 import { Loader2 } from "lucide-react";
+import { generateMetadata } from "@/lib/seo";
 
 export default function DashboardPage() {
   const hasAnyRole = useHasAnyRole();
@@ -98,6 +99,14 @@ export default function DashboardPage() {
     allResolved: reports.filter(r => r.STATUS === "RESOLVED").length,
     totalReports: reports.length,
   };
+
+  generateMetadata({
+    title: "Dashboard - Cybercrime Reporting Platform",
+    description: isStudent
+      ? "Welcome to your student dashboard on the Cybercrime Reporting Platform."
+      : "Welcome to your staff dashboard on the Cybercrime Reporting Platform.",
+    canonical: "/dashboard",
+  });
 
   return (
     <div className="space-y-6">

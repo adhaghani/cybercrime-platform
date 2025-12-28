@@ -16,7 +16,7 @@ import * as z from "zod";
 import { useAuth } from "@/lib/context/auth-provider";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ReportEvidenceUpload } from "@/components/upload/report-evidence-upload";
-
+import { generateMetadata } from "@/lib/seo";
 const crimeReportSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters").max(200, "Title is too long"),
   description: z.string().min(20, "Description must be at least 20 characters").max(2000, "Description is too long"),
@@ -51,6 +51,12 @@ export default function SubmitCrimeReportPage() {
       injuryLevel: "",
       evidenceDetails: "",
     },
+  });
+
+  generateMetadata({
+    title: "Submit Crime Report - Cybercrime Reporting Platform",
+    description: "Report a crime incident that occurred on campus using the Cybercrime Reporting Platform.",
+    canonical: "/dashboard/crime/submit-report",
   });
 
   const onSubmit = async (data: CrimeReportFormValues) => {

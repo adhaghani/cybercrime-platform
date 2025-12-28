@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
-
+import { generateMetadata } from "@/lib/seo";
 import {
   Carousel,
   CarouselContent,
@@ -83,6 +83,12 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
   const isCrimeReport = report.TYPE === "CRIME";
   const crimeData = isCrimeReport ? (report as Crime) : null;
   const facilityData = !isCrimeReport ? (report as Facility) : null;
+
+  generateMetadata({
+    title: `Report Details - ${report.TITLE} - Cybercrime Reporting Platform`,
+    description: `Detailed information about the report titled "${report.TITLE}" submitted on the Cybercrime Reporting Platform.`,
+    canonical: `/dashboard/crime/reports/${report.REPORT_ID}`,
+  });
 
   return (
     <div className="space-y-6 mx-auto w-full max-w-7xl">

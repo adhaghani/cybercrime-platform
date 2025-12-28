@@ -14,6 +14,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { EmergencyInfo } from "@/lib/types";
+import { generateMetadata } from "@/lib/seo";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 const emergencyContactSchema = z.object({
   name: z.string().min(5, "Name must be at least 5 characters").max(150, "Name is too long"),
@@ -33,6 +34,8 @@ const MALAYSIAN_STATES = [
 ];
 
 const EMERGENCY_TYPES = ["Police", "Fire", "Medical", "Civil Defence"];
+
+
 
 export default function UpdateEmergencyContactPage() {
   const router = useRouter();
@@ -108,6 +111,12 @@ export default function UpdateEmergencyContactPage() {
       </div>
     );
   }
+
+  generateMetadata({
+    title: `Update Emergency Contact - ${contact.NAME} - Cybercrime Reporting Platform`,
+    description: `Modify the emergency contact information for ${contact.NAME} on the Cybercrime Reporting Platform.`,
+    canonical: `/dashboard/emergency-services/emergency-contacts/${params.id}/update`,
+  });
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto w-full">

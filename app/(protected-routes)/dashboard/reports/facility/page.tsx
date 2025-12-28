@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { generateMetadata } from "@/lib/seo";
 import {
   Table,
   TableBody,
@@ -109,6 +110,12 @@ export default function FacilityReportsPage() {
       </div>
     );
   }
+
+  generateMetadata({
+    title: "Facility Reports - Cybercrime Reporting Platform",
+    description: "View and manage all facility maintenance reports on the Cybercrime Reporting Platform.",
+    canonical: "/dashboard/reports/facility",
+  });
 
   return (
     <div className="space-y-6">

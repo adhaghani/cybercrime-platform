@@ -4,8 +4,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Wrench, ClipboardList, PlusCircle } from "lucide-react";
 import Link from "next/link";
+import { generateMetadata } from "@/lib/seo";
 
 export default function FacilityPage() {
+
+  generateMetadata({
+    title: "Facility Reports - Cybercrime Reporting Platform",
+    description: "Report and track facility issues on campus using the Cybercrime Reporting Platform.",
+    canonical: "/dashboard/facility",
+  });
   return (
     <div className="space-y-6">
       <div>

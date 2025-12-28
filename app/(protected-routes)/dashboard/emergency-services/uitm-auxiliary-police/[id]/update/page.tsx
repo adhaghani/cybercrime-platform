@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { generateMetadata } from "@/lib/seo";
 import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,} from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { UiTMAuxiliaryPolice } from "@/lib/types";
@@ -95,6 +96,12 @@ export default function UpdateUitmPolicePage() {
       setIsLoading(false);
     }
   };
+
+  generateMetadata({
+    title: "Update UiTM Auxiliary Police - Cybercrime Reporting Platform",
+    description: "Modify the police station contact information on the Cybercrime Reporting Platform.",
+    canonical: `/dashboard/emergency-services/uitm-auxiliary-police/${params.id}/update`,
+  });
 
   if (!policeStation) {
     return (

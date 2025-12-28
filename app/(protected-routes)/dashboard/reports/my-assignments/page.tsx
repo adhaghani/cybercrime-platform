@@ -1,6 +1,6 @@
 
 "use client";
-
+import { generateMetadata } from "@/lib/seo";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -107,6 +107,12 @@ export default function MyAssignmentsPage() {
       </div>
     );
   }
+
+  generateMetadata({
+    title: "My Assignments - Cybercrime Reporting Platform",
+    description: "View and manage reports assigned to you on the Cybercrime Reporting Platform.",
+    canonical: "/dashboard/reports/my-assignments",
+  });
 
 
   return (

@@ -1,5 +1,6 @@
 import { LoginForm } from "@/components/auth/login-form";
 import { Suspense } from "react";
+import { generateMetadata } from "@/lib/seo";
 
 function LoginFormSkeleton() {
   return (
@@ -16,6 +17,12 @@ function LoginFormSkeleton() {
     </div>
   );
 }
+
+export const metadata = generateMetadata({
+  title: "Login - Cybercrime Reporting Platform",
+  description: "Login to access your Cybercrime Reporting Platform account.",
+    canonical: "/auth/login",
+});
 
 export default function Page() {
   return (

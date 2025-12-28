@@ -18,6 +18,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
+import { generateMetadata } from "@/lib/seo";
 
 const ITEMS_PER_PAGE = 9;
 
@@ -92,6 +93,12 @@ export default function EmergencyContactsPage() {
       default: return <Phone className="h-5 w-5" />;
     }
   };
+
+  generateMetadata({
+    title: "Emergency Contacts - Cybercrime Reporting Platform",
+    description: "Directory of Police, Fire, Hospital, and Civil Defence services across Malaysia.",
+    canonical: "/dashboard/emergency-services/emergency-contacts",
+  });
 
   return (
     <div className="space-y-4">

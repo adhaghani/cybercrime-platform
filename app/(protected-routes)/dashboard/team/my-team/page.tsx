@@ -8,6 +8,7 @@ import { Loader2, Users, Mail, Phone } from 'lucide-react';
 import { Staff } from '@/lib/types';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { generateMetadata } from '@/lib/seo';
 
 interface MyTeamResponse {
   currentUser: Staff;
@@ -72,6 +73,12 @@ export default function MyTeamPage() {
       </div>
     );
   }
+
+  generateMetadata({
+    title: "My Team - Cybercrime Reporting Platform",
+    description: "View your team members and supervisor on the Cybercrime Reporting Platform.",
+    canonical: "/dashboard/team/my-team",
+  });
 
   return (
     <div className="container mx-auto py-6 space-y-6">

@@ -22,7 +22,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import ReportCard from "@/components/report/reportCard";
-
+import { generateMetadata } from "@/lib/seo";
 
 export default function AllCrimeReportsPage() {
   const ITEMS_PER_PAGE = 6;
@@ -34,6 +34,12 @@ export default function AllCrimeReportsPage() {
   const [categoryFilter, setCategoryFilter] = useState<CrimeCategory | "ALL">("ALL");
   const [viewMode, setViewMode] = useState<"card" | "table">("card");
   const [page, setPage] = useState(1);
+
+  generateMetadata({
+    title: "All Crime Reports - Cybercrime Reporting Platform",
+    description: "Browse all crime reports submitted across campus on the Cybercrime Reporting Platform.",
+    canonical: "/dashboard/crime/reports",
+  });
 
   useEffect(() => {
     const fetchCrimeReports = async () => {

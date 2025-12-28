@@ -11,6 +11,7 @@ import { Crime, ReportStatus } from "@/lib/types";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { useAuth } from "@/lib/context/auth-provider";
 import ReportCard from "@/components/report/reportCard";
+import { generateMetadata } from "@/lib/seo";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -36,7 +37,13 @@ export default function MyCrimeReportsPage() {
       }
     };
     if (claims?.ACCOUNT_ID) fetchMyReports();
-  }, []);
+  },[]);
+
+  generateMetadata({
+    title: "My Crime Reports - Cybercrime Reporting Platform",
+    description: "Track the status of your submitted crime reports on the Cybercrime Reporting Platform.",
+    canonical: "/dashboard/crime/reports",
+  });
 
   const filteredReports = reports.filter((report) => {
     const matchesSearch =

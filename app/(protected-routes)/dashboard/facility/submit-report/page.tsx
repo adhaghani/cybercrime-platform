@@ -16,7 +16,7 @@ import * as z from "zod";
 import { useAuth } from "@/lib/context/auth-provider";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ReportEvidenceUpload } from "@/components/upload/report-evidence-upload";
-
+import { generateMetadata } from "@/lib/seo";
 const facilityReportSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters").max(200, "Title is too long"),
   description: z.string().min(20, "Description must be at least 20 characters").max(2000, "Description is too long"),
@@ -79,6 +79,12 @@ export default function SubmitReportPage() {
       setIsSubmitting(false);
     }
   };
+
+  generateMetadata({
+    title: "Submit Facility Report - Cybercrime Reporting Platform",
+    description: "Submit a new facility report on the Cybercrime Reporting Platform.",
+    canonical: "/dashboard/facility/submit-report",
+  });
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto w-full">

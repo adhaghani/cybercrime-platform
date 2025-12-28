@@ -18,7 +18,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
-
+import { generateMetadata } from "@/lib/seo";
 const ITEMS_PER_PAGE = 9;
 
 export default function UitmAuxiliaryPolicePage() {
@@ -74,6 +74,12 @@ export default function UitmAuxiliaryPolicePage() {
       </div>
     );
   }
+
+  generateMetadata({
+    title: "UiTM Auxiliary Police - Cybercrime Reporting Platform",
+    description: "Directory of UiTM Auxiliary Police (Polis Bantuan) units across all campuses in Malaysia.",
+    canonical: "/dashboard/emergency-services/uitm-auxiliary-police",
+  });
 
   return (
     <div className="space-y-4">

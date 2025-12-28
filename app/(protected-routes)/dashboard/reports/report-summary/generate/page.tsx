@@ -19,6 +19,7 @@ import { GeneratedReportCategory, GeneratedReportDataType, GeneratedReport } fro
 import { aiService } from "@/lib/api/ai-service";
 import { format } from "date-fns";
 import { useAuth } from "@/lib/context/auth-provider";
+import { generateMetadata } from "@/lib/seo";
 export default function GenerateReportPage() {
   // Form state
   const [title, setTitle] = useState("");
@@ -60,7 +61,7 @@ export default function GenerateReportPage() {
       const reportData = {
         totalReports: filteredReports.length,
         byStatus: {
-          pending: filteredReports.filter(r => r.STATUS === "PENDING").length,
+          pending: filteredReports.filter((r: { STATUS: string; }) => r.STATUS === "PENDING").length,
           inProgress: filteredReports.filter(r => r.STATUS === "IN_PROGRESS").length,
           resolved: filteredReports.filter(r => r.STATUS === "RESOLVED").length,
           rejected: filteredReports.filter(r => r.STATUS === "REJECTED").length,
@@ -179,6 +180,12 @@ export default function GenerateReportPage() {
     link.click();
     URL.revokeObjectURL(url);
   };
+
+  generateMetadata({
+    title: "Generate AI Report - Cybercrime Reporting Platform",
+    description: "Create AI-powered analytical reports for campus safety data on the Cybercrime Reporting Platform.",
+    canonical: "/dashboard/reports/report-summary/generate",
+  });
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto w-full">
