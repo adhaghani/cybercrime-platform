@@ -15,6 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { EmergencyInfo } from "@/lib/types";
 import { generateMetadata } from "@/lib/seo";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 const emergencyContactSchema = z.object({
   name: z.string().min(5, "Name must be at least 5 characters").max(150, "Name is too long"),
@@ -106,9 +107,11 @@ export default function UpdateEmergencyContactPage() {
 
   if (!contact) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
+          <div className="space-y-4">
+          <Skeleton className="h-12 w-1/3 rounded-md" />
+          <Skeleton className="h-8 w-1/2 rounded-md" />
+          <Skeleton className="h-[500px] w-full rounded-md" />
+        </div>
     );
   }
 

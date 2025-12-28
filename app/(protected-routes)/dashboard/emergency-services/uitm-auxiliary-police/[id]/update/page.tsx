@@ -15,6 +15,7 @@ import { generateMetadata } from "@/lib/seo";
 import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,} from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { UiTMAuxiliaryPolice } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
 const uitmPoliceSchema = z.object({
   campus: z.string().min(3, "Campus name must be at least 3 characters").max(100, "Campus name is too long"),
   state: z.string().min(2, "State is required").max(50, "State name is too long"),
@@ -105,12 +106,15 @@ export default function UpdateUitmPolicePage() {
 
   if (!policeStation) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
+          <div className="space-y-4">
+          <Skeleton className="h-12 w-1/3 rounded-md" />
+          <Skeleton className="h-8 w-1/2 rounded-md" />
+          <Skeleton className="h-[500px] w-full rounded-md" />
+        </div>
     );
   }
 
+  
   return (
     <div className="space-y-6 max-w-6xl mx-auto w-full">
       <div className="flex items-center gap-4">

@@ -29,7 +29,6 @@ import {
   Calendar,
   MapPin,
   CheckCircle2,
-  Loader2
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -38,6 +37,7 @@ import StatusBadge from "@/components/ui/statusBadge";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { Report } from "@/lib/types";
 import { useAuth } from "@/lib/context/auth-provider";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -102,9 +102,20 @@ export default function MyAssignmentsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+      <>
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-1/3 rounded-md" />
+          <Skeleton className="h-8 w-1/2 rounded-md" />
+          <div className="grid gap-4 md:grid-cols-4">
+            <Skeleton className="h-32 w-full rounded-md" />
+            <Skeleton className="h-32 w-full rounded-md" />
+            <Skeleton className="h-32 w-full rounded-md" />
+            <Skeleton className="h-32 w-full rounded-md" />
+          </div>
+          <Skeleton className="h-32 w-full rounded-md" />
+          <Skeleton className="h-[400px] w-full rounded-md" />
+        </div>
+      </>
     );
   }
 

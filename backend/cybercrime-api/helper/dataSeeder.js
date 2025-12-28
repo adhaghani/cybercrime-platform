@@ -10,14 +10,14 @@ oracledb.fetchAsString = [oracledb.CLOB];
 
 // Default volumes; override with CLI args like --students=15 --staff=8 --reports=25
 const defaults = {
-	students: 50,
-	staff: 10,
-	reports: 50,
-	reportAssignments: 25,
+	students: 150,
+	staff: 30,
+	reports: 60,
+	reportAssignments: 50,
 	resolutions: 10,
-	announcements: 6,
-	emergencies: 24,
-	generatedReports: 0
+	announcements: 12,
+	emergencies: 32,
+	generatedReports: 10
 };
 
 const roles = ['STAFF', 'SUPERVISOR', 'ADMIN'];
@@ -37,6 +37,8 @@ const reportDataTypes = ['JSON', 'SUMMARY', 'DETAILED'];
 const resolutionTypes = ['RESOLVED', 'ESCALATED', 'DISMISSED', 'TRANSFERRED'];
 
 const passwordHash = bcrypt.hashSync('Password123!', 10);
+const runTag = Date.now().toString(36).slice(-6); // unique suffix per run to avoid email collisions
+const runNonce = Math.floor(Date.now() % 1e6); // numeric nonce for unique numeric IDs per run
 
 function parseArgs() {  
 	const args = process.argv.slice(2);
@@ -65,7 +67,7 @@ function randomPhone() {
 
 function randomEmail(name, index) {
 	const slug = name.toLowerCase().replace(/[^a-z]/g, '');
-	return `${slug}.${index}@example.edu.my`;
+	return `${slug}.${runTag}.${index}@example.edu.my`;
 }
 
 function randomSentence() {
@@ -125,7 +127,7 @@ async function seedStudents(connection, count) {
 		const program = pick(programs);
 		const semester = Math.floor(Math.random() * 6) + 1;
 		const year = Math.min(semester, 4);
-		const studentId = 200000 + i;
+		const studentId = Number(`2${runNonce}${i.toString().padStart(3, '0')}`);
 
 		await connection.execute(
 			`UPDATE STUDENT
@@ -156,6 +158,8 @@ async function seedStaff(connection, count) {
 		});
 
 		const staffId = 500000 + i;
+		// Append runNonce to avoid uniqueness collisions across runs
+		const uniqueStaffId = Number(`5${runNonce}${i.toString().padStart(3, '0')}`);
 		const role = pick(roles);
 		const department = pick(departments);
 		const position = pick(positions);
@@ -169,13 +173,42 @@ async function seedStaff(connection, count) {
 						 POSITION = :position,
 						 SUPERVISOR_ID = :supervisor
 			 WHERE ACCOUNT_ID = :accountId`,
-			{ staffId, role, department, position, supervisor, accountId },
+			{ staffId: uniqueStaffId, role, department, position, supervisor, accountId },
 			{ autoCommit: false }
 		);
 
-		staff.push({ accountId, staffId, role });
+		staff.push({ accountId, staffId: uniqueStaffId, role });
 	}
 	return staff;
+}
+
+// Ensure every STAFF member has a SUPERVISOR assigned to someone with role SUPERVISOR
+async function assignSupervisors(connection, staff) {
+	let supervisors = staff.filter((member) => member.role === 'SUPERVISOR');
+
+	// If none exist, promote the first staff to supervisor for referential integrity
+	if (!supervisors.length && staff.length) {
+		const promoted = staff[0];
+		promoted.role = 'SUPERVISOR';
+		await connection.execute(
+			"UPDATE STAFF SET ROLE = 'SUPERVISOR' WHERE ACCOUNT_ID = :accountId",
+			{ accountId: promoted.accountId },
+			{ autoCommit: false }
+		);
+		supervisors = [promoted];
+	}
+
+	if (!supervisors.length) return; // No staff to assign
+
+	for (const member of staff) {
+		if (member.role !== 'STAFF') continue;
+		const supervisor = pick(supervisors);
+		await connection.execute(
+			`UPDATE STAFF SET SUPERVISOR_ID = :supervisorId WHERE ACCOUNT_ID = :accountId`,
+			{ supervisorId: supervisor.accountId, accountId: member.accountId },
+			{ autoCommit: false }
+		);
+	}
 }
 
 async function seedReports(connection, count, accounts, staff) {
@@ -445,6 +478,7 @@ async function seedAll() {
 	try {
 		const students = await seedStudents(connection, config.students);
 		const staff = await seedStaff(connection, config.staff);
+		await assignSupervisors(connection, staff);
 		const accounts = [...students, ...staff];
 
 		const reports = await seedReports(connection, config.reports, accounts, staff);

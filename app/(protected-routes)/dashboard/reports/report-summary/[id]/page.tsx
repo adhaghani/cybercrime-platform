@@ -19,6 +19,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { GeneratedReport } from "@/lib/types";
 import { generateMetadata } from "@/lib/seo";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ReportSummaryDetailPage() {
   const params = useParams();
@@ -108,14 +109,25 @@ export default function ReportSummaryDetailPage() {
     URL.revokeObjectURL(url);
   };
 
-  if (loading) {
+   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">Loading report...</p>
+      <>
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-1/3 rounded-md" />
+          <Skeleton className="h-8 w-1/2 rounded-md" />
+          <div className="grid gap-4 lg:grid-cols-3">
+            <div className="lg:col-span-2 space-y-4">
+              <Skeleton className="h-40 w-full rounded-md" />
+              <Skeleton className="h-[500px] w-full rounded-md" />
+            </div>
+            <div className="space-y-4">
+              <Skeleton className="h-40 w-full rounded-md" />
+              <Skeleton className="h-40 w-full rounded-md" />
+              <Skeleton className="h-40 w-full rounded-md" />
+            </div>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 

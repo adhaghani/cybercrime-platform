@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Users } from 'lucide-react';
+import { Users } from 'lucide-react';
 import { Staff } from '@/lib/types';
+import { Skeleton } from '@/components/ui/loading';
 import {
   Empty,
   EmptyDescription,
@@ -58,9 +59,14 @@ export default function AllTeamsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+      <>
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-1/3 rounded-md" />
+          <Skeleton className="h-8 w-1/2 rounded-md" />
+          <Skeleton className="h-32 w-full rounded-md" />
+          <Skeleton className="h-[400px] w-full rounded-md" />
+        </div>
+      </>
     );
   }
 

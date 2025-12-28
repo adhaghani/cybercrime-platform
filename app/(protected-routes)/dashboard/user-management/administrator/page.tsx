@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import Link from "next/link";
 import { Staff } from "@/lib/types";
+import {Skeleton} from "@/components/ui/skeleton";
 import { ViewUserDetailDialog } from "@/components/users/viewUserDetailDialog";
 import { DemoteAdminDialog } from "@/components/users/demoteAdminDialog";
 import { DeleteUserDialog } from "@/components/users/deleteUserDialog";
@@ -130,11 +131,16 @@ export default function AdministratorPage() {
   };
 
 
-  if(loading){
+   if (loading) {
     return (
-      <div className="text-center py-20">
-        <p className="text-muted-foreground">Loading administrators...</p>
-      </div>
+      <>
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-1/3 rounded-md" />
+          <Skeleton className="h-8 w-1/2 rounded-md" />
+          <Skeleton className="h-12 w-full rounded-md" />
+          <Skeleton className="h-[500px] w-full rounded-md" />
+        </div>
+      </>
     );
   }
 

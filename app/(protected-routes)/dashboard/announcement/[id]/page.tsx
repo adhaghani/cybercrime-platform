@@ -19,7 +19,6 @@ import {
   ArrowLeft,
   Edit,
   Trash2,
-  Loader2,
   Calendar,
   User,
   Clock,
@@ -32,6 +31,7 @@ import { notFound } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Announcement } from "@/lib/types";
 import { generateMetadata } from "@/lib/seo";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AnnouncementDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -70,11 +70,16 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
     }
   };
 
-  if (loading) {
+   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+      <>
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-1/3 rounded-md" />
+          <Skeleton className="w-full aspect-video rounded-md" />
+          <Skeleton className="h-12 w-full rounded-md" />
+          <Skeleton className="h-24 w-full rounded-md" />
+        </div>
+      </>
     );
   }
 
@@ -132,7 +137,7 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
       </div>
       {
         announcement.PHOTO_PATH && (
-          <div>
+          <div className="aspect-video w-full ">
             <Image
             width={500}
             height={248}

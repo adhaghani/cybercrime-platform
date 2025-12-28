@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
 import {
   Dialog,
@@ -34,7 +35,6 @@ import {
   Clock,
   ShieldAlert,
   Wrench,
-  Loader2
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Crime, Facility, ReportWithAssignedStaffDetails } from "@/lib/types";
@@ -105,11 +105,27 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
   const isReportResolved = report?.STATUS === "RESOLVED";
   const isReportRejected = report?.STATUS === "REJECTED";
 
-  if (loading) {
+   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+      <>
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-1/3 rounded-md" />
+          <Skeleton className="h-8 w-1/2 rounded-md" />
+          <Skeleton className="h-24 w-full rounded-md" />
+          <div className="grid gap-4 lg:grid-cols-3">
+            <div className="lg:col-span-2 space-y-4">
+              <Skeleton className="h-40 w-full rounded-md" />
+              <Skeleton className="h-[300px] w-full rounded-md" />
+              <Skeleton className="h-40 w-full rounded-md" />
+            </div>
+            <div className="space-y-4">
+              <Skeleton className="h-40 w-full rounded-md" />
+              <Skeleton className="h-40 w-full rounded-md" />
+              <Skeleton className="h-40 w-full rounded-md" />
+            </div>
+          </div>
+        </div>
+      </>
     );
   }
 

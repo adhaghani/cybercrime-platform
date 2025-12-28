@@ -7,7 +7,7 @@ import { StudentDashboard } from "@/components/dashboard/student-dashboard";
 import { StaffDashboard } from "@/components/dashboard/staff-dashboard";
 import { AnnouncementsSection } from "@/components/dashboard/announcements-section";
 import { useAuth } from "@/lib/context/auth-provider";
-import { Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { generateMetadata } from "@/lib/seo";
 
 export default function DashboardPage() {
@@ -56,13 +56,10 @@ export default function DashboardPage() {
   if (UserAccounType === null || loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-          <h2 className="text-2xl font-semibold">Loading...</h2>
-          <p className="text-muted-foreground">
-            Please wait while we fetch your dashboard.
-          </p>
-        </div>
+        <Skeleton className="h-12 w-1/3 rounded-md" />
+        <Skeleton className="h-8 w-1/2 rounded-md" />
+        <Skeleton className="h-32 w-full rounded-md" />
+        <Skeleton className="h-[400px] w-full rounded-md" />
       </div>
     );
   }

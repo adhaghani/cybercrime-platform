@@ -50,7 +50,7 @@ export function DynamicBreadcrumb() {
   }
 
   return (
-    <Breadcrumb className="hidden sm:block">
+    <Breadcrumb className="hidden lg:block">
       <BreadcrumbList>
         {items.map((item, index) => {
           const isLast = index === items.length - 1

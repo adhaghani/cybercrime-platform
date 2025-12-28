@@ -1,8 +1,9 @@
 "use client";
-
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { Card, CardDescription, CardHeader,CardContent, CardTitle } from "@/components/ui/card";
 import { Users, GraduationCap, Briefcase, ShieldCheck, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Mock statistics - replace with actual API calls
 // const USER_STATS = {
@@ -12,7 +13,63 @@ import Link from "next/link";
 //   administrators: 22,
 // };
 
+interface AccountCount {
+  totalAccounts: number;
+  staffCount: number;
+  studentCount: number;
+}
+
 export default function UserManagementPage() {
+  const [accountCount, setAccountCount] = useState<AccountCount | null>(null);
+  const [loading, setLoading] = useState<boolean>(true)
+
+  const fetchAccountCount = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/accounts/count");
+      if (response.ok) {
+        const data = await response.json();
+        setAccountCount({
+          totalAccounts: data.totalAccounts,
+          staffCount: data.staffCount,
+          studentCount: data.studentCount,
+        });
+        setLoading(false);
+      } else {
+        console.error('Failed to fetch account count:', response.statusText);
+      }
+      
+    } catch(error){
+      console.error('Error fetching account:', error);
+    }
+  }
+
+  useEffect(() => {
+    fetchAccountCount();
+  }, []);
+
+     if (loading) {
+    return (
+      <>
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-1/3 rounded-md" />
+          <Skeleton className="h-8 w-1/2 rounded-md" />
+          <div className="grid md:grid-cols-3 gap-4">
+            <Skeleton className="h-24 w-full rounded-md"/>
+            <Skeleton className="h-24 w-full rounded-md"/>
+            <Skeleton className="h-24 w-full rounded-md"/>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            <Skeleton className="h-32 w-full rounded-md"/>
+            <Skeleton className="h-32 w-full rounded-md"/>
+            <Skeleton className="h-32 w-full rounded-md"/>
+            <Skeleton className="h-32 w-full rounded-md"/>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -23,14 +80,14 @@ export default function UserManagementPage() {
       </div>
 
       {/* Statistics Overview */}
-      {/* <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{USER_STATS.totalUsers}</div>
+            <div className="text-2xl font-bold">{accountCount?.totalAccounts}</div>
             <p className="text-xs text-muted-foreground">All registered users</p>
           </CardContent>
         </Card>
@@ -41,7 +98,7 @@ export default function UserManagementPage() {
             <GraduationCap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{USER_STATS.students}</div>
+            <div className="text-2xl font-bold">{accountCount?.studentCount}</div>
             <p className="text-xs text-muted-foreground">Active student accounts</p>
           </CardContent>
         </Card>
@@ -52,22 +109,11 @@ export default function UserManagementPage() {
             <Briefcase className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{USER_STATS.staff}</div>
+            <div className="text-2xl font-bold">{accountCount?.staffCount}</div>
             <p className="text-xs text-muted-foreground">Staff members</p>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Administrators</CardTitle>
-            <ShieldCheck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{USER_STATS.administrators}</div>
-            <p className="text-xs text-muted-foreground">System administrators</p>
-          </CardContent>
-        </Card>
-      </div> */}
+      </div>
 
       {/* Quick Access Cards */}
       <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">

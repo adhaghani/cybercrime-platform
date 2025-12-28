@@ -51,6 +51,27 @@ router.get('/', optionalAuth, async (req, res) => {
   }
 });
 
+// GET /api/accounts/count
+router.get('/count', async (req, res) => {
+  try {
+    const result = await exec(
+      `SELECT 
+        COUNT(*) AS TOTAL_ACCOUNTS,
+        SUM(CASE WHEN ACCOUNT_TYPE = 'STAFF' THEN 1 ELSE 0 END) AS STAFF_COUNT,
+        SUM(CASE WHEN ACCOUNT_TYPE = 'STUDENT' THEN 1 ELSE 0 END) AS STUDENT_COUNT
+       FROM ACCOUNT`
+    );
+    const totalAccounts = result.rows[0].TOTAL_ACCOUNTS;
+    const staffCount = result.rows[0].STAFF_COUNT;
+    const studentCount = result.rows[0].STUDENT_COUNT;
+    res.json({ totalAccounts, staffCount, studentCount });
+  } catch (err) {
+    console.error('Get accounts count error:', err);
+    res.status(500).json({ error: 'Failed to get accounts count', details: err.message });
+  }
+}
+);
+
 // POST /api/accounts
 // Create a new account
 router.post('/', async (req, res) => {

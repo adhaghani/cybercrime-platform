@@ -5,14 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Search, PlusCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, Search, PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { Crime, ReportStatus } from "@/lib/types";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { useAuth } from "@/lib/context/auth-provider";
 import ReportCard from "@/components/report/reportCard";
 import { generateMetadata } from "@/lib/seo";
-
+import { Skeleton } from "@/components/ui/skeleton";
 const ITEMS_PER_PAGE = 6;
 
 export default function MyCrimeReportsPage() {
@@ -72,11 +72,17 @@ export default function MyCrimeReportsPage() {
     resolved: reports.filter(r => r.STATUS === "RESOLVED").length,
   };
 
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+      <>
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-1/3 rounded-md" />
+          <Skeleton className="h-8 w-1/2 rounded-md" />
+          <Skeleton className="h-32 w-full rounded-md" />
+          <Skeleton className="h-[400px] w-full rounded-md" />
+        </div>
+      </>
     );
   }
 

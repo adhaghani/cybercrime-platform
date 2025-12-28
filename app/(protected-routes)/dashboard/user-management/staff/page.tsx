@@ -9,9 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {Skeleton} from "@/components/ui/skeleton";
 import { 
   ArrowLeft, Search, MoreVertical, Mail, Phone, 
-  Briefcase, Building2, UserX, Shield, Loader2, UserPlus,
+  Briefcase, Building2, UserX, Shield, UserPlus,
   ShieldCheck,
   UserCheck,
   Download
@@ -157,11 +158,16 @@ export default function StaffManagementPage() {
     }
   };
 
-  if (loading) {
+   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+      <>
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-1/3 rounded-md" />
+          <Skeleton className="h-8 w-1/2 rounded-md" />
+          <Skeleton className="h-12 w-full rounded-md" />
+          <Skeleton className="h-[500px] w-full rounded-md" />
+        </div>
+      </>
     );
   }
 

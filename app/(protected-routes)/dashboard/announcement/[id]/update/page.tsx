@@ -23,6 +23,7 @@ import { AnnouncementPhotoUpload } from "@/components/upload/announcement-photo-
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const announcementSchema = z.object({
   title: z.string().min(1, "Title is required").max(200, "Title must be less than 200 characters"),
@@ -104,11 +105,24 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
     fetchAnnouncement();
   }, [params.id, reset]);
 
-  if (loading) {
+   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+      <>
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-1/3 rounded-md" />
+          <Skeleton className="h-8 w-1/2 rounded-md" />
+          <div className="grid gap-4 lg:grid-cols-3">
+            <div className="lg:col-span-2 space-y-4">
+              <Skeleton className="h-40 w-full rounded-md" />
+              <Skeleton className="h-[500px] w-full rounded-md" />
+            </div>
+            <div className="space-y-4">
+              <Skeleton className="h-40 w-full rounded-md" />
+              <Skeleton className="h-40 w-full rounded-md" />
+            </div>
+          </div>
+        </div>
+      </>
     );
   }
 

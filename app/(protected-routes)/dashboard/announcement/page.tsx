@@ -28,7 +28,8 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
-import { Bell, Plus, Search, MoreVertical, Eye, Edit, Trash2, Loader2, List } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Bell, Plus, Search, MoreVertical, Eye, Edit, Trash2, List } from "lucide-react";
 import {Tabs, TabsList, TabsTrigger, TabsContent} from "@/components/ui/tabs";
 import Link from "next/link";
 import { Announcement } from "@/lib/types";
@@ -111,11 +112,16 @@ export default function AnnouncementsPage() {
     canonical: "/dashboard/announcement",
   });
 
-  if (loading) {
+   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+      <>
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-1/3 rounded-md" />
+          <Skeleton className="h-8 w-1/2 rounded-md" />
+          <Skeleton className="h-8 w-1/4 rounded-md" />
+          <Skeleton className="h-[500px] w-full rounded-md" />
+        </div>
+      </>
     );
   }
 
@@ -260,11 +266,6 @@ export default function AnnouncementsPage() {
           </Button>
         )}
       </div>
-
-
-          <h4>All Announcements</h4>
-          <p>Browse and manage campus announcements</p>
-
           <div className="flex items-center gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

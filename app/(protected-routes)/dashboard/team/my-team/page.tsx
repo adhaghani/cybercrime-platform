@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Users, Mail, Phone } from 'lucide-react';
+import {  Users, Mail, Phone } from 'lucide-react';
 import { Staff } from '@/lib/types';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { generateMetadata } from '@/lib/seo';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface MyTeamResponse {
   currentUser: Staff;
@@ -54,9 +55,21 @@ export default function MyTeamPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+      <>
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-1/3 rounded-md" />
+          <Skeleton className="h-8 w-1/2 rounded-md" />
+          <div className="grid gap-4 md:grid-cols-5">
+            <Skeleton className="h-32 w-full rounded-md" />
+            <Skeleton className="h-32 w-full rounded-md" />
+            <Skeleton className="h-32 w-full rounded-md" />
+            <Skeleton className="h-32 w-full rounded-md" />
+            <Skeleton className="h-32 w-full rounded-md" />
+          </div>
+          <Skeleton className="h-32 w-full rounded-md" />
+          <Skeleton className="h-[400px] w-full rounded-md" />
+        </div>
+      </>
     );
   }
 
