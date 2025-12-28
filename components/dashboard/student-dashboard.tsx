@@ -230,18 +230,6 @@ export function StudentDashboard({ stats, reports }: StudentDashboardProps) {
               </Link>
             </Button>
             <Button asChild variant="outline" className="w-full justify-start">
-              <Link href="/dashboard/announcement">
-                <Bell className="h-4 w-4 mr-2" />
-                View Announcements
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="w-full justify-start">
-              <Link href="/dashboard/crime/statistics">
-                <TrendingUp className="h-4 w-4 mr-2" />
-                View Statistics
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="w-full justify-start">
               <Link href="/dashboard/emergency-services">
                 <Phone className="h-4 w-4 mr-2" />
                 Emergency Contacts

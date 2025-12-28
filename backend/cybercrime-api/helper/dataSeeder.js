@@ -10,14 +10,14 @@ oracledb.fetchAsString = [oracledb.CLOB];
 
 // Default volumes; override with CLI args like --students=15 --staff=8 --reports=25
 const defaults = {
-	students: 150,
-	staff: 30,
-	reports: 60,
-	reportAssignments: 50,
-	resolutions: 10,
-	announcements: 12,
-	emergencies: 32,
-	generatedReports: 10
+	students: 3200,
+	staff: 128,
+	reports: 1000,
+	reportAssignments: 600,
+	resolutions: 700,
+	announcements: 64,
+	emergencies: 64,
+	generatedReports: 12
 };
 
 const roles = ['STAFF', 'SUPERVISOR', 'ADMIN'];
@@ -80,7 +80,7 @@ function randomSentence() {
 	return pick(sentences);
 }
 
-function randomDateWithin(daysBack = 30) {
+function randomDateWithin(daysBack = 365) {
 	const now = new Date();
 	const past = new Date(now.getTime() - Math.random() * daysBack * 24 * 60 * 60 * 1000);
 	return past;
@@ -93,9 +93,10 @@ function makeReportTitle(type) {
 }
 
 async function insertAccount(connection, payload) {
+	const createdAt = payload.createdAt || randomDateWithin(365);
 	const result = await connection.execute(
-		`INSERT INTO ACCOUNT (ACCOUNT_ID, NAME, EMAIL, PASSWORD_HASH, CONTACT_NUMBER, AVATAR_URL, ACCOUNT_TYPE)
-		 VALUES (account_seq.NEXTVAL, :name, :email, :passwordHash, :contact, :avatar, :accountType)
+		`INSERT INTO ACCOUNT (ACCOUNT_ID, NAME, EMAIL, PASSWORD_HASH, CONTACT_NUMBER, AVATAR_URL, ACCOUNT_TYPE, CREATED_AT, UPDATED_AT)
+		 VALUES (account_seq.NEXTVAL, :name, :email, :passwordHash, :contact, :avatar, :accountType, :createdAt, :updatedAt)
 		 RETURNING ACCOUNT_ID INTO :id`,
 		{
 			name: payload.name,
@@ -104,6 +105,8 @@ async function insertAccount(connection, payload) {
 			contact: payload.contact,
 			avatar: payload.avatar,
 			accountType: payload.accountType,
+			createdAt,
+			updatedAt: createdAt,
 			id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
 		},
 		{ autoCommit: false }
@@ -156,8 +159,6 @@ async function seedStaff(connection, count) {
 			avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`,
 			accountType: 'STAFF'
 		});
-
-		const staffId = 500000 + i;
 		// Append runNonce to avoid uniqueness collisions across runs
 		const uniqueStaffId = Number(`5${runNonce}${i.toString().padStart(3, '0')}`);
 		const role = pick(roles);

@@ -666,4 +666,195 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// GET /api/reports/statistics/report-types
+router.get('/statistics/report-types', authenticateToken, async (req, res) => {
+  try {
+    const { days = 30 } = req.query;
+    const sql = `
+      SELECT TYPE AS NAME, COUNT(*) AS VALUE
+      FROM REPORT
+      WHERE SUBMITTED_AT >= SYSTIMESTAMP - NUMTODSINTERVAL(:days, 'DAY')
+      GROUP BY TYPE
+    `;
+    const result = await exec(sql, { days: parseInt(days) });
+    res.json(toPlainRows(result.rows));
+  } catch (err) {
+    console.error('Get report types statistics error:', err);
+    res.status(500).json({ error: 'Failed to get report types statistics', details: err.message });
+  }
+});
+
+// GET /api/reports/statistics/report-status
+router.get('/statistics/report-status', authenticateToken, async (req, res) => {
+  try {
+    const { days = 30 } = req.query;
+    const sql = `
+      SELECT STATUS AS NAME, COUNT(*) AS VALUE
+      FROM REPORT
+      WHERE SUBMITTED_AT >= SYSTIMESTAMP - NUMTODSINTERVAL(:days, 'DAY')
+      GROUP BY STATUS
+    `;
+    const result = await exec(sql, { days: parseInt(days) });
+    res.json(toPlainRows(result.rows));
+  } catch (err) {
+    console.error('Get report status statistics error:', err);
+    res.status(500).json({ error: 'Failed to get report status statistics', details: err.message });
+  }
+});
+
+// GET /api/reports/statistics/crime-categories
+router.get('/statistics/crime-categories', authenticateToken, async (req, res) => {
+  try {
+    const { days = 30 } = req.query;
+    const sql = `
+      SELECT C.CRIME_CATEGORY AS NAME, COUNT(*) AS VALUE
+      FROM CRIME C
+      JOIN REPORT R ON C.REPORT_ID = R.REPORT_ID
+      WHERE R.SUBMITTED_AT >= SYSTIMESTAMP - NUMTODSINTERVAL(:days, 'DAY')
+      GROUP BY C.CRIME_CATEGORY
+    `;
+    const result = await exec(sql, { days: parseInt(days) });
+    res.json(toPlainRows(result.rows));
+  } catch (err) {
+    console.error('Get crime categories statistics error:', err);
+    res.status(500).json({ error: 'Failed to get crime categories statistics', details: err.message });
+  }
+});
+
+// GET /api/reports/statistics/facility-severities
+router.get('/statistics/facility-severities', authenticateToken, async (req, res) => {
+  try {
+    const { days = 30 } = req.query;
+    const sql = `
+      SELECT F.SEVERITY_LEVEL AS NAME, COUNT(*) AS VALUE
+      FROM FACILITY F
+      JOIN REPORT R ON F.REPORT_ID = R.REPORT_ID
+      WHERE R.SUBMITTED_AT >= SYSTIMESTAMP - NUMTODSINTERVAL(:days, 'DAY')
+      GROUP BY F.SEVERITY_LEVEL
+    `;
+    const result = await exec(sql, { days: parseInt(days) });
+    res.json(toPlainRows(result.rows));
+  } catch (err) {
+    console.error('Get facility severities statistics error:', err);
+    res.status(500).json({ error: 'Failed to get facility severities statistics', details: err.message });
+  }
+});
+
+// GET /api/reports/statistics/reports-over-time
+router.get('/statistics/reports-over-time', authenticateToken, async (req, res) => {
+  try {
+    const { days = 30 } = req.query;
+    const sql = `
+      SELECT 
+        TO_CHAR(SUBMITTED_AT, 'YYYY-MM-DD') AS REPORT_DATE,
+        SUM(CASE WHEN TYPE = 'CRIME' THEN 1 ELSE 0 END) AS DESKTOP,
+        SUM(CASE WHEN TYPE = 'FACILITY' THEN 1 ELSE 0 END) AS MOBILE
+      FROM REPORT
+      WHERE SUBMITTED_AT >= SYSTIMESTAMP - NUMTODSINTERVAL(:days, 'DAY')
+      GROUP BY TO_CHAR(SUBMITTED_AT, 'YYYY-MM-DD')
+      ORDER BY TO_CHAR(SUBMITTED_AT, 'YYYY-MM-DD')
+    `;
+    const result = await exec(sql, { days: parseInt(days) });
+    res.json(toPlainRows(result.rows));
+  } catch (err) {
+    console.error('Get reports over time statistics error:', err);
+    res.status(500).json({ error: 'Failed to get reports over time statistics', details: err.message });
+  }
+});
+
+// GET /api/reports/statistics/user-growth
+router.get('/statistics/user-growth', authenticateToken, async (req, res) => {
+  try {
+    const { months = 12 } = req.query;
+    const sql = `
+      SELECT 
+        TO_CHAR(CREATED_AT, 'Month') AS MONTH_NAME,
+        COUNT(*) AS DESKTOP
+      FROM ACCOUNT
+      WHERE CREATED_AT >= ADD_MONTHS(SYSTIMESTAMP, -:months)
+      GROUP BY TO_CHAR(CREATED_AT, 'Month'), TO_CHAR(CREATED_AT, 'MM')
+      ORDER BY TO_CHAR(CREATED_AT, 'MM')
+    `;
+    const result = await exec(sql, { months: parseInt(months) });
+    res.json(toPlainRows(result.rows));
+  } catch (err) {
+    console.error('Get user growth statistics error:', err);
+    res.status(500).json({ error: 'Failed to get user growth statistics', details: err.message });
+  }
+});
+
+// GET /api/reports/statistics/all
+router.get('/statistics/all', authenticateToken, async (req, res) => {
+  try {
+    const { days = 30, months = 12 } = req.query;
+    const daysNum = parseInt(days);
+    const monthsNum = parseInt(months);
+    
+    const [reportTypes, reportStatus, crimeCategories, facilitySeverities, reportsOverTime, userGrowth] = await Promise.all([
+      exec(`
+        SELECT TYPE AS NAME, COUNT(*) AS VALUE
+        FROM REPORT
+        WHERE SUBMITTED_AT >= SYSTIMESTAMP - NUMTODSINTERVAL(:days, 'DAY')
+        GROUP BY TYPE
+      `, { days: daysNum }),
+      
+      exec(`
+        SELECT STATUS AS NAME, COUNT(*) AS VALUE
+        FROM REPORT
+        WHERE SUBMITTED_AT >= SYSTIMESTAMP - NUMTODSINTERVAL(:days, 'DAY')
+        GROUP BY STATUS
+      `, { days: daysNum }),
+      
+      exec(`
+        SELECT C.CRIME_CATEGORY AS NAME, COUNT(*) AS VALUE
+        FROM CRIME C
+        JOIN REPORT R ON C.REPORT_ID = R.REPORT_ID
+        WHERE R.SUBMITTED_AT >= SYSTIMESTAMP - NUMTODSINTERVAL(:days, 'DAY')
+        GROUP BY C.CRIME_CATEGORY
+      `, { days: daysNum }),
+      
+      exec(`
+        SELECT F.SEVERITY_LEVEL AS NAME, COUNT(*) AS VALUE
+        FROM FACILITY F
+        JOIN REPORT R ON F.REPORT_ID = R.REPORT_ID
+        WHERE R.SUBMITTED_AT >= SYSTIMESTAMP - NUMTODSINTERVAL(:days, 'DAY')
+        GROUP BY F.SEVERITY_LEVEL
+      `, { days: daysNum }),
+      
+      exec(`
+        SELECT 
+          TO_CHAR(SUBMITTED_AT, 'YYYY-MM-DD') AS REPORT_DATE,
+          SUM(CASE WHEN TYPE = 'CRIME' THEN 1 ELSE 0 END) AS DESKTOP,
+          SUM(CASE WHEN TYPE = 'FACILITY' THEN 1 ELSE 0 END) AS MOBILE
+        FROM REPORT
+        WHERE SUBMITTED_AT >= SYSTIMESTAMP - NUMTODSINTERVAL(:days, 'DAY')
+        GROUP BY TO_CHAR(SUBMITTED_AT, 'YYYY-MM-DD')
+        ORDER BY TO_CHAR(SUBMITTED_AT, 'YYYY-MM-DD')
+      `, { days: daysNum }),
+      
+      exec(`
+        SELECT 
+          TO_CHAR(CREATED_AT, 'Month') AS MONTH_NAME,
+          COUNT(*) AS DESKTOP
+        FROM ACCOUNT
+        WHERE CREATED_AT >= ADD_MONTHS(SYSTIMESTAMP, -:months)
+        GROUP BY TO_CHAR(CREATED_AT, 'Month'), TO_CHAR(CREATED_AT, 'MM')
+        ORDER BY TO_CHAR(CREATED_AT, 'MM')
+      `, { months: monthsNum })
+    ]);
+
+    res.json({
+      reportTypes: toPlainRows(reportTypes.rows),
+      reportStatus: toPlainRows(reportStatus.rows),
+      crimeCategories: toPlainRows(crimeCategories.rows),
+      facilitySeverities: toPlainRows(facilitySeverities.rows),
+      reportsOverTime: toPlainRows(reportsOverTime.rows),
+      userGrowth: toPlainRows(userGrowth.rows)
+    });
+  } catch (err) {
+    console.error('Get all statistics error:', err);
+    res.status(500).json({ error: 'Failed to get all statistics', details: err.message });
+  }
+});
+
 module.exports = router;

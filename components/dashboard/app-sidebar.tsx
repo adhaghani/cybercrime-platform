@@ -461,7 +461,11 @@ const getNavMainByRole = (role: string | undefined) => {
       url: "/dashboard/team",
       icon: Users,
     },
-
+    {
+      title: "Statistics",
+      url: "/dashboard/statistic",
+      icon: Stars,
+    }
 
   ];
 

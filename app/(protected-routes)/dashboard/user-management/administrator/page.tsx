@@ -19,7 +19,7 @@ import { useHasAnyRole } from "@/hooks/use-user-role";
 import { useAuth } from "@/lib/context/auth-provider";
 import { 
   ArrowLeft, Search, MoreVertical, Mail, Phone, 
-  ShieldCheck, UserX, Shield, ShieldAlert, Plus,
+  ShieldCheck, UserX, Shield, ShieldAlert,
   UserCheck,
   UsersIcon
 } from "lucide-react";
@@ -163,10 +163,6 @@ export default function AdministratorPage() {
             </p>
           </div>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Administrator
-        </Button>
       </div>
 
       {/* Info Banner */}
