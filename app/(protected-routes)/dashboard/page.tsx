@@ -34,10 +34,10 @@ export default function DashboardPage() {
         const reportsData = await reportsRes.json();
         setReports(reportsData.reports || []);
       }
-
+      
       if (announcementsRes.ok) {
         const announcementsData = await announcementsRes.json();
-        setAnnouncements(announcementsData.announcements || []);
+        setAnnouncements(announcementsData || []);
       }
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
@@ -81,7 +81,7 @@ export default function DashboardPage() {
       // Sort by priority
       const priorityOrder = { HIGH: 3, MEDIUM: 2, LOW: 1 };
       return priorityOrder[b.PRIORITY] - priorityOrder[a.PRIORITY];
-    });
+    }).slice(0, 3); // Limit to top 3 announcements
 
   const stats = {
     totalCrime: crimeReports.length,
