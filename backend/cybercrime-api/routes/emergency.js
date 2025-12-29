@@ -173,4 +173,30 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// GET /api/emergency/public/all - Public endpoint for emergency contacts
+router.get('/public/all', async (req, res) => {
+  try {
+    const sql = `
+      SELECT 
+        EMERGENCY_ID, 
+        NAME, 
+        ADDRESS, 
+        PHONE, 
+        EMAIL, 
+        STATE, 
+        TYPE, 
+        HOTLINE
+      FROM EMERGENCY_INFO
+      WHERE TYPE IS NOT NULL
+      ORDER BY TYPE, STATE, NAME
+    `;
+    
+    const result = await exec(sql);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Get public emergency contacts error:', err);
+    res.status(500).json({ error: 'Failed to get emergency contacts', details: err.message });
+  }
+});
+
 module.exports = router;

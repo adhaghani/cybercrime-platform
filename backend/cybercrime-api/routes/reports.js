@@ -21,6 +21,33 @@ const parseAttachmentPath = (report) => {
   return report;
 };
 
+// GET /api/reports/public-latest - Get latest 10 reports for public view (no auth required)
+router.get('/public-latest', async (req, res) => {
+  try {
+    const sql = `
+      SELECT 
+        REPORT_ID, 
+        TITLE, 
+        DESCRIPTION, 
+        TYPE, 
+        LOCATION, 
+        STATUS, 
+        SUBMITTED_AT
+      FROM REPORT 
+      WHERE STATUS != 'REJECTED'
+      ORDER BY SUBMITTED_AT DESC 
+      FETCH FIRST 10 ROWS ONLY
+    `;
+    
+    const result = await exec(sql);
+    const reports = toPlainRows(result.rows);
+    res.json(reports);
+  } catch (err) {
+    console.error('Get public latest reports error:', err);
+    res.status(500).json({ error: 'Failed to get public latest reports', details: err.message });
+  }
+});
+
 // GET /api/reports
 router.get('/', authenticateToken, async (req, res) => {
   try {
