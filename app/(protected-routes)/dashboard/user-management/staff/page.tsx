@@ -34,7 +34,6 @@ import { PromoteStaffDialog } from "@/components/users/promoteStaffDialog";
 import { DeleteUserDialog } from "@/components/users/deleteUserDialog";
 import { useAuth } from "@/lib/context/auth-provider";
 import { useHasAnyRole } from "@/hooks/use-user-role";
-
 const ITEMS_PER_PAGE = 10;
 
 export default function StaffManagementPage() {
@@ -219,7 +218,6 @@ export default function StaffManagementPage() {
             <SelectItem value="STAFF">Staff</SelectItem>
             <SelectItem value="SUPERVISOR">Supervisor</SelectItem>
             <SelectItem value="ADMIN">Admin</SelectItem>
-            <SelectItem value="SUPERADMIN">Super Admin</SelectItem>
           </SelectContent>
         </Select>
         <Select value={departmentFilter} onValueChange={(v) => handleFilterChange(() => setDepartmentFilter(v))}>
@@ -276,7 +274,7 @@ export default function StaffManagementPage() {
                           {member.NAME}
                           </p>
                           <p>
-                            <Badge variant="outline" className={getDepartmentColor(member.DEPARTMENT) + " text-green-500 border-green-500/50"}>
+                            <Badge variant="outline" className={getDepartmentColor(member.DEPARTMENT)}>
                               {member.ROLE}
                             </Badge>
                           </p>

@@ -145,7 +145,7 @@ export default function SubmitCrimeReportPage() {
                     <FormLabel>Crime Category *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select category" />
                         </SelectTrigger>
                       </FormControl>
@@ -281,7 +281,7 @@ export default function SubmitCrimeReportPage() {
                       <FormLabel>Injury Level</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select injury level" />
                           </SelectTrigger>
                         </FormControl>

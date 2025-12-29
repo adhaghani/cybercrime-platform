@@ -13,6 +13,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import {
   Table,
   TableBody,
   TableCell,
@@ -302,18 +307,32 @@ export default function AllGeneratedReportsPage() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <Button variant="ghost" size="sm" asChild>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                            <Button variant="outline" size="sm" asChild>
                               <Link href={`/dashboard/reports/report-summary/${report.GENERATE_ID}`}>
                                 <Eye className="h-4 w-4" />
                               </Link>
                             </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              View Report Summary
+                            </TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
                             <Button
-                              variant="ghost"
+                              variant="outline"
                               size="sm"
                               onClick={() => handleDownload(report)}
                             >
                               <Download className="h-4 w-4" />
                             </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              Download Report JSON
+                            </TooltipContent>
+                            </Tooltip>
                           </div>
                         </TableCell>
                       </TableRow>

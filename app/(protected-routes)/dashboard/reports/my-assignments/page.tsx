@@ -21,6 +21,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { 
   ClipboardList, 
   Search, 
@@ -38,6 +43,7 @@ import { PaginationControls } from "@/components/ui/pagination-controls";
 import { Report } from "@/lib/types";
 import { useAuth } from "@/lib/context/auth-provider";
 import { Skeleton } from "@/components/ui/skeleton";
+
 
 const ITEMS_PER_PAGE = 10;
 
@@ -297,12 +303,19 @@ export default function MyAssignmentsPage() {
                         <StatusBadge status={report.STATUS} />
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button asChild variant="ghost" size="sm">
-                          <Link href={`/dashboard/reports/${report.REPORT_ID}`}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            {report.STATUS === "RESOLVED" ? "View Report" : "View & Manage"}
-                          </Link>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button asChild variant="outline" size="sm">
+                              <Link href={`/dashboard/reports/${report.REPORT_ID}`}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                {report.STATUS === "RESOLVED" ? "View Report" : "View & Manage"}
+                              </Link>
                         </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          View Report Details
+                        </TooltipContent>
+                        </Tooltip>
                       </TableCell>
                     </TableRow>
                   ))}

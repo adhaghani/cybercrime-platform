@@ -9,6 +9,7 @@ import { useHasAnyRole } from "@/hooks/use-user-role";
 import { AnnouncementPriorityBadge, AnnouncementStatusBadge, AnnouncementTypeBadge } from "./announcementBadge";
 import { Button } from "../ui/button";
 import Link from "next/link";
+import { useState } from "react";
 
 interface AnnouncementCardProps {
     announcement: Announcement;
@@ -19,22 +20,28 @@ interface AnnouncementCardProps {
 const AnnouncementDialog = ({announcement, open, onOpenChange} : AnnouncementCardProps) => {
     const hasAnyRole = useHasAnyRole();
     const hasManageAccess = hasAnyRole(['STAFF','SUPERVISOR', 'ADMIN', 'SUPERADMIN']);
-  
+    const [imageError, setImageError] = useState<boolean>(false);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}> 
       <DialogContent className="!max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-            {announcement.PHOTO_PATH && (
+            {announcement.PHOTO_PATH && !imageError ? (
               <div className="aspect-video w-full bg-accent rounded-lg flex items-center justify-center overflow-hidden">
                 <Image
                   width={800}
                   height={450}
                   src={announcement.PHOTO_PATH}
                   alt={announcement.TITLE}
+                  onError={() => setImageError(true)}
                   className="w-full h-full object-cover"
                 />
               </div>
-            )}
+            ) : 
+            (<p className="text-sm border rounded-md bg-accent aspect-video grid place-items-center text-muted-foreground">
+                {imageError ? "Image not available" : "No photo uploaded"}
+              </p>
+              )
+            }
           <div className="flex items-start justify-between">
             <div className="space-y-2 flex-1">
               <DialogTitle className="text-2xl flex items-center gap-4">

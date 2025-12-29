@@ -18,6 +18,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { 
   ShieldAlert, 
   Search, 
@@ -295,17 +300,31 @@ export default function CrimeReportsPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button asChild variant="ghost" size="sm">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                          <Button asChild variant="outline" size="sm">
                             <Link href={`/dashboard/reports/${report.REPORT_ID}`}>
                               <Eye className="h-4 w-4" />
                             </Link>
                           </Button>
-                          {isSupervisorOrAdmin && (report.STATUS !== "RESOLVED" && report.STATUS !== "REJECTED") && (
-                            <Button asChild variant="ghost" size="sm">
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            View Details
+                          </TooltipContent> 
+                          </Tooltip>
+                          {isSupervisorOrAdmin && report.STATUS !== "RESOLVED" && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>  
+                            <Button asChild variant="outline" size="sm">
                               <Link href={`/dashboard/reports/${report.REPORT_ID}?action=assign`}>
                                 <UserPlus className="h-4 w-4" />
                               </Link>
                             </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              Assign Staff
+                            </TooltipContent>
+                            </Tooltip>
                           )}
                         </div>
                       </TableCell>

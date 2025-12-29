@@ -248,7 +248,7 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
         </Card>
 
         {/* Quick Actions */}
-        <Card>
+        <Card className="h-fit">
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
             <CardDescription>Management tools</CardDescription>

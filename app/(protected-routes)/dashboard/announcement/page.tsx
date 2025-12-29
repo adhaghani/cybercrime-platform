@@ -14,13 +14,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import {
   Empty,
   EmptyDescription,
@@ -29,7 +26,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton";
-import { Bell, Plus, Search, MoreVertical, Eye, Edit, Trash2, List } from "lucide-react";
+import { Bell, Plus, Search, Eye, Edit, Trash2, List } from "lucide-react";
 import Link from "next/link";
 import { Announcement } from "@/lib/types";
 import { useHasAnyRole } from "@/hooks/use-user-role";
@@ -145,7 +142,7 @@ export default function AnnouncementsPage() {
           <TableHead>Audience</TableHead>
           <TableHead>Priority</TableHead>
           <TableHead>Date Range</TableHead>
-          <TableHead>Created By</TableHead>
+          <TableHead>Status</TableHead>
           {hasManageAccess && <TableHead className="text-right">Actions</TableHead>}
         </TableRow>
       </TableHeader>
@@ -180,40 +177,60 @@ export default function AnnouncementsPage() {
                 {new Date(announcement.START_DATE).toLocaleDateString()} - 
                 {new Date(announcement.END_DATE).toLocaleDateString()}
               </TableCell>
-              <TableCell className="text-sm">{announcement.CREATED_BY}</TableCell>
+              <TableCell className="text-sm">
+                <Badge className={announcement.STATUS === 'PUBLISHED' ? "bg-green-500/10 border-green-700 text-green-700" : ""} variant="outline">{announcement.STATUS}</Badge>
+              </TableCell>
               {hasManageAccess && (
                 <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/announcement/${announcement.ANNOUNCEMENT_ID}`}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          View Details
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/announcement/${announcement.ANNOUNCEMENT_ID}/update`}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        className="text-destructive"
-                        onClick={() => handleDeleteClick(announcement.ANNOUNCEMENT_ID, announcement.TITLE)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <div className="flex items-center justify-end gap-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      asChild
+                    >
+                      <Link href={`/dashboard/announcement/${announcement.ANNOUNCEMENT_ID}`}>
+                        <Eye className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      View Details
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      asChild
+                    >
+                      <Link href={`/dashboard/announcement/${announcement.ANNOUNCEMENT_ID}/update`}>
+                        <Edit className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Edit Announcement
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="bg-red-500/10 text-red-500 border-red-300 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500"
+                      size="sm"
+                      onClick={() => handleDeleteClick(announcement.ANNOUNCEMENT_ID, announcement.TITLE)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Delete Announcement
+                    </TooltipContent>
+                  </Tooltip>
+                  </div>
                 </TableCell>
               )}
             </TableRow>

@@ -100,5 +100,17 @@ export const UITM_PROGRAMS = [
   
 ]
 
+export const STAFF_DEPARTMENT = [
+  "System Administration",
+  "Campus Security",
+  "IT Services",
+  "Facilities Management",
+  "Student Affairs",
+  "Library Services",
+  "Academic Affairs",
+  "Health Services",
+  "Administration",
+]
+
 export type MalaysianState = typeof MALAYSIAN_STATES[number];
 

@@ -28,13 +28,12 @@ export const getDepartmentColor = (department: string): string => {
     "System Administration": "bg-purple-500/10 text-purple-500 hover:bg-purple-500/20",
     "Campus Security": "bg-red-500/10 text-red-500 hover:bg-red-500/20",
     "IT Services": "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
-    "Computer Science": "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
-    "Information Technology": "bg-purple-500/10 text-purple-500 hover:bg-purple-500/20",
+    "Administration": "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
     "Facilities Management": "bg-green-500/10 text-green-500 hover:bg-green-500/20",
     "Student Affairs": "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20",
     "Library Services": "bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500/20",
-    "Software Engineering": "bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500/20",
     "Academic Affairs": "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20",
+    "Health Services": "bg-pink-500/10 text-pink-500 hover:bg-pink-500/20",
   };
   return colors[department] || "bg-gray-500/10 text-gray-500 hover:bg-gray-500/20";
 };

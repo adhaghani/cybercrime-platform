@@ -135,7 +135,7 @@ export default function SubmitReportPage() {
                       <FormLabel>Facility Type *</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select type" />
                           </SelectTrigger>
                         </FormControl>
@@ -160,7 +160,7 @@ export default function SubmitReportPage() {
                       <FormLabel>Severity Level *</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select severity" />
                           </SelectTrigger>
                         </FormControl>

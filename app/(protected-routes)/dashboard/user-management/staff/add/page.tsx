@@ -16,6 +16,7 @@ import { passwordComplexity, StaffEmailRegex,StaffIDRegex } from '@/lib/constant
 import { useAuth } from '@/lib/context/auth-provider';
 import { Staff } from '@/lib/types';
 import { signUp } from '@/lib/api/auth';
+import { STAFF_DEPARTMENT } from '@/lib/constant';
 
 const staffSchema = z.object({
   name: z.string().min(1, "Name is required").max(100, "Name is too long"),
@@ -182,8 +183,8 @@ export default function AddStaffPage() {
                     control={form.control}
                     render={({ field }) => (
                       <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger>
-                          <SelectValue />
+                        <SelectTrigger className='w-full'>
+                          <SelectValue placeholder="Select role"  />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="STAFF">Staff</SelectItem>
@@ -216,13 +217,26 @@ export default function AddStaffPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="department">Department *</Label>
-                  <Input
-                    id="department"
-                    {...form.register("department")}
+                  <Controller
+                    name="department"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger className='w-full'>
+                          <SelectValue placeholder="Select department" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {
+                            STAFF_DEPARTMENT.map((dept) => (
+                              <SelectItem key={dept} value={dept}>
+                                {dept}
+                              </SelectItem>
+                            ))
+                          }
+                        </SelectContent>
+                      </Select>
+                    )}
                   />
-                  {form.formState.errors.department && (
-                    <p className="text-sm text-destructive">{form.formState.errors.department.message}</p>
-                  )}
                 </div>
 
                 <div className="space-y-2">

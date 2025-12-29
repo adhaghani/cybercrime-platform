@@ -475,16 +475,14 @@ export default function GenerateReportPage() {
             <CardHeader>
               <CardTitle className="text-blue-900 dark:text-blue-100 text-sm">
                 <Sparkles className="h-4 w-4 inline mr-2" />
-                AI Requirements
+                AI Info
               </CardTitle>
             </CardHeader>
             <CardContent className="text-xs text-blue-800 dark:text-blue-200 space-y-2">
-              <p>To use AI report generation, make sure LM Studio is running:</p>
+              <p>AI Generated data is still in beta testing. to ensure smooth usage, please ensure:</p>
               <ul className="list-disc list-inside space-y-1 ml-2">
-                <li>Download LM Studio</li>
-                <li>Load your preferred model</li>
-                <li>Start the local server (default: localhost:1234)</li>
-                <li>Ensure the server is accessible</li>
+                <li>you have stable internet connection</li>
+                <li>the system is online and active</li>
               </ul>
             </CardContent>
           </Card>
