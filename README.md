@@ -871,42 +871,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ---
 
-## 📄 License
-
-This project is proprietary software developed for Universiti Teknologi MARA (UiTM). All rights reserved.
-
-Unauthorized copying, modification, distribution, or use of this software is strictly prohibited without explicit written permission from UiTM.
-
----
-
-## 📞 Support & Contact
-
-### Technical Support
-- **Email**: cybercrime-support@uitm.edu.my
-- **Issue Tracker**: [GitHub Issues](https://github.com/your-org/cybercrime-platform/issues)
-
-### Project Team
-- **Project Lead**: [Name] - lead@uitm.edu.my
-- **Backend Developer**: [Name] - backend@uitm.edu.my
-- **Frontend Developer**: [Name] - frontend@uitm.edu.my
-
-### Resources
-- [API Documentation](docs/API_ROUTES.md)
-- [File Upload Guide](docs/FILE_UPLOAD_SYSTEM.md)
-- [SEO Implementation](docs/SEO_IMPLEMENTATION.md)
-
----
-
-## 🙏 Acknowledgments
-
-- UiTM IT Department for infrastructure support
-- UiTM Campus Security for requirements and feedback
-- shadcn for excellent UI component library
-- Oracle Corporation for database technology
-- Vercel for Next.js framework
-
----
-
 **Built with ❤️ for UiTM Community**
 
 *Last Updated: December 2024 | Version 1.0.0*
