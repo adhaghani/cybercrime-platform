@@ -305,7 +305,7 @@ export default function MyAssignmentsPage() {
                       <TableCell className="text-right">
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button asChild variant="outline" size="sm">
+                            <Button asChild variant="outline" size="icon-sm">
                               <Link href={`/dashboard/reports/${report.REPORT_ID}`}>
                                 <Eye className="h-4 w-4 mr-2" />
                                 {report.STATUS === "RESOLVED" ? "View Report" : "View & Manage"}

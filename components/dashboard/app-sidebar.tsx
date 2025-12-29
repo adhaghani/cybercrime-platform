@@ -4,16 +4,15 @@ import * as React from "react"
 import {
   BookOpen,
   Bot,
-  Command,
   SquareTerminal,
   Users,
   FileText,
   Stars,
 } from "lucide-react"
+import Image from "next/image"
 import { useAuth } from "@/lib/context/auth-provider"
 import { NavMain } from "@/components/dashboard/nav-main"
 import { NavSecondary } from "@/components/dashboard/nav-secondary"
-
 import {
   Sidebar,
   SidebarContent,
@@ -530,8 +529,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/dashboard">
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <Command className="size-4" />
+                <div className="text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+                  <Image 
+                    src={"/Cybersafe_logo.svg"}
+                    alt="CyberSafe Logo"
+                    width={32}
+                    height={32}
+                    className="dark:hidden block"
+                  />
+                  <Image
+                    src={"/Cybersafe_logo_dark.svg"}
+                    alt="CyberSafe Logo"
+                    width={32}
+                    height={32}
+                    className="hidden dark:block"
+                  />
                 </div>
                 <div className="grid flex-1 items-center text-left text-sm leading-tight">
                   <span className="truncate font-medium">CyberSafe Platform</span>

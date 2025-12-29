@@ -18,6 +18,11 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { generateMetadata } from "@/lib/seo";
 import { Skeleton } from "@/components/ui/skeleton";
 const ITEMS_PER_PAGE = 9;
@@ -111,11 +116,19 @@ export default function UitmAuxiliaryPolicePage() {
           <Card key={station.EMERGENCY_ID} className="flex flex-col">
             <CardHeader>
               <CardTitle className="flex justify-between items-start gap-2 w-full text-lg">{station.CAMPUS}
-                {isAuthorizedForEdit() ? <Button variant={"ghost"} asChild>
+                {isAuthorizedForEdit() ? 
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                <Button variant={"outline"} size="icon-sm" asChild>
                   <Link href={`/dashboard/emergency-services/uitm-auxiliary-police/${station.EMERGENCY_ID}/update`}>
                  <Pencil size={10} /> 
                  </Link>
-                </Button> : null}
+                </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Edit
+                </TooltipContent>
+                </Tooltip> : null}
               </CardTitle>
               <CardDescription>{station.STATE}</CardDescription>
             </CardHeader>

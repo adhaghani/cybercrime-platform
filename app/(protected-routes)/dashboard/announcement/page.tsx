@@ -187,7 +187,7 @@ export default function AnnouncementsPage() {
                     <TooltipTrigger asChild>
                     <Button
                       variant="outline"
-                      size="sm"
+                      size="icon-sm"
                       asChild
                     >
                       <Link href={`/dashboard/announcement/${announcement.ANNOUNCEMENT_ID}`}>
@@ -203,7 +203,7 @@ export default function AnnouncementsPage() {
                     <TooltipTrigger asChild>
                     <Button
                       variant="outline"
-                      size="sm"
+                      size="icon-sm"
                       asChild
                     >
                       <Link href={`/dashboard/announcement/${announcement.ANNOUNCEMENT_ID}/update`}>
@@ -220,7 +220,7 @@ export default function AnnouncementsPage() {
                     <Button
                       variant="outline"
                       className="bg-red-500/10 text-red-500 border-red-300 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500"
-                      size="sm"
+                      size="icon-sm"
                       onClick={() => handleDeleteClick(announcement.ANNOUNCEMENT_ID, announcement.TITLE)}
                     >
                       <Trash2 className="h-4 w-4" />

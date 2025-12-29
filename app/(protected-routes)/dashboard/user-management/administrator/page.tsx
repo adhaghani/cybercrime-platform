@@ -18,19 +18,11 @@ import { DeleteUserDialog } from "@/components/users/deleteUserDialog";
 import { useHasAnyRole } from "@/hooks/use-user-role";
 import { useAuth } from "@/lib/context/auth-provider";
 import { 
-  ArrowLeft, Search, MoreVertical, Mail, Phone, 
+  ArrowLeft, Search, Mail, Phone, 
   ShieldCheck, UserX, Shield, ShieldAlert,
   UserCheck,
   UsersIcon
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Empty,
   EmptyContent,
@@ -39,6 +31,11 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 const ITEMS_PER_PAGE = 10;
 
@@ -253,35 +250,54 @@ export default function AdministratorPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
+                    <div className="flex gap-2 justify-end">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="icon-sm" 
+                          onClick={() => handleViewDetails(admin.ACCOUNT_ID)}
+                        >
+                          <UserCheck className="h-4 w-4" />
                         </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleViewDetails(admin.ACCOUNT_ID)}>
-                          <UserCheck className="h-4 w-4 mr-2" />
-                          Admin Details
-                        </DropdownMenuItem>
-                        {ACCOUNT_ID !== admin.ACCOUNT_ID && <DropdownMenuItem 
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        View Details
+                      </TooltipContent>
+                    </Tooltip>
+                    {(ACCOUNT_ID !== admin.ACCOUNT_ID) &&<>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="icon-sm" 
+                          className="bg-amber-500/10 text-amber-500 border-amber-500 hover:bg-amber-500/20 hover:text-amber-500"
                           onClick={() => handleRevokeAdmin(admin.ACCOUNT_ID, admin.NAME, admin.ROLE)}
                         >
-                          <UserX className="h-4 w-4 mr-2" />
-                          Revoke Admin Access
-                        </DropdownMenuItem>}
-                         <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-destructive"
+                          <UserX className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Revoke Admin Access
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="icon-sm" 
+                          className="bg-red-500/10 text-red-500 border-red-500 hover:bg-red-500/20 hover:text-red-500"
                           onClick={() => handleDeleteAccount(admin.ACCOUNT_ID, admin.NAME, admin.EMAIL)}
                         >
-                          <ShieldAlert className="h-4 w-4 mr-2" />
-                          Delete Account
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          <ShieldAlert className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Delete Account
+                      </TooltipContent>
+                    </Tooltip>
+                    </>}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

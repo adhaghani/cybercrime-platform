@@ -149,7 +149,7 @@ export default function AllReportsPage() {
         <div className="flex gap-2">
           <Button
             variant={viewMode === "card" ? "default" : "outline"}
-            size="sm"
+            size="icon-sm"
             onClick={() => setViewMode("card")}
           >
             <LayoutGrid className="h-4 w-4 mr-2" />
@@ -157,7 +157,7 @@ export default function AllReportsPage() {
           </Button>
           <Button
             variant={viewMode === "table" ? "default" : "outline"}
-            size="sm"
+            size="icon-sm"
             onClick={() => setViewMode("table")}
           >
             <Table2 className="h-4 w-4 mr-2" />
@@ -206,7 +206,7 @@ export default function AllReportsPage() {
                     <div className="flex justify-end items-center gap-2">
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="outline" size="sm" asChild>
+                          <Button variant="outline" size="icon-sm" asChild>
                             <Link href={`/dashboard/facility/reports/${report.REPORT_ID}`}>
                               <Eye className="h-4 w-4" />
                             </Link>

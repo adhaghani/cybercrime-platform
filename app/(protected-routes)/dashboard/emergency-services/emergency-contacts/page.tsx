@@ -18,6 +18,11 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent
+} from "@/components/ui/tooltip"
 import { generateMetadata } from "@/lib/seo";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -153,20 +158,28 @@ export default function EmergencyContactsPage() {
                 <span>{contact.ADDRESS}</span>
               </div>
               
-              <div className="mt-auto flex gap-2 w-full items-center pt-4">
+              <div className="mt-auto flex gap-2 justify-between w-full items-center pt-4">
 
                   {contact.PHONE && (
-                    <Button className="" variant="outline" asChild>
+                    <Button variant="secondary" asChild>
                         <a href={`tel:${contact.PHONE.replace(/\s/g, '')}`}>
                             Office: {contact.PHONE}
                         </a>
                     </Button>
                   )}
-                  {isAuthorizedForEdit() ? <Button variant={"ghost"} asChild>
-                  <Link href={`/dashboard/emergency-services/emergency-contacts/${contact.EMERGENCY_ID}/update`}>
+                  {isAuthorizedForEdit() ? 
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                  <Button variant={"outline"} size="icon-sm" asChild>
+                  <Link  href={`/dashboard/emergency-services/emergency-contacts/${contact.EMERGENCY_ID}/update`}>
                  <Pencil size={10} /> 
                  </Link>
-                </Button> : null}
+                </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Edit
+                </TooltipContent>
+                </Tooltip> : null}
               </div>
             </CardContent>
           </Card>

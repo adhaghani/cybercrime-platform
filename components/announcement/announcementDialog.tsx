@@ -23,7 +23,7 @@ const AnnouncementDialog = ({announcement, open, onOpenChange} : AnnouncementCar
     const [imageError, setImageError] = useState<boolean>(false);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}> 
-      <DialogContent className="!max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl! w-full max-h-[90vh] overflow-y-auto">
         <DialogHeader>
             {announcement.PHOTO_PATH && !imageError ? (
               <div className="aspect-video w-full bg-accent rounded-lg flex items-center justify-center overflow-hidden">

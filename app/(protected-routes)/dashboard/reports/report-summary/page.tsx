@@ -309,7 +309,7 @@ export default function AllGeneratedReportsPage() {
                           <div className="flex items-center justify-end gap-2">
                             <Tooltip>
                               <TooltipTrigger asChild>
-                            <Button variant="outline" size="sm" asChild>
+                            <Button variant="outline" size="icon-sm" asChild>
                               <Link href={`/dashboard/reports/report-summary/${report.GENERATE_ID}`}>
                                 <Eye className="h-4 w-4" />
                               </Link>
@@ -323,7 +323,7 @@ export default function AllGeneratedReportsPage() {
                               <TooltipTrigger asChild>
                             <Button
                               variant="outline"
-                              size="sm"
+                              size="icon-sm"
                               onClick={() => handleDownload(report)}
                             >
                               <Download className="h-4 w-4" />

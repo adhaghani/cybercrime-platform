@@ -94,7 +94,7 @@ export function DemoteAdminDialog({
           </p>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="gap-2 space-x-2 sm:gap-0">
           <Button
             type="button"
             variant="outline"

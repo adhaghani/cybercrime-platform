@@ -12,17 +12,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
-  ArrowLeft, Search, Filter, MoreVertical, Mail, Phone, 
+  ArrowLeft, Search, Filter, Mail, Phone, 
   GraduationCap, BookOpen, UserX, FileText
 } from "lucide-react";
+
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import {
   Empty,
   EmptyDescription,
@@ -286,33 +284,51 @@ export default function StudentsPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleViewDetails(student.ACCOUNT_ID)}>
-                          <UserCheck className="h-4 w-4 mr-2" />
-                          Student Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleViewReports(student.ACCOUNT_ID, student.NAME)}>
-                          <FileText className="h-4 w-4 mr-2" />
-                          View Reports
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          className="text-destructive"
-                          onClick={() => handleDeleteAccount(student.ACCOUNT_ID, student.NAME, student.EMAIL)}
-                        >
-                          <UserX className="h-4 w-4 mr-2" />
-                          Delete Account
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex gap-2 justify-end">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="outline"
+                            size={"icon-sm"}
+                            onClick={() => handleViewDetails(student.ACCOUNT_ID)}
+                          >
+                            <UserCheck className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          View Student Details
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="outline"
+                            size={"icon-sm"}
+                            onClick={() => handleViewReports(student.ACCOUNT_ID, student.NAME)}
+                          >
+                            <FileText className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          View Student Reports
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="outline"
+                            size={"icon-sm"}
+                            className="bg-red-500/10 text-red-500 border-red-500 hover:bg-red-500/20 hover:text-red-500"
+                            onClick={() => handleDeleteAccount(student.ACCOUNT_ID, student.NAME, student.EMAIL)}
+                          >
+                            <UserX className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Delete Student Account
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

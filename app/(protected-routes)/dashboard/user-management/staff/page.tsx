@@ -11,20 +11,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {Skeleton} from "@/components/ui/skeleton";
 import { 
-  ArrowLeft, Search, MoreVertical, Mail, Phone, 
+  ArrowLeft, Search, Mail, Phone, 
   Briefcase, Building2, UserX, Shield, UserPlus,
   ShieldCheck,
   UserCheck,
   Download
 } from "lucide-react";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import Link from "next/link";
 import { Staff } from "@/lib/types";
 import { PaginationControls } from "@/components/ui/pagination-controls";
@@ -304,40 +301,69 @@ export default function StaffManagementPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
+                    <div className="flex gap-2 justify-end">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="outline"
+                          size="icon-sm"
+                          onClick={() => handleViewDetails(member.ACCOUNT_ID)}
+                        >
+                          <UserCheck className="h-4 w-4" />
                         </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleViewDetails(member.ACCOUNT_ID)}>
-                          <UserCheck className="h-4 w-4 mr-2" />
-                          Staff Details
-                        </DropdownMenuItem>
-                        {ACCOUNT_ID !== member.ACCOUNT_ID && <>
-                        <DropdownMenuItem onClick={() => handleViewAssignments(member.ACCOUNT_ID, member.NAME)}>
-                          <Briefcase className="h-4 w-4 mr-2" />
-                          View Assignments
-                        </DropdownMenuItem>
-                        {isAdmin && <DropdownMenuItem onClick={() => handlePromoteToAdmin(member.ACCOUNT_ID, member.NAME)}>
-                          <Shield className="h-4 w-4 mr-2" />
-                          Promote Staff
-                        </DropdownMenuItem>}
-                        </>}
-                        <DropdownMenuSeparator />
-
-                        <DropdownMenuItem 
-                          className="text-destructive"
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        View Staff Details
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="outline"
+                          size="icon-sm"
+                          onClick={() => handleViewAssignments(member.ACCOUNT_ID, member.NAME)}
+                        >
+                          <Briefcase className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        View Staff Assignments
+                      </TooltipContent>
+                    </Tooltip>
+                    {isAdmin && ACCOUNT_ID !== member.ACCOUNT_ID && (
+                      <>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="outline"
+                          size="icon-sm"
+                          onClick={() => handlePromoteToAdmin(member.ACCOUNT_ID, member.NAME)}
+                        >
+                          <Shield className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Promote to Admin
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="outline"
+                          size="icon-sm"
+                          className="bg-red-500/10 text-red-500 border-red-500 hover:bg-red-500/20 hover:text-red-500"
                           onClick={() => handleDeleteAccount(member.ACCOUNT_ID, member.NAME, member.EMAIL)}
                         >
-                          <UserX className="h-4 w-4 mr-2" />
-                          Delete Account
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          <UserX className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Delete Account
+                      </TooltipContent>
+                    </Tooltip>
+                    </>
+                    )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

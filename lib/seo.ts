@@ -20,9 +20,9 @@ export interface SEOConfig {
 }
 
 export const defaultSEO: SEOConfig = {
-  title: "App Template - Next.js Starter with Supabase Auth",
+  title: "CyberSafe Platform",
   description:
-    "A modern, production-ready Next.js template with Supabase authentication, TypeScript, Tailwind CSS, and comprehensive testing.",
+    "CyberSafe Platform - Empowering Cybercrime Reporting and Awareness",
   keywords: [
     "nextjs",
     "typescript",
@@ -34,10 +34,10 @@ export const defaultSEO: SEOConfig = {
     "react",
     "app router",
   ],
-  image: "/og-image.png",
+  image: "/logo_512.png",
   openGraph: {
     type: "website",
-    siteName: "App Template",
+    siteName: "CyberSafe Platform",
     locale: "en_US",
   },
   twitter: {

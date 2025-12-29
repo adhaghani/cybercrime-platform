@@ -104,7 +104,7 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
         </Button>
                 {hasManageAccess && (
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" asChild>
+            <Button variant="outline" size="icon-sm" asChild>
               <Link href={`/dashboard/announcement/${announcement.ANNOUNCEMENT_ID}/update`}>
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
@@ -112,7 +112,7 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
             </Button>
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="icon-sm">
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete
                 </Button>
