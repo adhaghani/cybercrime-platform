@@ -7,7 +7,6 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { useEffect, useState } from "react";
-
 type EmergencyContact = {
 	EMERGENCY_ID: number;
 	NAME: string;
