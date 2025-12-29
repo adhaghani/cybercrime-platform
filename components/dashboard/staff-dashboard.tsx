@@ -19,7 +19,6 @@ import {
 import Link from "next/link";
 import { Crime, Facility } from "@/lib/types";
 import { format } from "date-fns";
-
 interface StaffDashboardProps {
   stats: {
     totalCrime: number;
@@ -197,7 +196,6 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
           </CardContent>
         </Card>
       </div>
-
       {/* Recent Activity */}
       <div className="grid gap-6 md:grid-cols-3">
         <Card className="md:col-span-2">

@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2 } from "lucide-react";
@@ -35,6 +36,7 @@ export default function SubmitCrimeReportPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [evidenceImages, setEvidenceImages] = useState<string[]>([]);
+  const [hasDetails, setHasDetails] = useState(false);
   const {claims} = useAuth();
   const AccountID = claims?.ACCOUNT_ID;
 
@@ -192,13 +194,39 @@ export default function SubmitCrimeReportPage() {
                 )}
               />
 
+              <div className="space-y-2">
+                <FormLabel>Evidence Photos</FormLabel>
+                <ReportEvidenceUpload
+                  onUploadComplete={(paths) => setEvidenceImages(paths)}
+                  maxImages={5}
+                  disabled={isSubmitting}
+                />
+                <FormDescription>
+                  Upload up to 5 photos as evidence (max 10MB each)
+                </FormDescription>
+              </div>
+            </CardContent>
+          </Card>
+          <div>
+          <Switch checked={hasDetails} onCheckedChange={setHasDetails}  />
+          <span className="ml-2 font-medium">Add Additional Details (Optional)</span>
+          </div>
+          {hasDetails && <Card>
+            <CardHeader>
+              <CardTitle>Additional Details</CardTitle>
+              <CardDescription>
+                Provide any additional information that may help in the investigation.
+              </CardDescription>
+            </CardHeader>
+<CardContent className="space-y-6">
+
               <div className="grid gap-6 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="suspectDescription"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Suspect Description (Optional)</FormLabel>
+                      <FormLabel>Suspect Description</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Physical appearance, clothing, etc."
@@ -216,7 +244,7 @@ export default function SubmitCrimeReportPage() {
                   name="victimInvolved"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Victim Information (Optional)</FormLabel>
+                      <FormLabel>Victim Information</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Who was affected by this incident?"
@@ -236,7 +264,7 @@ export default function SubmitCrimeReportPage() {
                   name="weaponInvolved"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Weapon Involved (Optional)</FormLabel>
+                      <FormLabel>Weapon Involved</FormLabel>
                       <FormControl>
                         <Input placeholder="Description of any weapons used" {...field} />
                       </FormControl>
@@ -250,7 +278,7 @@ export default function SubmitCrimeReportPage() {
                   name="injuryLevel"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Injury Level (Optional)</FormLabel>
+                      <FormLabel>Injury Level</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -275,7 +303,7 @@ export default function SubmitCrimeReportPage() {
                 name="evidenceDetails"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Evidence Details (Optional)</FormLabel>
+                    <FormLabel>Evidence Details</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Description of any evidence (photos, videos, witnesses, etc.)"
@@ -288,20 +316,8 @@ export default function SubmitCrimeReportPage() {
                 )}
               />
 
-              <div className="space-y-2">
-                <FormLabel>Evidence Photos (Optional)</FormLabel>
-                <ReportEvidenceUpload
-                  onUploadComplete={(paths) => setEvidenceImages(paths)}
-                  maxImages={5}
-                  disabled={isSubmitting}
-                />
-                <FormDescription>
-                  Upload up to 5 photos as evidence (max 10MB each)
-                </FormDescription>
-              </div>
-            </CardContent>
-          </Card>
-
+</CardContent>
+          </Card>}
           <div className="flex justify-end gap-4">
             <Button type="button" variant="outline" onClick={() => router.back()}>
               Cancel

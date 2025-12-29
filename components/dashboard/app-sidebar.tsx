@@ -164,6 +164,11 @@ const getNavMainByRole = (role: string | undefined) => {
       title: "Team",
       url: "/dashboard/team/my-team",
       icon: Users,
+    },
+        {
+      title: "Statistics",
+      url: "/dashboard/statistic",
+      icon: Stars,
     }
   ];
 
@@ -261,7 +266,11 @@ const getNavMainByRole = (role: string | undefined) => {
         }
       ]
     },
-
+    {
+      title: "Statistics",
+      url: "/dashboard/statistic",
+      icon: Stars,
+    }
 
   ];
 
@@ -357,6 +366,11 @@ const getNavMainByRole = (role: string | undefined) => {
       url: "/dashboard/team",
       icon: Users,
     },
+        {
+      title: "Statistics",
+      url: "/dashboard/statistic",
+      icon: Stars,
+    }
 
 
   ];

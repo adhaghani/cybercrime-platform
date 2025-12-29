@@ -55,7 +55,7 @@ export default function DashboardPage() {
   // Handle null role - user not authenticated or role not set
   if (UserAccounType === null || loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="space-y-4">
         <Skeleton className="h-12 w-1/3 rounded-md" />
         <Skeleton className="h-8 w-1/2 rounded-md" />
         <Skeleton className="h-32 w-full rounded-md" />
@@ -81,8 +81,7 @@ export default function DashboardPage() {
       // Sort by priority
       const priorityOrder = { HIGH: 3, MEDIUM: 2, LOW: 1 };
       return priorityOrder[b.PRIORITY] - priorityOrder[a.PRIORITY];
-    })
-    .slice(0, 3); // Show top 3 announcements
+    });
 
   const stats = {
     totalCrime: crimeReports.length,

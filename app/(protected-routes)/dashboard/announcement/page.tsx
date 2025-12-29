@@ -30,13 +30,11 @@ import {
 } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton";
 import { Bell, Plus, Search, MoreVertical, Eye, Edit, Trash2, List } from "lucide-react";
-import {Tabs, TabsList, TabsTrigger, TabsContent} from "@/components/ui/tabs";
 import Link from "next/link";
 import { Announcement } from "@/lib/types";
 import { useHasAnyRole } from "@/hooks/use-user-role";
 import { useState, useEffect } from "react";
 import { PaginationControls } from "@/components/ui/pagination-controls";
-import AnnouncementCard from "@/components/announcement/announcementCard";
 import DeleteAnnouncementDialog from "@/components/announcement/deleteAnnouncementDialog";
 import { toast } from "sonner";
 import { generateMetadata } from "@/lib/seo";
@@ -49,7 +47,7 @@ export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [Page, setPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; id: string; title: string }>({ 
     open: false, 
     id: '', 
@@ -62,7 +60,7 @@ export default function AnnouncementsPage() {
       const response = await fetch('/api/announcements');
       if (!response.ok) throw new Error('Failed to fetch announcements');
       const data = await response.json();
-      setAnnouncements(data.announcements as Announcement[]);
+      setAnnouncements(data as Announcement[]);
     } catch (error) {
       console.error('Error fetching announcements:', error);
       toast.error('Failed to fetch announcements');
@@ -78,7 +76,7 @@ export default function AnnouncementsPage() {
   // Reset pagination when search changes
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
-    setPage(1);
+    setCurrentPage(1);
   };
 
   const handleDeleteClick = (id: string, title: string) => {
@@ -89,8 +87,9 @@ export default function AnnouncementsPage() {
     fetchAnnouncements();
   };
 
-  // Filter announcements based on search query
+  // Client-side filtering
   const filteredAnnouncements = announcements.filter((announcement) => {
+    if (!searchQuery) return true;
     const searchLower = searchQuery.toLowerCase();
     return (
       announcement.TITLE.toLowerCase().includes(searchLower) ||
@@ -100,9 +99,9 @@ export default function AnnouncementsPage() {
     );
   });
 
-  // Pagination logic
+  // Client-side pagination
   const totalPages = Math.ceil(filteredAnnouncements.length / ITEMS_PER_PAGE);
-  const startIndex = (Page - 1) * ITEMS_PER_PAGE;
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const paginatedAnnouncements = filteredAnnouncements.slice(startIndex, endIndex);
   
@@ -228,7 +227,7 @@ export default function AnnouncementsPage() {
         totalPages={totalPages}
         onPageChange={onPageChange}
         itemsPerPage={ITEMS_PER_PAGE}
-        totalItems={announcements.length}
+        totalItems={filteredAnnouncements.length}
       />
     )}
     </div>
@@ -278,57 +277,18 @@ export default function AnnouncementsPage() {
             </div>
           </div>
 
-      {filteredAnnouncements.length > 0 ? <Tabs defaultValue="TABLE">
-        <TabsList defaultValue={"TABLE"} className="w-fit mb-4 bg-secondary/50 rounded-full p-1">
-          <TabsTrigger 
-            value="TABLE"
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full"
-          >
-            Table View
-          </TabsTrigger>
-          <TabsTrigger 
-            value="CARD"
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full"
-          >
-            Card View
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="TABLE">
-            <Card>
+      {filteredAnnouncements.length > 0 ?           
+              <Card>
                 <CardContent>
                   <AnnouncementTable 
                     announcements={paginatedAnnouncements}
-                    currentPage={Page}
-                    onPageChange={setPage}
+                    currentPage={currentPage}
+                    onPageChange={setCurrentPage}
                     totalPages={totalPages}
                     />
                 </CardContent>
-            </Card>
-        </TabsContent>
-        <TabsContent value="CARD">
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {
-              paginatedAnnouncements.map((announcement) => (
-                <AnnouncementCard 
-                  key={announcement.ANNOUNCEMENT_ID} 
-                  announcement={announcement} 
-                />
-              ))
-            }
-          </div>
-          {totalPages > 1 && (
-            <div className="mt-6">
-              <PaginationControls
-                currentPage={Page}
-                totalPages={totalPages}
-                onPageChange={setPage}
-                itemsPerPage={ITEMS_PER_PAGE}
-                totalItems={filteredAnnouncements.length}
-              />
-            </div>
-          )}
-        </TabsContent>
-      </Tabs> : <Empty className="border border-dashed">
+            </Card>: 
+            <Empty className="border border-dashed">
       <EmptyHeader>
         <EmptyMedia variant="icon">
           <List />

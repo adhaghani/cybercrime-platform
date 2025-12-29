@@ -10,19 +10,12 @@ const router = express.Router();
 // GET /api/announcements
 router.get('/', optionalAuth, async (req, res) => {
   try {
-    const { page = 1, limit = 10 } = req.query;
-    const offset = (page - 1) * limit;
-
     const result = await exec(
-      `SELECT * FROM (
-         SELECT a.*, ROW_NUMBER() OVER (ORDER BY CREATED_AT DESC) rn
-         FROM ANNOUNCEMENT a
-       ) WHERE rn > :offset AND rn <= :endRow`,
-      { offset: parseInt(offset), endRow: parseInt(offset) + parseInt(limit) }
+      `SELECT * FROM ANNOUNCEMENT ORDER BY CREATED_AT DESC`
     );
 
     const announcements = toPlainRows(result.rows);
-    res.json({ announcements, totalAnnouncement : announcements.length });
+    res.json(announcements);
   } catch (err) {
     console.error('Get announcements error:', err);
     res.status(500).json({ error: 'Failed to get announcements', details: err.message });

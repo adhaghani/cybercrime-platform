@@ -10,6 +10,7 @@ import { UserGrowthLineChart } from '@/components/statistics/userGrowthLineChart
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { useHasAnyRole } from '@/hooks/use-user-role';
 
 interface StatisticsData {
   reportTypes: Array<{ name: string; value: number }>;
@@ -24,6 +25,11 @@ const StatisticsPage = () => {
   const [data, setData] = useState<StatisticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const hasAnyRole = useHasAnyRole();
+  const isAdmin = hasAnyRole(['ADMIN', 'SUPERADMIN']);
+  const isSupervisor = hasAnyRole(['SUPERVISOR']);
+
 
   useEffect(() => {
     const fetchStatistics = async () => {
@@ -92,7 +98,7 @@ const StatisticsPage = () => {
         <ReportStatusPieChart data={data.reportStatus} />
       </div>
       
-      <UserGrowthLineChart data={data.userGrowth} />
+      {isAdmin ? <UserGrowthLineChart data={data.userGrowth} /> : null}
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <CrimeReportCategoryPieChart data={data.crimeCategories} />

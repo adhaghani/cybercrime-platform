@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/input-group"
 import Link from "next/link"
 import { useAuth } from "@/lib/context/auth-provider"
+
 export function SiteHeader() {
   const { toggleSidebar } = useSidebar()
   const [open, setOpen] = useState(false)
@@ -43,47 +44,16 @@ export function SiteHeader() {
   const hasAnyRole = useHasAnyRole();
   const isAdmin = hasAnyRole(['ADMIN', 'SUPERADMIN']);
   const isSupervisor = hasAnyRole(['SUPERVISOR']);
-  const isStudent = hasAnyRole(['STUDENT']);
+    const { claims } = useAuth()
+    const user = {
+      NAME: (claims?.NAME as string) || "User",
+      EMAIL: claims?.EMAIL || "",
+      AVATAR_URL: (claims?.AVATAR_URL as string) || "/default-avatar.png",
+    };
+  const isStudent = claims?.ACCOUNT_TYPE === 'STUDENT';
 
   const determineCommandsItems = () => {
-    if(isStudent) {
-      return [
-        {
-          key: "dashboard",
-          heading: "Dashboard",
-          items: [
-            { key: "dashboard", label: "Dashboard", href: "/dashboard" }
-          ]
-        },
-        {
-          key: "emergency",
-          heading: "Emergency Services",
-          items: [
-            { key: "emergency", label: "Emergency Services", href: "/dashboard/emergency-services" }
-          ]
-        },
-        {
-          key: "crime",
-          heading: "Crime",
-          items: [
-            { key: "all-crime-reports", label: "All Crime Report", href: "/dashboard/crime/reports" },
-            { key: "submit-crime", label: "Report a Crime", href: "/dashboard/crime/submit-report" },
-            { key: "my-crime-reports", label: "My Crime Reports", href: "/dashboard/crime/my-reports" },
-          ]
-        },
-        {
-          key: "facility",
-          heading: "Facility",
-          items: [
-            { key: "all-facility-reports", label: "All Facility Reports", href: "/dashboard/facility/reports" },
-            { key: "submit-facility", label: "Submit Facility Report", href: "/dashboard/facility/submit-report" },
-            { key: "my-facility-reports", label: "My Facility Reports", href: "/dashboard/facility/my-reports" },
-          ]
-        }
-      ];
-    }
-    
-    const staffItems = [
+        const staffItems = [
       {
         key: "dashboard",
         heading: "Dashboard",
@@ -126,7 +96,43 @@ export function SiteHeader() {
       },
     ];
 
-    if (isAdmin) {
+    if(isStudent) {
+      return [
+        {
+          key: "dashboard",
+          heading: "Dashboard",
+          items: [
+            { key: "dashboard", label: "Dashboard", href: "/dashboard" }
+          ]
+        },
+        {
+          key: "emergency",
+          heading: "Emergency Services",
+          items: [
+            { key: "emergency", label: "Emergency Services", href: "/dashboard/emergency-services" }
+          ]
+        },
+        {
+          key: "crime",
+          heading: "Crime",
+          items: [
+            { key: "all-crime-reports", label: "All Crime Report", href: "/dashboard/crime/reports" },
+            { key: "submit-crime", label: "Report a Crime", href: "/dashboard/crime/submit-report" },
+            { key: "my-crime-reports", label: "My Crime Reports", href: "/dashboard/crime/my-reports" },
+          ]
+        },
+        {
+          key: "facility",
+          heading: "Facility",
+          items: [
+            { key: "all-facility-reports", label: "All Facility Reports", href: "/dashboard/facility/reports" },
+            { key: "submit-facility", label: "Submit Facility Report", href: "/dashboard/facility/submit-report" },
+            { key: "my-facility-reports", label: "My Facility Reports", href: "/dashboard/facility/my-reports" },
+          ]
+        }
+      ];
+    }
+        else if (isAdmin) {
       return [
         ...staffItems,
         {
@@ -150,7 +156,7 @@ export function SiteHeader() {
       ];
     }
     
-    if (isSupervisor) {
+    else if (isSupervisor) {
       return [
         ...staffItems,
         {
@@ -170,16 +176,11 @@ export function SiteHeader() {
         },
       ];
     }
-    
-    return staffItems;
-  }
+    else {
+      return staffItems;
+    }
 
-    const { claims } = useAuth()
-    const user = {
-      NAME: (claims?.NAME as string) || "User",
-      EMAIL: claims?.EMAIL || "",
-      AVATAR_URL: (claims?.AVATAR_URL as string) || "/default-avatar.png",
-    };
+  }
 
   return (
     <header className="bg-background sticky top-0 z-50 flex w-full items-center border-b">

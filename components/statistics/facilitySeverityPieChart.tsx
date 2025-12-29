@@ -58,7 +58,7 @@ export function FacilitySeverityPieChart({ data }: FacilitySeverityPieChartProps
   return (
     <Card className="flex flex-col">
       <CardHeader className="items-center pb-0">
-        <CardTitle>Facility Serverity BReakdown Chart</CardTitle>
+        <CardTitle>Facility Serverity Breakdown Chart</CardTitle>
         <CardDescription>for the past 30 days</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
