@@ -5,27 +5,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Search, LayoutGrid, Table2 } from "lucide-react";
+import { ArrowLeft, Search, LayoutGrid, Table2, Eye } from "lucide-react";
 import Link from "next/link";
 import StatusBadge from "@/components/ui/statusBadge";
 import FacilitySeverityBadge from "@/components/ui/facilitySeverityBadge";
 import { Facility, ReportStatus, SeverityLevel } from "@/lib/types";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 import ReportCard from "@/components/report/reportCard";
 import { generateMetadata } from "@/lib/seo";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 import { Skeleton } from "@/components/ui/loading";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function AllReportsPage() {
-  const ITEMS_PER_PAGE = 6;
-
   const [reports, setReports] = useState<Facility[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -33,7 +29,7 @@ export default function AllReportsPage() {
   const [severityFilter, setSeverityFilter] = useState<SeverityLevel | "ALL">("ALL");
   const [viewMode, setViewMode] = useState<"card" | "table">("card");
   const [page, setPage] = useState(1);
-
+  const ITEMS_PER_PAGE = viewMode === "card" ? 6 : 10;
   useEffect(() => {
     const fetchFacilityReports = async () => {
       try {
@@ -54,7 +50,21 @@ export default function AllReportsPage() {
     setPage(1);
   }, [searchQuery, statusFilter, severityFilter]);
 
-  const totalPages = Math.max(1, Math.ceil(reports.length / ITEMS_PER_PAGE));
+  const filteredReports = useMemo(() => {
+    return reports.filter((report) => {
+      const matchesSearch = 
+        searchQuery === "" ||
+        report.TITLE.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        report.LOCATION.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesStatus = statusFilter === "ALL" || report.STATUS === statusFilter;
+      const matchesSeverity = severityFilter === "ALL" || report.SEVERITY_LEVEL === severityFilter;
+
+      return matchesSearch && matchesStatus && matchesSeverity;
+    });
+  }, [reports, searchQuery, statusFilter, severityFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredReports.length / ITEMS_PER_PAGE));
 
   useEffect(() => {
     setPage((prev) => Math.min(Math.max(prev, 1), totalPages));
@@ -62,24 +72,8 @@ export default function AllReportsPage() {
 
   const paginatedReports = useMemo(() => {
     const start = (page - 1) * ITEMS_PER_PAGE;
-    return reports.slice(start, start + ITEMS_PER_PAGE);
-  }, [reports, page]);
-
-  const pageItems = useMemo(() => {
-    if (totalPages <= 7) {
-      return Array.from({ length: totalPages }, (_, i) => i + 1);
-    }
-
-    const items: Array<number | "ellipsis"> = [1];
-    const start = Math.max(2, page - 1);
-    const end = Math.min(totalPages - 1, page + 1);
-
-    if (start > 2) items.push("ellipsis");
-    for (let p = start; p <= end; p += 1) items.push(p);
-    if (end < totalPages - 1) items.push("ellipsis");
-    items.push(totalPages);
-    return items;
-  }, [page, totalPages]);
+    return filteredReports.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredReports, page, ITEMS_PER_PAGE]);
 
    if (loading) {
     return (
@@ -180,6 +174,11 @@ export default function AllReportsPage() {
         ))}
       </div>
       ) : (
+                <Card>
+          <CardHeader>
+            <CardTitle>Facility Reports ({filteredReports.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
@@ -205,66 +204,37 @@ export default function AllReportsPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end items-center gap-2">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/dashboard/facility/reports/${report.REPORT_ID}`}>
-                          View
-                        </Link>
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="outline" size="sm" asChild>
+                            <Link href={`/dashboard/facility/reports/${report.REPORT_ID}`}>
+                              <Eye className="h-4 w-4" />
+                            </Link>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>View Report</TooltipContent>
+                      </Tooltip>
                     </div>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-   
+             </CardContent>
+          </Card>
       )}
 
-      {reports.length > 0 && totalPages > 1 && (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setPage((p) => Math.max(1, p - 1));
-                }}
-              />
-            </PaginationItem>
-
-            {pageItems.map((item, idx) => (
-              <PaginationItem key={`${item}-${idx}`}>
-                {item === "ellipsis" ? (
-                  <PaginationEllipsis />
-                ) : (
-                  <PaginationLink
-                    href="#"
-                    isActive={item === page}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setPage(item);
-                    }}
-                  >
-                    {item}
-                  </PaginationLink>
-                )}
-              </PaginationItem>
-            ))}
-
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setPage((p) => Math.min(totalPages, p + 1));
-                }}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+      {filteredReports.length > 0 && totalPages > 1 && (
+        <PaginationControls 
+          currentPage={page} 
+          totalPages={totalPages} 
+          onPageChange={(p) => setPage(p)} 
+          itemsPerPage={ITEMS_PER_PAGE}
+          totalItems={filteredReports.length}
+        />
       )}
 
-      {reports.length === 0 && (
+      {filteredReports.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">
           No reports found matching your filters.
         </div>

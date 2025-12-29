@@ -340,9 +340,6 @@ export default function AllGeneratedReportsPage() {
                   </TableBody>
                 </Table>
               </div>
-
-              {/* Pagination */}
- 
             </>
           ) : (
             <div className="text-center py-12 text-muted-foreground">

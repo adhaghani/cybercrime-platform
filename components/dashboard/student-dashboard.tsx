@@ -7,11 +7,9 @@ import {
   ShieldAlert, 
   Wrench, 
   Phone, 
-  TrendingUp, 
   Clock,
   ArrowRight,
   MapPin,
-  Bell
 } from "lucide-react";
 import Link from "next/link";
 import { Crime, Facility } from "@/lib/types";
@@ -211,7 +209,7 @@ export function StudentDashboard({ stats, reports }: StudentDashboardProps) {
         </Card>
 
         {/* Quick Actions */}
-        <Card>
+        <Card className="h-fit">
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
             <CardDescription>Common tasks</CardDescription>
@@ -220,7 +218,7 @@ export function StudentDashboard({ stats, reports }: StudentDashboardProps) {
             <Button asChild variant="outline" className="w-full justify-start">
               <Link href="/dashboard/crime/submit-report">
                 <ShieldAlert className="h-4 w-4 mr-2" />
-                Report Crime
+                Report Crime Case
               </Link>
             </Button>
             <Button asChild variant="outline" className="w-full justify-start">

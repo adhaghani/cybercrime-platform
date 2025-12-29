@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 "use client";
 
@@ -62,11 +63,11 @@ export default function GenerateReportPage() {
         totalReports: filteredReports.length,
         byStatus: {
           pending: filteredReports.filter((r: { STATUS: string; }) => r.STATUS === "PENDING").length,
-          inProgress: filteredReports.filter(r => r.STATUS === "IN_PROGRESS").length,
-          resolved: filteredReports.filter(r => r.STATUS === "RESOLVED").length,
-          rejected: filteredReports.filter(r => r.STATUS === "REJECTED").length,
+          inProgress: filteredReports.filter((r: { STATUS: string; }) => r.STATUS === "IN_PROGRESS").length,
+          resolved: filteredReports.filter((r: { STATUS: string; }) => r.STATUS === "RESOLVED").length,
+          rejected: filteredReports.filter((r: { STATUS: string; }) => r.STATUS === "REJECTED").length,
         },
-        reports: filteredReports.map(r => ({
+        reports: filteredReports.map((r: { TITLE: any; LOCATION: any; STATUS: any; SUBMITTED_AT: any; TYPE: any; }) => ({
           title: r.TITLE,
           location: r.LOCATION,
           status: r.STATUS,
