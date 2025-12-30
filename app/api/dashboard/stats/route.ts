@@ -1,41 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { proxyToBackend } from '@/lib/api/proxy';
 
 /**
  * GET /api/dashboard/stats
  * Get dashboard statistics (total reports, pending, crimes, students, etc.)
+ * 
+ * Now proxies to OOP backend at /api/v2/dashboard/stats
  */
 
 export async function GET(request: NextRequest) {
-  try {
-    const token = request.cookies.get('auth_token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
-    }
-
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/stats`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
-    }
-
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('Get dashboard stats error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+  return proxyToBackend(request, {
+    path: '/dashboard/stats',
+    includeAuth: true,
+  });
 }

@@ -61,12 +61,19 @@ export default function CrimeReportsPage() {
   const fetchReports = async () => {
     try {
       const response = await fetch('/api/reports/with-details?type=CRIME');
-      if (response.ok) {
-        const data = await response.json();
-        setCrimeReports(data || []);
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        // Ensure data.data is an array
+        const reports = Array.isArray(data.data) ? data.data : [];
+        setCrimeReports(reports);
+      } else {
+        console.error('Error fetching crime reports:', data.error || 'Unknown error');
+        setCrimeReports([]);
       }
     } catch (error) {
       console.error('Failed to fetch crime reports:', error);
+      setCrimeReports([]);
     } finally {
       setLoading(false);
     }

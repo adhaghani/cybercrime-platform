@@ -59,7 +59,7 @@ export function ViewUserDetailDialog({ accountId, open, onOpenChange }: ViewUser
       }
       
       const data = await response.json();
-      setUser(data);
+      setUser(data.data);
     } catch (error) {
       console.error('Failed to fetch user details:', error);
       toast.error('Failed to load user details');

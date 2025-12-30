@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { proxyToBackend, setAuthCookie } from '@/lib/api/proxy';
 
 /**
  * POST /api/auth/login
  * Authenticate user with email and password
+ * Now proxies to OOP backend at /api/v2/auth/login
  */
 export async function POST(request: NextRequest) {
   try {
@@ -16,30 +18,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Forward request to backend
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+    // Proxy to new backend (pass the already-parsed body)
+    const response = await proxyToBackend(request, {
+      path: '/auth/login',
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      includeAuth: false,
+      body, // Pass the parsed body since we already consumed the request
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
+    // If successful, set auth cookie
+    if (response.status === 200) {
+      const data = await response.json();
+      if (data.token) {
+        const res = NextResponse.json(data);
+        return setAuthCookie(res, data.token);
+      }
     }
 
-    // Set HTTP-only cookie with token
-    const res = NextResponse.json(data);
-    res.cookies.set('auth_token', data.token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: '/',
-    });
-
-    return res;
+    return response;
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json(

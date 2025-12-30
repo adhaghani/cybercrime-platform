@@ -47,7 +47,7 @@ export default function AllUsersPage() {
         const response = await fetch('/api/accounts');
         if (!response.ok) throw new Error('Failed to fetch users');
         const data = await response.json();
-        setUsers(data);
+        setUsers(data.data);
       } catch (error) {
         console.error('Error fetching users:', error);
       } finally {

@@ -65,32 +65,32 @@ export function LoginForm({
     try {
       setIsLoading(true);
 
-      const { user } = await login({
+      const data = await login({
         email: value.email,
         password: value.password,
       });
-
+      console.log("[LoginForm] Login successful, user data:", data);
       // Set user claims  
       setClaims({
-        ACCOUNT_ID: user.ACCOUNT_ID,
-        EMAIL: user.EMAIL,
-        NAME: user.NAME,
-        CONTACT_NUMBER: user.CONTACT_NUMBER,
-        AVATAR_URL: user.AVATAR_URL,
-        ACCOUNT_TYPE: user.ACCOUNT_TYPE,
-        ...(( "STUDENT_ID" in user) ? {
-          STUDENT_ID: user.STUDENT_ID,
-          PROGRAM: user.PROGRAM,
-          SEMESTER: user.SEMESTER,
-          YEAR_OF_STUDY: user.YEAR_OF_STUDY,
+        ACCOUNT_ID: data.ACCOUNT_ID,
+        EMAIL: data.EMAIL,
+        NAME: data.NAME,
+        CONTACT_NUMBER: data.CONTACT_NUMBER,
+        AVATAR_URL: data.AVATAR_URL,
+        ACCOUNT_TYPE: data.ACCOUNT_TYPE,
+        ...(( "STUDENT_ID" in data) ? {
+          STUDENT_ID: data.STUDENT_ID,
+          PROGRAM: data.PROGRAM,
+          SEMESTER: data.SEMESTER,
+          YEAR_OF_STUDY: data.YEAR_OF_STUDY,
         } : {
-          STAFF_ID: user.STAFF_ID,
-          DEPARTMENT: user.DEPARTMENT,
-          POSITION: user.POSITION,
-          ROLE: user.ROLE,
+          STAFF_ID: data.STAFF_ID,
+          DEPARTMENT: data.DEPARTMENT,
+          POSITION: data.POSITION,
+          ROLE: data.ROLE,
         }),
-        CREATED_AT: user.CREATED_AT,
-        UPDATED_AT: user.UPDATED_AT,
+        CREATED_AT: data.CREATED_AT,
+        UPDATED_AT: data.UPDATED_AT,
       });
 
       // Get redirect URL from searchParams or default to dashboard

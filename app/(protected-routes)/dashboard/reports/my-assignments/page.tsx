@@ -64,7 +64,7 @@ export default function MyAssignmentsPage() {
         const assignmentsResponse = await fetch('/api/report-assignments/my-assignments');
         if (!assignmentsResponse.ok) throw new Error('Failed to fetch assignments');
         const assignments = await assignmentsResponse.json();
-        setReports(assignments);
+        setReports(assignments.data);
       } catch (error) {
         console.error('Error fetching assigned reports:', error);
       } finally {

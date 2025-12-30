@@ -56,7 +56,8 @@ export function ViewStudentReportDialog({
       }
       
       const data = await response.json();
-      setReports(data.reports || []);
+      // Handle both response formats (data.reports or data.data)
+      setReports(data.reports || data.data || []);
     } catch (error) {
       console.error('Failed to fetch reports:', error);
       toast.error('Failed to load student reports');

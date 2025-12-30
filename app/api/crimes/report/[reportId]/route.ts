@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { proxyToBackend, getPathParam } from '@/lib/api/proxy';
 
 /**
  * GET /api/crimes/report/[reportId]
@@ -9,116 +10,41 @@ import { NextRequest, NextResponse } from 'next/server';
  * 
  * DELETE /api/crimes/report/[reportId]
  * Delete crime record
+ * 
+ * Now proxies to OOP backend at /api/v2/crimes/report/:reportId
  */
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { reportId: string } }
 ) {
-  try {
-    const token = request.cookies.get('auth_token')?.value;
-    const { reportId } = params;
-
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/crimes/report/${reportId}`, {
-      method: 'GET',
-      headers: {
-        ...(token && { 'Authorization': `Bearer ${token}` }),
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
-    }
-
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('Get crime error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+  const reportId = await getPathParam(params, 'reportId');
+  return proxyToBackend(request, {
+    path: `/crimes/report/${reportId}`,
+    includeAuth: false, // Public endpoint, auth is optional
+  });
 }
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: { reportId: string } }
 ) {
-  try {
-    const token = request.cookies.get('auth_token')?.value;
-    const { reportId } = params;
-    const body = await request.json();
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
-    }
-
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/crimes/${reportId}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
-    }
-
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('Update crime error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+  const reportId = await getPathParam(params, 'reportId');
+  return proxyToBackend(request, {
+    path: `/crimes/report/${reportId}`,
+    method: 'PUT',
+    includeAuth: true,
+  });
 }
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { reportId: string } }
 ) {
-  try {
-    const token = request.cookies.get('auth_token')?.value;
-    const { reportId } = params;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
-    }
-
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/crimes/${reportId}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
-    }
-
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('Delete crime error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+  const reportId = await getPathParam(params, 'reportId');
+  return proxyToBackend(request, {
+    path: `/crimes/report/${reportId}`,
+    method: 'DELETE',
+    includeAuth: true,
+  });
 }

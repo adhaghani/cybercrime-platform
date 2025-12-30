@@ -1,48 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { proxyToBackend } from '@/lib/api/proxy';
 
 /**
  * GET /api/facilities/my-reports
  * Get facility reports submitted by the current authenticated user
  * Query params: status, severity_level, page, limit
+ * 
+ * Now proxies to OOP backend at /api/v2/facilities/my-reports
  */
 
 export async function GET(request: NextRequest) {
-  try {
-    const token = request.cookies.get('auth_token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
-    }
-
-    const { searchParams } = new URL(request.url);
-    const queryString = searchParams.toString();
-    const url = queryString 
-      ? `${process.env.NEXT_PUBLIC_API_URL}/api/facilities/my-reports?${queryString}`
-      : `${process.env.NEXT_PUBLIC_API_URL}/api/facilities/my-reports`;
-
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
-    }
-
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('Get my facility reports error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+  return proxyToBackend(request, {
+    path: '/facilities/my-reports',
+    includeAuth: true,
+  });
 }

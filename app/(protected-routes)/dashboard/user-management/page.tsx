@@ -30,9 +30,9 @@ export default function UserManagementPage() {
       if (response.ok) {
         const data = await response.json();
         setAccountCount({
-          totalAccounts: data.totalAccounts,
-          staffCount: data.staffCount,
-          studentCount: data.studentCount,
+          totalAccounts: data.data.totalAccounts,
+          staffCount: data.data.staffCount,
+          studentCount: data.data.studentCount,
         });
         setLoading(false);
       } else {

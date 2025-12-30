@@ -49,7 +49,7 @@ export default function AllGeneratedReportsPage() {
         const response = await fetch('/api/generated-reports');
         if (!response.ok) throw new Error('Failed to fetch generated reports');
         const data = await response.json();
-        setReports(data);
+        setReports(data.data);
       } catch (error) {
         console.error('Error fetching generated reports:', error);
       } finally {

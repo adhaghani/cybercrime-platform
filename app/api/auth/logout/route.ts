@@ -1,23 +1,23 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { proxyToBackend, clearAuthCookie } from '@/lib/api/proxy';
 
 /**
  * POST /api/auth/logout
  * Clear authentication token and log out user
+ * Now proxies to OOP backend at /api/v2/auth/logout
  */
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
-    const res = NextResponse.json({ message: 'Logged out successfully' });
-    
-    // Clear auth token cookie
-    res.cookies.set('auth_token', '', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 0,
-      path: '/',
+    // Call backend logout endpoint
+    await proxyToBackend(request, {
+      path: '/auth/logout',
+      method: 'POST',
+      includeAuth: true,
     });
 
-    return res;
+    // Clear auth cookie
+    const res = NextResponse.json({ message: 'Logged out successfully' });
+    return clearAuthCookie(res);
   } catch (error) {
     console.error('Logout error:', error);
     return NextResponse.json(

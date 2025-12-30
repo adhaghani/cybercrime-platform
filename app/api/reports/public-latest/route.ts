@@ -1,30 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { proxyToBackend } from '@/lib/api/proxy';
 
-export async function GET() {
-  try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    const url = `${apiUrl}/api/reports/public-latest`;
+/**
+ * GET /api/reports/public-latest
+ * Get latest public reports (no auth required)
+ */
 
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      cache: 'no-store',
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
-    }
-
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('Get public latest reports error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+export async function GET(request: NextRequest) {
+  return proxyToBackend(request, {
+    path: '/reports/public-latest',
+    includeAuth: false,
+  });
 }

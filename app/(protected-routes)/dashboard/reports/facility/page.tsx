@@ -64,18 +64,26 @@ export default function FacilityReportsPage() {
   const fetchReports = async () => {
     try {
       const response = await fetch('/api/reports/with-details?type=FACILITY');
-      if (response.ok) {
-        const data = await response.json();
-        setFacilityReports(data || []);
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        // Ensure data.data is an array
+        const reports = Array.isArray(data.data) ? data.data : [];
+        console.log('Fetched facility reports:', reports);
+        setFacilityReports(reports);
+      } else {
+        console.error('Error fetching facility reports:', data.error || 'Unknown error');
+        setFacilityReports([]);
       }
     } catch (error) {
       console.error('Failed to fetch facility reports:', error);
+      setFacilityReports([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredReports = facilityReports.filter((report) => {
+  const filteredReports = facilityReports.length > 0 ? facilityReports.filter((report) => {
     const matchesSearch = 
       report.TITLE.toLowerCase().includes(searchQuery.toLowerCase()) ||
       report.DESCRIPTION.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -86,7 +94,7 @@ export default function FacilityReportsPage() {
     const matchesSeverity = severityFilter === "ALL" || report.SEVERITY_LEVEL === severityFilter;
 
     return matchesSearch && matchesStatus && matchesType && matchesSeverity;
-  });
+  }) : [];
 
   // Pagination
   const totalPages = Math.ceil(filteredReports.length / ITEMS_PER_PAGE);

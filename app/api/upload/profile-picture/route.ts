@@ -1,58 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
-import { existsSync } from "fs";
+import { NextRequest } from 'next/server';
+import { proxyToBackend } from '@/lib/api/proxy';
+
+/**
+ * POST /api/upload/profile-picture
+ * Upload profile picture
+ * Expects multipart/form-data with 'file' and 'accountId'
+ * 
+ * Now proxies to OOP backend at /api/v2/upload/profile-picture
+ */
 
 export async function POST(request: NextRequest) {
-  try {
-    const formData = await request.formData();
-    const file = formData.get("file") as File;
-    const accountId = formData.get("accountId") as string;
-
-    if (!file) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
-    }
-
-    if (!accountId) {
-      return NextResponse.json(
-        { error: "Account ID is required" },
-        { status: 400 }
-      );
-    }
-
-    // Convert file to buffer
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    // Create upload directory if it doesn't exist
-    const uploadDir = join(process.cwd(), "public", "uploads", "profile-pictures");
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
-    }
-
-    // Generate unique filename
-    const timestamp = Date.now();
-    const fileName = `profile_${accountId}_${timestamp}.jpg`;
-    const filePath = join(uploadDir, fileName);
-
-    // Write file
-    await writeFile(filePath, buffer);
-
-    // Generate public URL
-    const publicPath = `/uploads/profile-pictures/${fileName}`;
-
-    // Return the path
-    return NextResponse.json({
-      success: true,
-      path: publicPath,
-      url: publicPath,
-      fileName: fileName,
-    });
-  } catch (error) {
-    console.error("Error uploading file:", error);
-    return NextResponse.json(
-      { error: "Failed to upload file" },
-      { status: 500 }
-    );
-  }
+  return proxyToBackend(request, {
+    path: '/upload/profile-picture',
+    method: 'POST',
+    includeAuth: true,
+  });
 }

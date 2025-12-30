@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { proxyToBackend } from '@/lib/api/proxy';
 
 /**
  * GET /api/announcements
@@ -6,72 +7,21 @@ import { NextRequest, NextResponse } from 'next/server';
  * 
  * POST /api/announcements
  * Create a new announcement
+ * 
+ * Now proxies to OOP backend at /api/v2/announcements
  */
 
 export async function GET(request: NextRequest) {
-  try {
-    const token = request.cookies.get('auth_token')?.value;
-
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/announcements`, {
-      method: 'GET',
-      headers: {
-        ...(token && { 'Authorization': `Bearer ${token}` }),
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
-    }
-
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('Get announcements error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+  return proxyToBackend(request, {
+    path: '/announcements',
+    includeAuth: true,
+  });
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    const token = request.cookies.get('auth_token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
-    }
-
-    const body = await request.json();
-    console.log('Next.js API route - Request body:', body);
-
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/announcements`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
-
-    const data = await response.json();
-    console.log('Backend response:', { status: response.status, data });
-
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
-    }
-
-    return NextResponse.json(data, { status: 201 });
-  } catch (error) {
-    console.error('Create announcement error in Next.js API route:', error);
-    return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    );
-  }
+  return proxyToBackend(request, {
+    path: '/announcements',
+    method: 'POST',
+    includeAuth: true,
+  });
 }

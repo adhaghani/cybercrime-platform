@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { proxyToBackend } from '@/lib/api/proxy';
 
 /**
  * POST /api/auth/register
  * Register a new user account
+ * Now proxies to OOP backend at /api/v2/auth/register
  */
 export async function POST(request: NextRequest) {
   try {
@@ -16,26 +18,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Forward request to backend
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/accounts`, {
+    // Proxy to new backend
+    return proxyToBackend(request, {
+      path: '/auth/register',
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        name, 
-        email, 
-        password, 
-        contact_number, 
-        account_type: account_type || 'STUDENT' 
-      }),
+      includeAuth: false,
     });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
-    }
-
-    return NextResponse.json(data, { status: 201 });
   } catch (error) {
     console.error('Registration error:', error);
     return NextResponse.json(

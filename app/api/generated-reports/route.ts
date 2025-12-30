@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { proxyToBackend } from '@/lib/api/proxy';
 
 /**
  * GET /api/generated-reports
@@ -6,77 +7,21 @@ import { NextRequest, NextResponse } from 'next/server';
  * 
  * POST /api/generated-reports
  * Create a new generated report
+ * 
+ * Now proxies to OOP backend at /api/v2/generated-reports
  */
 
 export async function GET(request: NextRequest) {
-  try {
-    const token = request.cookies.get('auth_token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
-    }
-
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/generated-reports`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
-    }
-
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('Get generated reports error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+  return proxyToBackend(request, {
+    path: '/generated-reports',
+    includeAuth: true,
+  });
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    const token = request.cookies.get('auth_token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
-    }
-
-    const body = await request.json();
-
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/generated-reports`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
-    }
-
-    return NextResponse.json(data, { status: 201 });
-  } catch (error) {
-    console.error('Create generated report error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+  return proxyToBackend(request, {
+    path: '/generated-reports',
+    method: 'POST',
+    includeAuth: true,
+  });
 }

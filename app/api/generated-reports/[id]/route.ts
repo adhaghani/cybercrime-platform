@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { proxyToBackend, getPathParam } from '@/lib/api/proxy';
 
 /**
  * GET /api/generated-reports/[id]
@@ -6,82 +7,29 @@ import { NextRequest, NextResponse } from 'next/server';
  * 
  * DELETE /api/generated-reports/[id]
  * Delete generated report
+ * 
+ * Now proxies to OOP backend at /api/v2/generated-reports/:id
  */
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  try {
-    const token = request.cookies.get('auth_token')?.value;
-    const { id } = params;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
-    }
-
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/generated-reports/${id}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
-    }
-
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('Get generated report error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+  const id = await getPathParam(params, 'id');
+  return proxyToBackend(request, {
+    path: `/generated-reports/${id}`,
+    includeAuth: true,
+  });
 }
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  try {
-    const token = request.cookies.get('auth_token')?.value;
-    const { id } = params;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
-    }
-
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/generated-reports/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
-    }
-
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('Delete generated report error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+  const id = await getPathParam(params, 'id');
+  return proxyToBackend(request, {
+    path: `/generated-reports/${id}`,
+    method: 'DELETE',
+    includeAuth: true,
+  });
 }

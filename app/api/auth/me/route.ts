@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { proxyToBackend, clearAuthCookie } from '@/lib/api/proxy';
 
 /**
  * GET /api/auth/me
  * Get current authenticated user profile
+ * Now proxies to OOP backend at /api/v2/auth/me
  */
 export async function GET(request: NextRequest) {
   try {
@@ -17,33 +19,22 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Forward request to backend with token
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+    // Proxy to new backend
+    const response = await proxyToBackend(request, {
+      path: '/auth/me',
+      includeAuth: true,
     });
-
-    const data = await response.json();
 
     console.log('[API /auth/me] Backend response status:', response.status);
 
-    if (!response.ok) {
-      // Clear invalid cookie
-      const errorResponse = NextResponse.json(data, { status: response.status });
-      errorResponse.cookies.set('auth_token', '', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 0,
-        path: '/',
-      });
-      return errorResponse;
+    // Clear cookie if unauthorized
+    if (response.status === 401) {
+      const data = await response.json();
+      const errorResponse = NextResponse.json(data, { status: 401 });
+      return clearAuthCookie(errorResponse);
     }
 
-    return NextResponse.json(data);
+    return response;
   } catch (error) {
     console.error('[API /auth/me] Error:', error);
     return NextResponse.json(

@@ -32,7 +32,7 @@ export default function DashboardPage() {
 
       if (reportsRes.ok) {
         const reportsData = await reportsRes.json();
-        setReports(reportsData.reports || []);
+        setReports(reportsData.data || []);
       }
       
       if (announcementsRes.ok) {

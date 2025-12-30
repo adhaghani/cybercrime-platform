@@ -405,12 +405,12 @@ npm init -y
     "emitDecoratorMetadata": true,
     "baseUrl": ".",
     "paths": {
-      "@models/*": ["src/models/*"],
+      "../models/*": ["src/models/*"],
       "@repositories/*": ["src/repositories/*"],
       "@services/*": ["src/services/*"],
       "@controllers/*": ["src/controllers/*"],
       "@middleware/*": ["src/middleware/*"],
-      "@utils/*": ["src/utils/*"],
+      "../utils/*": ["src/utils/*"],
       "@config/*": ["src/config/*"],
       "@types/*": ["src/types/*"]
     }
@@ -482,7 +482,7 @@ export interface IRepository<T> {
 **File: `src/repositories/base/BaseRepository.ts`**
 ```typescript
 import { Connection } from 'oracledb';
-import { DatabaseConnection } from '@utils/DatabaseConnection';
+import { DatabaseConnection } from '../utils/DatabaseConnection';
 import { IRepository } from './IRepository';
 
 export abstract class BaseRepository<T> implements IRepository<T> {
@@ -761,7 +761,7 @@ export class Account extends BaseModel {
 ```typescript
 import oracledb from 'oracledb';
 import { BaseRepository } from './base/BaseRepository';
-import { Account, AccountData } from '@models/Account';
+import { Account, AccountData } from '../models/Account';
 
 export class AccountRepository extends BaseRepository<Account> {
   constructor() {
@@ -875,9 +875,9 @@ export class AccountRepository extends BaseRepository<Account> {
 **File: `src/services/AuthService.ts`**
 ```typescript
 import bcrypt from 'bcryptjs';
-import { Account, AccountData } from '@models/Account';
-import { AccountRepository } from '@repositories/AccountRepository';
-import { JwtManager } from '@utils/JwtManager';
+import { Account, AccountData } from '../models/Account';
+import { AccountRepository } from '../repositories/AccountRepository';
+import { JwtManager } from '../utils/JwtManager';
 
 export interface RegisterDTO {
   name: string;
@@ -1032,7 +1032,7 @@ export class AuthService {
 **File: `src/controllers/AuthController.ts`**
 ```typescript
 import { Request, Response } from 'express';
-import { AuthService, RegisterDTO, LoginDTO } from '@services/AuthService';
+import { AuthService, RegisterDTO, LoginDTO } from '../services/AuthService';
 
 export class AuthController {
   private authService: AuthService;
@@ -1175,8 +1175,8 @@ export default router;
 
 **File: `src/services/ReportService.ts`**
 ```typescript
-import { Report, ReportData } from '@models/Report';
-import { ReportRepository } from '@repositories/ReportRepository';
+import { Report, ReportData } from '../models/Report';
+import { ReportRepository } from '../repositories/ReportRepository';
 import { AssignmentService } from './AssignmentService';
 import { NotificationService } from './NotificationService';
 
@@ -1347,14 +1347,14 @@ export class ReportService {
 
 **File: `tests/unit/services/AuthService.test.ts`**
 ```typescript
-import { AuthService } from '@services/AuthService';
-import { AccountRepository } from '@repositories/AccountRepository';
-import { JwtManager } from '@utils/JwtManager';
-import { Account } from '@models/Account';
+import { AuthService } from '../services/AuthService';
+import { AccountRepository } from '../repositories/AccountRepository';
+import { JwtManager } from '../utils/JwtManager';
+import { Account } from '../models/Account';
 
 // Mock dependencies
-jest.mock('@repositories/AccountRepository');
-jest.mock('@utils/JwtManager');
+jest.mock('../repositories/AccountRepository');
+jest.mock('../utils/JwtManager');
 
 describe('AuthService', () => {
   let authService: AuthService;
