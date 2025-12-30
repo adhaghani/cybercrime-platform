@@ -18,7 +18,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const id = await getPathParam(params, 'id');
+  const id = getPathParam(request, 'id');
   return proxyToBackend(request, {
     path: `/police/${id}`,
     includeAuth: false, // Public endpoint
@@ -29,7 +29,7 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const id = await getPathParam(params, 'id');
+  const id = getPathParam(request, 'id');
   return proxyToBackend(request, {
     path: `/police/${id}`,
     method: 'PUT',
@@ -41,7 +41,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const id = await getPathParam(params, 'id');
+  const id = getPathParam(request, 'id');
   return proxyToBackend(request, {
     path: `/police/${id}`,
     method: 'DELETE',

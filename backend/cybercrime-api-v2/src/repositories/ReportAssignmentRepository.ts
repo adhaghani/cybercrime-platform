@@ -201,7 +201,7 @@ export class ReportAssignmentRepository extends BaseRepository<ReportAssignment>
   async findByStaffId(accountId: number): Promise<any[]> {
     const sql = `
       SELECT ra.ASSIGNMENT_ID, ra.ACCOUNT_ID, ra.REPORT_ID, ra.ASSIGNED_AT, 
-             ra.ACTION_TAKEN, ra.ADDITIONAL_FEEDBACK,
+             ra.ACTION_TAKEN, ra.ADDITIONAL_FEEDBACK, ra.UPDATED_AT,
              r.TITLE as REPORT_TITLE, r.TYPE as REPORT_TYPE, r.STATUS as REPORT_STATUS
       FROM ${this.tableName} ra
       JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID

@@ -52,7 +52,7 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
         throw new Error('Failed to fetch report');
       }
       const data = await response.json();
-      setReport(data);
+      setReport(data.data);
     } catch (error) {
       console.error('Failed to fetch report:', error);
     } finally {

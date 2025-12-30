@@ -49,7 +49,7 @@ export class AuthMiddleware {
         return;
       }
 
-      const userRole = user.role || user.accountType;
+      const userRole = user.role || user.accountType || user.ROLE || user.ACCOUNT_TYPE;
 
       if (!allowedRoles.includes(userRole)) {
         res.status(403).json({ error: 'Insufficient permissions' });

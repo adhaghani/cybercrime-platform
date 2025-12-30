@@ -79,6 +79,7 @@ export class ReportRepository extends BaseRepository<Report> {
   }
 
   async findById(id: string | number): Promise<Report | null> {
+    // Get basic report with submitter info
     const sql = `
       SELECT r.*,
              a.NAME as SUBMITTER_NAME,
@@ -90,7 +91,64 @@ export class ReportRepository extends BaseRepository<Report> {
     const result: any = await this.execute(sql, { id });
     
     if (result.rows.length === 0) return null;
-    return this.toModel(result.rows[0]);
+    
+    const reportRow = result.rows[0];
+    const report = this.toModel(reportRow);
+
+    // Get type-specific details (CRIME or FACILITY)
+    if (reportRow.TYPE === 'CRIME') {
+      const crimeSql = `SELECT * FROM CRIME WHERE REPORT_ID = :id`;
+      const crimeResult: any = await this.execute(crimeSql, { id });
+      if (crimeResult.rows.length > 0) {
+        const crimeData = crimeResult.rows[0];
+        // Add crime-specific fields to report's extended data
+        Object.assign(report['_data'], {
+          CRIME_CATEGORY: crimeData.CRIME_CATEGORY,
+          SUSPECT_DESCRIPTION: crimeData.SUSPECT_DESCRIPTION,
+          VICTIM_INVOLVED: crimeData.VICTIM_INVOLVED,
+          WEAPON_INVOLVED: crimeData.WEAPON_INVOLVED,
+          INJURY_LEVEL: crimeData.INJURY_LEVEL,
+          EVIDENCE_DETAILS: crimeData.EVIDENCE_DETAILS
+        });
+      }
+    } else if (reportRow.TYPE === 'FACILITY') {
+      const facilitySql = `SELECT * FROM FACILITY WHERE REPORT_ID = :id`;
+      const facilityResult: any = await this.execute(facilitySql, { id });
+      if (facilityResult.rows.length > 0) {
+        const facilityData = facilityResult.rows[0];
+        // Add facility-specific fields to report's extended data
+        Object.assign(report['_data'], {
+          FACILITY_TYPE: facilityData.FACILITY_TYPE,
+          SEVERITY_LEVEL: facilityData.SEVERITY_LEVEL,
+          AFFECTED_EQUIPMENT: facilityData.AFFECTED_EQUIPMENT
+        });
+      }
+    }
+
+    // Get assignments with staff details
+    const assignmentsSql = `
+      SELECT 
+        RA.ASSIGNMENT_ID, RA.ACCOUNT_ID, RA.REPORT_ID, 
+        RA.ASSIGNED_AT, RA.ACTION_TAKEN, RA.ADDITIONAL_FEEDBACK, RA.UPDATED_AT,
+        A.NAME, A.EMAIL, A.CONTACT_NUMBER, A.ACCOUNT_TYPE,
+        S.STAFF_ID, S.ROLE, S.DEPARTMENT, S.POSITION
+      FROM REPORT_ASSIGNMENT RA
+      INNER JOIN ACCOUNT A ON RA.ACCOUNT_ID = A.ACCOUNT_ID
+      LEFT JOIN STAFF S ON A.ACCOUNT_ID = S.ACCOUNT_ID
+      WHERE RA.REPORT_ID = :id
+      ORDER BY RA.ASSIGNED_AT DESC
+    `;
+    const assignmentsResult: any = await this.execute(assignmentsSql, { id });
+    report['_data'].STAFF_ASSIGNED = assignmentsResult.rows;
+
+    // Get resolutions
+    const resolutionsSql = `
+      SELECT * FROM RESOLUTION WHERE REPORT_ID = :id ORDER BY RESOLVED_AT DESC
+    `;
+    const resolutionsResult: any = await this.execute(resolutionsSql, { id });
+    report['_data'].RESOLUTIONS = resolutionsResult.rows.length > 0 ? resolutionsResult.rows[0] : null;
+
+    return report;
   }
 
   async findBySubmitter(submitterId: number): Promise<Report[]> {

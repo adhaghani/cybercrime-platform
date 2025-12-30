@@ -34,7 +34,7 @@ export class ReportAssignmentController {
     try {
       const { staffId } = req.params;
       const assignments = await this.assignmentRepo.findByStaffId(Number(staffId));
-      res.status(200).json({ success: true, data: assignments });
+      res.status(200).json(assignments);
     } catch (error: any) {
       logger.error('Get assignments by staff error:', error);
       res.status(500).json({ success: false, error: error.message });
