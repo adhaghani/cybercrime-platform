@@ -1,3 +1,4 @@
+import 'express';
 import { JwtPayload } from '../utils/JwtManager';
 
 declare global {

@@ -40,15 +40,7 @@ export class ReportService {
     return await this.reportRepo.findByType(type);
   }
 
-  async createReport(reportData: {
-    REPORT_TYPE: ReportType;
-    TITLE: string;
-    DESCRIPTION: string;
-    INCIDENT_DATE: Date;
-    LOCATION?: string;
-    ANONYMOUS: boolean;
-    SUBMITTER_ID: number;
-  }): Promise<Report> {
+  async createReport(reportData: any): Promise<Report> {
     // Validate required fields
     if (!reportData.REPORT_TYPE || !reportData.TITLE || !reportData.DESCRIPTION) {
       throw new Error('Report type, title, and description are required');
@@ -77,7 +69,23 @@ export class ReportService {
       TYPE: reportData.REPORT_TYPE
     });
 
-    return await this.reportRepo.create(report);
+    // Create the report with crime/facility specific data
+    const crimeOrFacilityData = reportData.REPORT_TYPE === 'CRIME' 
+      ? {
+          CRIME_CATEGORY: reportData.CRIME_CATEGORY,
+          SUSPECT_DESCRIPTION: reportData.SUSPECT_DESCRIPTION,
+          VICTIM_INVOLVED: reportData.VICTIM_INVOLVED,
+          WEAPON_INVOLVED: reportData.WEAPON_INVOLVED,
+          INJURY_LEVEL: reportData.INJURY_LEVEL,
+          EVIDENCE_DETAILS: reportData.EVIDENCE_DETAILS
+        }
+      : {
+          FACILITY_TYPE: reportData.FACILITY_TYPE,
+          SEVERITY_LEVEL: reportData.SEVERITY_LEVEL,
+          AFFECTED_EQUIPMENT: reportData.AFFECTED_EQUIPMENT
+        };
+
+    return await this.reportRepo.create(report, crimeOrFacilityData);
   }
 
   async updateReport(id: number, updates: {
@@ -212,5 +220,9 @@ export class ReportService {
 
   async getReportsWithDetails(type: 'CRIME' | 'FACILITY'): Promise<any[]> {
     return await this.reportRepo.findReportsWithDetails(type);
+  }
+
+  async getUserReportsWithDetails(submitterId: number, type?: 'CRIME' | 'FACILITY'): Promise<any[]> {
+    return await this.reportRepo.findUserReportsWithDetails(submitterId, type);
   }
 }

@@ -47,7 +47,9 @@ export default function AllCrimeReportsPage() {
         const response = await fetch('/api/reports/with-details?type=CRIME');
         if (!response.ok) throw new Error('Failed to fetch reports');
         const data = await response.json();
-        setReports(data as Crime[]);
+        // Backend returns { success, data, reports } - extract the array
+        const reportsArray = Array.isArray(data?.data) ? data.data : Array.isArray(data?.reports) ? data.reports : Array.isArray(data) ? data : [];
+        setReports(reportsArray as Crime[]);
       } catch (error) {
         console.error('Error fetching crime reports:', error);
       } finally {

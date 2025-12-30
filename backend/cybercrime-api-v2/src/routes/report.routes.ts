@@ -50,6 +50,13 @@ router.get('/search', reportController.searchReports);
 router.get('/with-details', reportController.getReportsWithDetails);
 
 /**
+ * GET /api/v2/reports/my-reports
+ * Get all reports submitted by the current authenticated user
+ * Query params: type, status
+ */
+router.get('/my-reports', reportController.getMyReports);
+
+/**
  * GET /api/v2/reports/statistics
  * Get report statistics
  */

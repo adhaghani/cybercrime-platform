@@ -62,6 +62,46 @@ export class ReportController {
   };
 
   /**
+   * GET /api/v2/reports/my-reports
+   * Get all reports submitted by the current authenticated user
+   * Query params: type, status
+   */
+  getMyReports = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { type, status } = req.query;
+      const userId = req.user?.accountId;
+
+      if (!userId) {
+        res.status(401).json({ success: false, error: 'User not authenticated' });
+        return;
+      }
+
+      const submitterId = Number(userId);
+      
+      if (isNaN(submitterId)) {
+        res.status(400).json({ success: false, error: 'Invalid user ID' });
+        return;
+      }
+
+      // Get reports with type-specific details (CRIME_CATEGORY, FACILITY_TYPE, etc.)
+      const reports = await this.reportService.getUserReportsWithDetails(
+        submitterId, 
+        type ? (type as 'CRIME' | 'FACILITY') : undefined
+      );
+
+      // Filter by status if provided
+      let filteredReports = reports;
+      if (status) {
+        filteredReports = reports.filter(r => r.STATUS === status);
+      }
+
+      res.status(200).json({ success: true, data: filteredReports, reports: filteredReports });
+    } catch (error: any) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  };
+
+  /**
    * GET /api/v2/reports/status/:status
    * Get all reports with a specific status
    */

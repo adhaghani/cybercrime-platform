@@ -61,8 +61,11 @@ export class PoliceController {
     try {
       const { campus, state, address, phone, hotline, email, operating_hours } = req.body;
 
+      logger.info(`Creating police station with data: ${JSON.stringify({ campus, state, address, phone, hotline, email, operating_hours })}`);
+
       // Validate required fields
       if (!campus || !state || !address || !phone || !hotline) {
+        logger.warn(`Missing required fields: campus=${campus}, state=${state}, address=${address}, phone=${phone}, hotline=${hotline}`);
         res.status(400).json({
           error: 'Campus, state, address, phone, and hotline are required'
         });
@@ -78,6 +81,8 @@ export class PoliceController {
         EMAIL: email,
         OPERATING_HOURS: operating_hours
       });
+
+      logger.info(`Police station created successfully: ${policeStation.getId()}`);
 
       res.status(201).json({
         message: 'Police station created successfully',

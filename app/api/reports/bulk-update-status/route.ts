@@ -14,11 +14,3 @@ export async function PUT(request: NextRequest) {
     includeAuth: true,
   });
 }
-  } catch (error) {
-    console.error('Bulk update report status error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}

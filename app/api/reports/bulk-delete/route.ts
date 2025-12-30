@@ -14,11 +14,3 @@ export async function DELETE(request: NextRequest) {
     includeAuth: true,
   });
 }
-  } catch (error) {
-    console.error('Bulk delete reports error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}

@@ -69,23 +69,28 @@ export default function SubmitCrimeReportPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          type: 'CRIME',
-          status: 'PENDING',
-          title: data.title,
-          description: data.description,
-          location: data.location,
-          crime_category: data.crimeCategory,
-          suspect_description: data.suspectDescription || null,
-          victim_involved: data.victimInvolved || null,
-          weapon_involved: data.weaponInvolved || null,
-          injury_level: data.injuryLevel === "" ? null : data.injuryLevel,
-          evidence_details: data.evidenceDetails || null,
-          attachment_path: evidenceImages.length > 0 ? JSON.stringify(evidenceImages) : null,
-          submitted_by: AccountID,
+          REPORT_TYPE: 'CRIME',
+          TITLE: data.title,
+          DESCRIPTION: data.description,
+          LOCATION: data.location,
+          INCIDENT_DATE: new Date().toISOString(),
+          SUBMITTER_ID: AccountID,
+          STATUS: 'PENDING',
+          TYPE: 'CRIME',
+          CRIME_CATEGORY: data.crimeCategory,
+          SUSPECT_DESCRIPTION: data.suspectDescription || null,
+          VICTIM_INVOLVED: data.victimInvolved || null,
+          WEAPON_INVOLVED: data.weaponInvolved || null,
+          INJURY_LEVEL: data.injuryLevel === "" ? null : data.injuryLevel,
+          EVIDENCE_DETAILS: data.evidenceDetails || null,
+          EVIDENCE_PATH: evidenceImages.length > 0 ? JSON.stringify(evidenceImages) : null,
         }),
       });
       
-      if (!response.ok) throw new Error('Failed to submit report');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to submit report');
+      }
       
       toast.success("Crime report submitted successfully!");
       router.push("/dashboard/crime/my-reports");

@@ -36,7 +36,7 @@ import {
   ShieldAlert,
   Wrench,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { Crime, Facility, ReportWithAssignedStaffDetails } from "@/lib/types";
 import { format } from "date-fns";
 import StatusBadge from "@/components/ui/statusBadge";
@@ -52,7 +52,8 @@ import {
 } from "@/components/ui/alert";
 import { generateMetadata } from "@/lib/seo";
 
-export default function ReportDetailsPage({ params }: { params: { id: string } }) {
+export default async function ReportDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
   const searchParams = useSearchParams();
   const showAssignDialog = searchParams.get("action") === "assign";
   const { claims } = useAuth();
@@ -64,7 +65,7 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
 
   const fetchReport = async () => {
     try {
-      const response = await fetch(`/api/reports/${params.id}`);
+      const response = await fetch(`/api/reports/${resolvedParams.id}`);
       if (!response.ok) {
         if (response.status === 404) {
           setReport(null);
@@ -102,7 +103,7 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
 
   useEffect(() => {
     fetchReport();
-  }, [params.id]);
+  }, [(await params).id]);
   
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(showAssignDialog);
   const [isResolveDialogOpen, setIsResolveDialogOpen] = useState(false);

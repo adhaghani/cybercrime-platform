@@ -61,47 +61,51 @@ export class PoliceRepository extends BaseRepository<Police> {
    * Create new police station (with emergency info)
    */
   async create(police: Police): Promise<Police> {
-    // First, insert into EMERGENCY_INFO
-    const emergencySql = `
-      INSERT INTO EMERGENCY_INFO (
-        EMERGENCY_ID, STATE, ADDRESS, PHONE, HOTLINE, EMAIL, 
-        TYPE, CREATED_AT, UPDATED_AT
-      ) VALUES (
-        emergency_seq.NEXTVAL, :state, :address, :phone, :hotline, :email,
-        'Police', SYSTIMESTAMP, SYSTIMESTAMP
-      ) RETURNING EMERGENCY_ID INTO :id
-    `;
+    try {
+      // First, insert into EMERGENCY_INFO with autoCommit: true to ensure it's committed
+      const emergencySql = `
+        INSERT INTO EMERGENCY_INFO (
+          EMERGENCY_ID, STATE, ADDRESS, PHONE, HOTLINE, EMAIL, 
+          TYPE, CREATED_AT, UPDATED_AT
+        ) VALUES (
+          emergency_seq.NEXTVAL, :state, :address, :phone, :hotline, :email,
+          'Police', SYSTIMESTAMP, SYSTIMESTAMP
+        ) RETURNING EMERGENCY_ID INTO :id
+      `;
 
-    const emergencyBinds = {
-      state: police.getState(),
-      address: police.getAddress(),
-      phone: police.getPhone(),
-      hotline: police.getHotline(),
-      email: police.getEmail() || null,
-      id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
-    };
+      const emergencyBinds = {
+        state: police.getState(),
+        address: police.getAddress(),
+        phone: police.getPhone(),
+        hotline: police.getHotline(),
+        email: police.getEmail() || null,
+        id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
+      };
 
-    const emergencyResult: any = await this.execute(emergencySql, emergencyBinds, { autoCommit: false });
-    const emergencyId = emergencyResult.outBinds.id[0];
+      const emergencyResult: any = await this.execute(emergencySql, emergencyBinds, { autoCommit: true });
+      const emergencyId = emergencyResult.outBinds.id[0];
 
-    // Then, insert into UITM_AUXILIARY_POLICE
-    const policeSql = `
-      INSERT INTO UITM_AUXILIARY_POLICE (
-        EMERGENCY_ID, CAMPUS, OPERATING_HOURS
-      ) VALUES (
-        :emergency_id, :campus, :operating_hours
-      )
-    `;
+      // Then, insert into UITM_AUXILIARY_POLICE
+      const policeSql = `
+        INSERT INTO UITM_AUXILIARY_POLICE (
+          EMERGENCY_ID, CAMPUS, OPERATING_HOURS
+        ) VALUES (
+          :emergency_id, :campus, :operating_hours
+        )
+      `;
 
-    const policeBinds = {
-      emergency_id: emergencyId,
-      campus: police.getCampus(),
-      operating_hours: police.getOperatingHours()
-    };
+      const policeBinds = {
+        emergency_id: emergencyId,
+        campus: police.getCampus(),
+        operating_hours: police.getOperatingHours()
+      };
 
-    await this.execute(policeSql, policeBinds, { autoCommit: true });
+      await this.execute(policeSql, policeBinds, { autoCommit: true });
 
-    return this.findById(emergencyId) as Promise<Police>;
+      return this.findById(emergencyId) as Promise<Police>;
+    } catch (error) {
+      throw error;
+    }
   }
 
   /**

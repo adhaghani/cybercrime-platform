@@ -180,7 +180,7 @@ export class ReportRepository extends BaseRepository<Report> {
     return updated;
   }
 
-  async create(report: Report): Promise<Report> {
+  async create(report: Report, crimeOrFacilityData?: any): Promise<Report> {
     const sql = `
       INSERT INTO ${this.tableName} (
         REPORT_ID, SUBMITTED_BY, TITLE, DESCRIPTION, LOCATION, 
@@ -203,6 +203,63 @@ export class ReportRepository extends BaseRepository<Report> {
 
     const result: any = await this.execute(sql, binds, { autoCommit: true });
     const newId = result.outBinds.id[0];
+
+    // Create crime or facility specific record if provided
+    if (crimeOrFacilityData) {
+      if (report.getType() === 'CRIME') {
+        // Use MERGE to handle duplicate inserts gracefully (idempotent operation)
+        const crimeSql = `
+          MERGE INTO CRIME c
+          USING (SELECT :reportId as REPORT_ID FROM dual) src
+          ON (c.REPORT_ID = src.REPORT_ID)
+          WHEN NOT MATCHED THEN
+            INSERT (REPORT_ID, CRIME_CATEGORY, SUSPECT_DESCRIPTION, 
+                    VICTIM_INVOLVED, WEAPON_INVOLVED, INJURY_LEVEL, EVIDENCE_DETAILS)
+            VALUES (:reportId, :crimeCategory, :suspectDescription,
+                    :victimInvolved, :weaponInvolved, :injuryLevel, :evidenceDetails)
+          WHEN MATCHED THEN
+            UPDATE SET 
+              CRIME_CATEGORY = :crimeCategory,
+              SUSPECT_DESCRIPTION = :suspectDescription,
+              VICTIM_INVOLVED = :victimInvolved,
+              WEAPON_INVOLVED = :weaponInvolved,
+              INJURY_LEVEL = :injuryLevel,
+              EVIDENCE_DETAILS = :evidenceDetails
+        `;
+        const crimeBinds = {
+          reportId: newId,
+          crimeCategory: crimeOrFacilityData.CRIME_CATEGORY || null,
+          suspectDescription: crimeOrFacilityData.SUSPECT_DESCRIPTION || null,
+          victimInvolved: crimeOrFacilityData.VICTIM_INVOLVED || null,
+          weaponInvolved: crimeOrFacilityData.WEAPON_INVOLVED || null,
+          injuryLevel: crimeOrFacilityData.INJURY_LEVEL || null,
+          evidenceDetails: crimeOrFacilityData.EVIDENCE_DETAILS || null
+        };
+        await this.execute(crimeSql, crimeBinds, { autoCommit: true });
+      } else if (report.getType() === 'FACILITY') {
+        // Use MERGE to handle duplicate inserts gracefully (idempotent operation)
+        const facilitySql = `
+          MERGE INTO FACILITY f
+          USING (SELECT :reportId as REPORT_ID FROM dual) src
+          ON (f.REPORT_ID = src.REPORT_ID)
+          WHEN NOT MATCHED THEN
+            INSERT (REPORT_ID, FACILITY_TYPE, SEVERITY_LEVEL, AFFECTED_EQUIPMENT)
+            VALUES (:reportId, :facilityType, :severityLevel, :affectedEquipment)
+          WHEN MATCHED THEN
+            UPDATE SET 
+              FACILITY_TYPE = :facilityType,
+              SEVERITY_LEVEL = :severityLevel,
+              AFFECTED_EQUIPMENT = :affectedEquipment
+        `;
+        const facilityBinds = {
+          reportId: newId,
+          facilityType: crimeOrFacilityData.FACILITY_TYPE || null,
+          severityLevel: crimeOrFacilityData.SEVERITY_LEVEL || null,
+          affectedEquipment: crimeOrFacilityData.AFFECTED_EQUIPMENT || null
+        };
+        await this.execute(facilitySql, facilityBinds, { autoCommit: true });
+      }
+    }
 
     const created = await this.findById(newId);
     if (!created) {
@@ -344,6 +401,65 @@ export class ReportRepository extends BaseRepository<Report> {
         FROM REPORT R
         LEFT JOIN FACILITY F ON R.REPORT_ID = F.REPORT_ID
         WHERE R.TYPE = :type
+        ORDER BY R.SUBMITTED_AT DESC
+      `;
+    }
+
+    const result: any = await this.execute(sql, binds);
+    return result.rows;
+  }
+
+  /**
+   * Find user's reports with type-specific details
+   */
+  async findUserReportsWithDetails(submitterId: number, type?: 'CRIME' | 'FACILITY'): Promise<any[]> {
+    let sql: string;
+    const binds: any = { submitterId };
+
+    if (type === 'CRIME') {
+      sql = `
+        SELECT 
+          TO_NUMBER(R.REPORT_ID) as REPORT_ID, 
+          TO_NUMBER(R.SUBMITTED_BY) as SUBMITTED_BY, 
+          R.TITLE, R.DESCRIPTION, R.LOCATION, 
+          R.STATUS, R.TYPE, R.SUBMITTED_AT, R.UPDATED_AT, R.ATTACHMENT_PATH,
+          C.CRIME_CATEGORY, C.SUSPECT_DESCRIPTION, C.VICTIM_INVOLVED,
+          C.WEAPON_INVOLVED, C.INJURY_LEVEL, C.EVIDENCE_DETAILS
+        FROM REPORT R
+        LEFT JOIN CRIME C ON R.REPORT_ID = C.REPORT_ID
+        WHERE R.SUBMITTED_BY = :submitterId AND R.TYPE = :type
+        ORDER BY R.SUBMITTED_AT DESC
+      `;
+      binds.type = type;
+    } else if (type === 'FACILITY') {
+      sql = `
+        SELECT 
+          TO_NUMBER(R.REPORT_ID) as REPORT_ID, 
+          TO_NUMBER(R.SUBMITTED_BY) as SUBMITTED_BY, 
+          R.TITLE, R.DESCRIPTION, R.LOCATION,
+          R.STATUS, R.TYPE, R.SUBMITTED_AT, R.UPDATED_AT, R.ATTACHMENT_PATH,
+          F.FACILITY_TYPE, F.SEVERITY_LEVEL, F.AFFECTED_EQUIPMENT
+        FROM REPORT R
+        LEFT JOIN FACILITY F ON R.REPORT_ID = F.REPORT_ID
+        WHERE R.SUBMITTED_BY = :submitterId AND R.TYPE = :type
+        ORDER BY R.SUBMITTED_AT DESC
+      `;
+      binds.type = type;
+    } else {
+      // Get all user's reports with details
+      sql = `
+        SELECT 
+          TO_NUMBER(R.REPORT_ID) as REPORT_ID, 
+          TO_NUMBER(R.SUBMITTED_BY) as SUBMITTED_BY, 
+          R.TITLE, R.DESCRIPTION, R.LOCATION, 
+          R.STATUS, R.TYPE, R.SUBMITTED_AT, R.UPDATED_AT, R.ATTACHMENT_PATH,
+          C.CRIME_CATEGORY, C.SUSPECT_DESCRIPTION, C.VICTIM_INVOLVED,
+          C.WEAPON_INVOLVED, C.INJURY_LEVEL, C.EVIDENCE_DETAILS,
+          F.FACILITY_TYPE, F.SEVERITY_LEVEL, F.AFFECTED_EQUIPMENT
+        FROM REPORT R
+        LEFT JOIN CRIME C ON R.REPORT_ID = C.REPORT_ID AND R.TYPE = 'CRIME'
+        LEFT JOIN FACILITY F ON R.REPORT_ID = F.REPORT_ID AND R.TYPE = 'FACILITY'
+        WHERE R.SUBMITTED_BY = :submitterId
         ORDER BY R.SUBMITTED_AT DESC
       `;
     }

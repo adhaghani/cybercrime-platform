@@ -1,5 +1,6 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import * as path from 'path';
 import { config } from './config/app.config';
 import { DatabaseConnection } from './utils/DatabaseConnection';
 import { ErrorHandler } from './middleware/ErrorHandler';
@@ -28,6 +29,10 @@ export class App {
     // Body parsing
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
+
+    // Static file serving for uploads
+    const uploadsPath = path.join(process.cwd(), 'public/uploads');
+    this.app.use('/uploads', express.static(uploadsPath));
 
     // Request logging
     this.app.use((req: Request, res: Response, next: NextFunction) => {

@@ -8,9 +8,9 @@ export const config = {
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
   
   database: {
-    user: process.env.DB_USER || 'PDBADMIN',
-    password: process.env.DB_PASSWORD || 'PDBADMIN',
-    connectString: process.env.DB_CONNECT_STRING || 'localhost:1521/CYBERCRIME',
+    user: process.env.DB_USER || 'CC_APP',
+    password: process.env.DB_PASSWORD || 'CC_APP',
+    connectString: process.env.DB_CONNECT_STRING || 'localhost:1522/FREEPDB1',
     poolMin: parseInt(process.env.DB_POOL_MIN || '2'),
     poolMax: parseInt(process.env.DB_POOL_MAX || '10'),
     poolIncrement: parseInt(process.env.DB_POOL_INCREMENT || '1'),

@@ -55,20 +55,25 @@ export default function SubmitReportPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          type: 'FACILITY',
-          status: 'PENDING',
-          title: data.title,
-          description: data.description,
-          location: data.location,
-          facility_type: data.facilityType,
-          severity_level: data.severityLevel,
-          affected_equipment: data.affectedEquipment,
-          attachment_path: evidenceImages.length > 0 ? JSON.stringify(evidenceImages) : null,
-          submitted_by: AccountID,
+          REPORT_TYPE: 'FACILITY',
+          TITLE: data.title,
+          DESCRIPTION: data.description,
+          LOCATION: data.location,
+          INCIDENT_DATE: new Date().toISOString(),
+          SUBMITTER_ID: AccountID,
+          STATUS: 'PENDING',
+          TYPE: 'FACILITY',
+          FACILITY_TYPE: data.facilityType,
+          SEVERITY_LEVEL: data.severityLevel,
+          AFFECTED_EQUIPMENT: data.affectedEquipment,
+          EVIDENCE_PATH: evidenceImages.length > 0 ? JSON.stringify(evidenceImages) : null,
         }),
       });
       
-      if (!response.ok) throw new Error('Failed to submit report');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to submit report');
+      }
       
       toast.success("Report submitted successfully!");
       router.push("/dashboard/facility/my-reports");

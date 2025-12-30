@@ -12,6 +12,7 @@ import crimeRoutes from './crime.routes';
 import facilityRoutes from './facility.routes';
 import teamRoutes from './team.routes';
 import policeRoutes from './police.routes';
+import uploadRoutes from './upload.routes';
 
 const router = Router();
 
@@ -29,6 +30,7 @@ router.use('/crimes', crimeRoutes);
 router.use('/facilities', facilityRoutes);
 router.use('/teams', teamRoutes);
 router.use('/police', policeRoutes);
+router.use('/upload', uploadRoutes);
 
 // Health check
 router.get('/health', (req, res) => {

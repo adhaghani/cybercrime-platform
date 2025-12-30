@@ -36,7 +36,9 @@ export default function AllReportsPage() {
         const response = await fetch('/api/reports/with-details?type=FACILITY');
         if (!response.ok) throw new Error('Failed to fetch reports');
         const data = await response.json();
-        setReports(data as Facility[]);
+        // Backend returns { success, data, reports } - extract the array
+        const reportsArray = Array.isArray(data?.data) ? data.data : Array.isArray(data?.reports) ? data.reports : Array.isArray(data) ? data : [];
+        setReports(reportsArray as Facility[]);
       } catch (error) {
         console.error('Error fetching facility reports:', error);
       } finally {

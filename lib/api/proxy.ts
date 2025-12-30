@@ -57,26 +57,44 @@ export async function proxyToBackend(
 
     // Prepare headers
     const requestHeaders: Record<string, string> = {
-      'Content-Type': 'application/json',
       ...customHeaders,
     };
-
+    
+    // Get content type from request
+    const contentType = request.headers.get('content-type');
+    
+    // Only set Content-Type to JSON if not multipart and no custom content-type
+    if (!contentType?.includes('multipart/form-data') && !customHeaders['Content-Type']) {
+      requestHeaders['Content-Type'] = 'application/json';
+    }
+    // If there's a content-type in the original request (like multipart), don't override it
+    // The fetch API will handle it correctly
+    
     // Add auth token if available and requested
     if (includeAuth && token) {
       requestHeaders['Authorization'] = `Bearer ${token}`;
     }
 
     // Prepare request body
-    let body: string | undefined;
+    let body: string | Blob | undefined;
     if (['POST', 'PUT', 'PATCH'].includes(method.toUpperCase())) {
-      // Use provided body if available, otherwise read from request
-      const requestBody = providedBody !== undefined 
-        ? providedBody 
-        : await request.json().catch(() => ({}));
-      const transformedBody = transformRequest
-        ? transformRequest(requestBody)
-        : requestBody;
-      body = JSON.stringify(transformedBody);
+      // For multipart/form-data (file uploads), we need to preserve the form structure
+      if (contentType?.includes('multipart/form-data')) {
+        // Get the raw body as buffer and create a new request with the same content-type
+        const buffer = await request.arrayBuffer();
+        body = new Blob([buffer], { type: contentType });
+        // Set the proper content-type header with boundary from original request
+        requestHeaders['Content-Type'] = contentType;
+      } else {
+        // Use provided body if available, otherwise read from request
+        const requestBody = providedBody !== undefined 
+          ? providedBody 
+          : await request.json().catch(() => ({}));
+        const transformedBody = transformRequest
+          ? transformRequest(requestBody)
+          : requestBody;
+        body = JSON.stringify(transformedBody);
+      }
     }
 
     // Make request to backend
@@ -87,10 +105,10 @@ export async function proxyToBackend(
     });
 
     // Parse response
-    const contentType = response.headers.get('content-type');
+    const responseContentType = response.headers.get('content-type');
     let data: any;
 
-    if (contentType?.includes('application/json')) {
+    if (responseContentType?.includes('application/json')) {
       data = await response.json();
     } else {
       data = await response.text();
