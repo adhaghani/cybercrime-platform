@@ -11,8 +11,8 @@ export interface StaffData extends AccountData {
 }
 
 export class Staff extends Account {
-  constructor(data: StaffData) {
-    super(data);
+  constructor(data: StaffData, skipValidation: boolean = false) {
+    super(data, skipValidation);
   }
 
   protected validate(): void {

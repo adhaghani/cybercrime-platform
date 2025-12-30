@@ -15,8 +15,8 @@ export interface AccountData {
 }
 
 export class Account extends BaseModel {
-  constructor(data: AccountData) {
-    super(data);
+  constructor(data: AccountData, skipValidation: boolean = false) {
+    super(data, skipValidation);
   }
 
   protected validate(): void {

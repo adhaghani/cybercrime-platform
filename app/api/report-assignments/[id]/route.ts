@@ -13,9 +13,10 @@ import { proxyToBackend, getPathParam } from '@/lib/api/proxy';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const id = await getPathParam(params, 'id');
+  const resolvedParams = await params;
+  const id = resolvedParams.id;
   return proxyToBackend(request, {
     path: `/report-assignments/${id}`,
     method: 'PUT',
@@ -25,9 +26,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const id = await getPathParam(params, 'id');
+  const resolvedParams = await params;
+  const id = resolvedParams.id;
   return proxyToBackend(request, {
     path: `/report-assignments/${id}`,
     method: 'DELETE',

@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useIsAdmin } from '@/hooks/use-user-role';
 import { toast } from 'sonner';
 import { Loader2, ShieldCheck, AlertTriangle } from 'lucide-react';
 
@@ -16,18 +17,25 @@ interface PromoteStaffDialogProps {
   onSuccess?: () => void;
 }
 
-export function PromoteStaffDialog({ 
-  accountId, 
+export function PromoteStaffDialog({
+  accountId,
   staffName = 'this staff member',
-  open, 
+  open,
   onOpenChange,
-  onSuccess 
+  onSuccess
 }: PromoteStaffDialogProps) {
   const [loading, setLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState<'ADMIN' | 'SUPERVISOR'>('ADMIN');
+  const isAdmin = useIsAdmin();
 
   const handlePromote = async () => {
     if (!accountId) return;
+
+    // Client-side permission check
+    if (!isAdmin) {
+      toast.error('You do not have permission to promote staff. Only ADMIN and SUPERADMIN users can perform this action.');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -40,8 +48,20 @@ export function PromoteStaffDialog({
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to promote staff');
+        let errorMessage = 'Failed to promote staff';
+        try {
+          const error = await response.json();
+          if (response.status === 403 && error.error === 'Insufficient permissions') {
+            errorMessage = 'You do not have permission to promote staff. Only ADMIN and SUPERADMIN users can perform this action.';
+          } else {
+            errorMessage = error.error || errorMessage;
+          }
+        } catch (jsonError) {
+          // Response wasn't JSON, get text instead
+          const textError = await response.text();
+          errorMessage = textError || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
       toast.success(`Successfully promoted ${staffName} to ${selectedRole}`);

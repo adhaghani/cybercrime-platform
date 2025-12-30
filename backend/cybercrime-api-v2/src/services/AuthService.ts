@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Account, AccountData } from '../models/Account';
+import { Staff } from '../models/Staff';
 import { AccountRepository } from '../repositories/AccountRepository';
 import { PasswordHasher } from '../utils/PasswordHasher';
 import { JwtManager } from '../utils/JwtManager';
@@ -131,12 +132,19 @@ export class AuthService {
 
       logger.info(`User logged in: ${account.getEmail()}`);
 
-      // Generate JWT token
-      const token = this.jwtManager.generateToken({
+      // Generate JWT token with role for staff users
+      const tokenPayload: any = {
         accountId: account.getId()!,
         email: account.getEmail(),
         accountType: account.getAccountType()
-      });
+      };
+
+      // Add role for staff users (accessed from internal data)
+      if (account.getAccountType() === 'STAFF' && (account as any)._data.ROLE) {
+        tokenPayload.role = (account as any)._data.ROLE;
+      }
+
+      const token = this.jwtManager.generateToken(tokenPayload);
 
       return {
         success: true,

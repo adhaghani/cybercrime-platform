@@ -17,9 +17,16 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params;
+  const reportId = resolvedParams.id;
+  
   return proxyToBackend(request, {
-    path: '/resolutions',
+    path: `/resolutions`,
     method: 'POST',
     includeAuth: true,
+    transformRequest: (body) => ({
+      ...body,
+      reportId: reportId
+    })
   });
 }

@@ -181,4 +181,48 @@ export class ResolutionRepository extends BaseRepository<Resolution> {
 
     return stats;
   }
+
+  /**
+   * Create a new resolution
+   */
+  async createResolution(data: any): Promise<number> {
+    const sql = `
+      INSERT INTO ${this.tableName} (
+        RESOLUTION_ID, REPORT_ID, RESOLVED_BY, RESOLUTION_TYPE, 
+        RESOLUTION_SUMMARY, RESOLVED_AT
+      ) VALUES (
+        resolution_seq.NEXTVAL, :report_id, :resolved_by, :resolution_type,
+        :resolution_summary, SYSTIMESTAMP
+      ) RETURNING RESOLUTION_ID INTO :id
+    `;
+    
+    const binds = {
+      report_id: data.REPORT_ID,
+      resolved_by: data.RESOLVED_BY,
+      resolution_type: data.RESOLUTION_TYPE,
+      resolution_summary: data.RESOLUTION_SUMMARY,
+      id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
+    };
+
+    const result: any = await this.execute(sql, binds, { autoCommit: true });
+    return result.outBinds.id[0];
+  }
+
+  /**
+   * Find resolutions by report ID
+   */
+  async findByReportId(reportId: number): Promise<any[]> {
+    const sql = `
+      SELECT res.RESOLUTION_ID, res.REPORT_ID, res.RESOLVED_BY, res.RESOLUTION_TYPE,
+             res.RESOLUTION_NOTES, res.RESOLVED_AT,
+             a.NAME as RESOLVED_BY_NAME
+      FROM ${this.tableName} res
+      JOIN ACCOUNT a ON res.RESOLVED_BY = a.ACCOUNT_ID
+      WHERE res.REPORT_ID = :report_id
+      ORDER BY res.RESOLVED_AT DESC
+    `;
+    
+    const result: any = await this.execute(sql, { report_id: reportId });
+    return result.rows;
+  }
 }

@@ -16,9 +16,9 @@ import { proxyToBackend, getPathParam } from '@/lib/api/proxy';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const id = await getPathParam(params, 'id');
+  const { id } = await params;
   return proxyToBackend(request, {
     path: `/staff/${id}`,
     includeAuth: true,
@@ -27,9 +27,9 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const id = await getPathParam(params, 'id');
+  const { id } = await params;
   return proxyToBackend(request, {
     path: `/staff/${id}`,
     method: 'PUT',
@@ -39,9 +39,9 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const id = await getPathParam(params, 'id');
+  const { id } = await params;
   return proxyToBackend(request, {
     path: `/staff/${id}`,
     method: 'DELETE',

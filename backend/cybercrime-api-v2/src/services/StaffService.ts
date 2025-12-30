@@ -141,7 +141,7 @@ export class StaffService {
 
       // Validate role if updating
       if (updates.role && !Object.values(Role).includes(updates.role)) {
-        throw new Error('Invalid role');
+        throw new Error(`Invalid role: ${updates.role}. Valid roles: ${Object.values(Role).join(', ')}`);
       }
 
       // If updating supervisor, verify they exist

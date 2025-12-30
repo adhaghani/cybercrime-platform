@@ -52,7 +52,7 @@ import {
 } from "@/components/ui/alert";
 import { generateMetadata } from "@/lib/seo";
 
-export default async function ReportDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+export default function ReportDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const searchParams = useSearchParams();
   const showAssignDialog = searchParams.get("action") === "assign";
@@ -103,7 +103,7 @@ export default async function ReportDetailsPage({ params }: { params: Promise<{ 
 
   useEffect(() => {
     fetchReport();
-  }, [(await params).id]);
+  }, [resolvedParams.id]);
   
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(showAssignDialog);
   const [isResolveDialogOpen, setIsResolveDialogOpen] = useState(false);
@@ -193,12 +193,6 @@ export default async function ReportDetailsPage({ params }: { params: Promise<{ 
       console.error("Failed to update assignment:", error);
     }
   };
-
-  generateMetadata({
-    title: `Report Details - ${report.TITLE} - Cybercrime Reporting Platform`,
-    description: `Detailed view of the report titled "${report.TITLE}" on the Cybercrime Reporting Platform.`,
-    canonical: `/dashboard/reports/${report.REPORT_ID}`,
-  });
 
   return (
     <div className="space-y-6 mx-auto w-full max-w-7xl">

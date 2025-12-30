@@ -3,9 +3,11 @@
 export abstract class BaseModel {
   protected _data: Record<string, any>;
 
-  constructor(data: Record<string, any>) {
+  constructor(data: Record<string, any>, skipValidation: boolean = false) {
     this._data = { ...data };
-    this.validate();
+    if (!skipValidation) {
+      this.validate();
+    }
   }
 
   /**

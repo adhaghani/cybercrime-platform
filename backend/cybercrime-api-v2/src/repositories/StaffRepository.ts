@@ -8,7 +8,7 @@ export class StaffRepository extends BaseRepository<Staff> {
   }
 
   protected toModel(row: any): Staff {
-    return new Staff(row);
+    return new Staff(row, true); // Skip validation for database records
   }
 
   async findAll(filters?: Record<string, any>): Promise<Staff[]> {
@@ -99,21 +99,21 @@ export class StaffRepository extends BaseRepository<Staff> {
       setClauses.push('STAFF_ID = :staffId');
       binds.staffId = updates.STAFF_ID;
     }
-    if (updates.ROLE) {
+    if (updates.ROLE || updates.role) {
       setClauses.push('ROLE = :role');
-      binds.role = updates.ROLE;
+      binds.role = updates.ROLE || updates.role;
     }
-    if (updates.DEPARTMENT) {
+    if (updates.DEPARTMENT || updates.department) {
       setClauses.push('DEPARTMENT = :department');
-      binds.department = updates.DEPARTMENT;
+      binds.department = updates.DEPARTMENT || updates.department;
     }
-    if (updates.POSITION) {
+    if (updates.POSITION || updates.position) {
       setClauses.push('POSITION = :position');
-      binds.position = updates.POSITION;
+      binds.position = updates.POSITION || updates.position;
     }
-    if (updates.SUPERVISOR_ID !== undefined) {
+    if (updates.SUPERVISOR_ID !== undefined || updates.supervisor_id !== undefined) {
       setClauses.push('SUPERVISOR_ID = :supervisorId');
-      binds.supervisorId = updates.SUPERVISOR_ID;
+      binds.supervisorId = updates.SUPERVISOR_ID !== undefined ? updates.SUPERVISOR_ID : updates.supervisor_id;
     }
 
     if (setClauses.length === 0) {

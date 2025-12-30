@@ -62,11 +62,11 @@ export default function EmergencyContactsPage() {
 
   const filteredContacts = contacts.filter((contact) => {
     const matchesSearch = 
-      contact.NAME.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      contact.STATE.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      contact.ADDRESS.toLowerCase().includes(searchQuery.toLowerCase());
+      (contact.NAME?.toLowerCase().includes(searchQuery.toLowerCase()) || false) ||
+      (contact.STATE?.toLowerCase().includes(searchQuery.toLowerCase()) || false) ||
+      (contact.ADDRESS?.toLowerCase().includes(searchQuery.toLowerCase()) || false);
     
-    const matchesType = activeTab === "all" || contact.TYPE?.toLowerCase().replace(" ", "-") === activeTab;
+    const matchesType = activeTab === "all" || (contact.TYPE?.toLowerCase().replace(" ", "-") === activeTab);
     return matchesSearch && matchesType;
   });
 
@@ -95,7 +95,9 @@ export default function EmergencyContactsPage() {
     );
   }
 
-  const getIcon = (type: string) => {
+  const getIcon = (type: string | null | undefined) => {
+    if (!type) return <Phone className="h-5 w-5" />;
+    
     switch (type) {
       case "Police": return <Siren className="h-5 w-5 text-blue-600" />;
       case "Fire": return <Flame className="h-5 w-5 text-orange-600" />;
@@ -147,15 +149,15 @@ export default function EmergencyContactsPage() {
           <Card key={contact.EMERGENCY_ID} className="flex flex-col">
             <CardHeader>
               <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg font-semibold leading-tight">{contact.NAME}</CardTitle>
+                  <CardTitle className="text-lg font-semibold leading-tight">{contact.NAME || 'Unknown'}</CardTitle>
                   {getIcon(contact.TYPE || "")}
               </div>
-              <CardDescription className="font-medium text-primary">{contact.TYPE} • {contact.STATE}</CardDescription>
+              <CardDescription className="font-medium text-primary">{contact.TYPE || 'Unknown'} • {contact.STATE || 'Unknown'}</CardDescription>
             </CardHeader>
             <CardContent className="flex-1 space-y-4">
               <div className="flex items-start gap-3 text-sm">
                 <MapPin className="h-4 w-4 mt-1 text-muted-foreground shrink-0" />
-                <span>{contact.ADDRESS}</span>
+                <span>{contact.ADDRESS || 'No address available'}</span>
               </div>
               
               <div className="mt-auto flex gap-2 justify-between w-full items-center pt-4">
