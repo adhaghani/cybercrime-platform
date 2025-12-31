@@ -25,13 +25,13 @@ export class StaffRepository extends BaseRepository<Staff> {
 
     if (filters && Object.keys(filters).length > 0) {
       const whereClauses: string[] = [];
-      if (filters.ROLE) {
+      if (filters.role) {
         whereClauses.push('s.ROLE = :role');
-        binds.role = filters.ROLE;
+        binds.role = filters.role;
       }
-      if (filters.DEPARTMENT) {
+      if (filters.department) {
         whereClauses.push('s.DEPARTMENT = :department');
-        binds.department = filters.DEPARTMENT;
+        binds.department = filters.department;
       }
       if (whereClauses.length > 0) {
         sql += ` WHERE ${whereClauses.join(' AND ')}`;

@@ -10,6 +10,7 @@ const authMiddleware = new AuthMiddleware();
 router.use(authMiddleware.authenticate);
 
 // GET /api/v2/staff - Get all staff with optional filters
+// QUERY PARAMS: ROLE, DEPARTMENT, STATUS
 router.get('/', staffController.getAll);
 
 // GET /api/v2/staff/search - Search staff
