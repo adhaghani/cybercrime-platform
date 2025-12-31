@@ -61,6 +61,7 @@ export default function AllGeneratedReportsPage() {
 
   // Filter reports
   const filteredReports = reports.filter((report) => {
+    const notFacility = report.REPORT_CATEGORY !== "FACILITY";
     const matchesSearch =
       report.TITLE.toLowerCase().includes(searchQuery.toLowerCase()) ||
       report.SUMMARY.toLowerCase().includes(searchQuery.toLowerCase());
@@ -68,7 +69,7 @@ export default function AllGeneratedReportsPage() {
       categoryFilter === "ALL" || report.REPORT_CATEGORY === categoryFilter;
     const matchesType =
       typeFilter === "ALL" || report.REPORT_DATA_TYPE === typeFilter;
-    return matchesSearch && matchesCategory && matchesType;
+    return notFacility && matchesSearch && matchesCategory && matchesType;
   });
 
   // Pagination
@@ -95,7 +96,7 @@ export default function AllGeneratedReportsPage() {
   };
 
   const stats = {
-    total: reports.length,
+    total: reports.length - reports.filter((r) => r.REPORT_CATEGORY === "FACILITY").length,
     crime: reports.filter((r) => r.REPORT_CATEGORY === "CRIME").length,
     facility: reports.filter((r) => r.REPORT_CATEGORY === "FACILITY").length,
     all: reports.filter((r) => r.REPORT_CATEGORY === "ALL REPORTS").length,
@@ -140,7 +141,7 @@ export default function AllGeneratedReportsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Reports</CardTitle>
@@ -162,7 +163,7 @@ export default function AllGeneratedReportsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        {/* <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Facility Reports</CardTitle>
           </CardHeader>
@@ -170,7 +171,7 @@ export default function AllGeneratedReportsPage() {
             <div className="text-2xl font-bold text-orange-500">{stats.facility}</div>
             <p className="text-xs text-muted-foreground">Facility analysis</p>
           </CardContent>
-        </Card>
+        </Card> */}
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -217,7 +218,7 @@ export default function AllGeneratedReportsPage() {
               <SelectContent>
                 <SelectItem value="ALL">All Categories</SelectItem>
                 <SelectItem value="CRIME">Crime</SelectItem>
-                <SelectItem value="FACILITY">Facility</SelectItem>
+                {/* <SelectItem value="FACILITY">Facility</SelectItem> */}
                 <SelectItem value="USER">User</SelectItem>
                 <SelectItem value="ALL REPORTS">All Reports</SelectItem>
               </SelectContent>
@@ -251,7 +252,7 @@ export default function AllGeneratedReportsPage() {
           <CardDescription className="flex justify-between gap-2 items-center f">
             {filteredReports.length === reports.length
               ? "Showing all AI-generated reports"
-              : `Showing ${filteredReports.length} of ${reports.length} reports`}
+              : `Showing ${filteredReports.length} of ${reports.length - reports.filter((r) => r.REPORT_CATEGORY === "FACILITY").length} reports`}
               {totalPages > 1 && (
                 <PaginationControls
                   currentPage={currentPage}

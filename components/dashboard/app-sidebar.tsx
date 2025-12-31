@@ -50,26 +50,26 @@ const getNavMainByRole = (role: string | undefined) => {
         }
       ],
     },
-    {
-      title: "Facilities Terminal",
-      url: "/dashboard/facility",
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: "Submit a Report",
-          url: "/dashboard/facility/submit-report",
-        },
-        {
-          title: "My Facility Reports",
-          url: "/dashboard/facility/my-reports",
-        },
-        {
-          title: "All Facility Reports",
-          url: "/dashboard/facility/reports",
-        }
-      ],
-    },
+    // {
+    //   title: "Facilities Terminal",
+    //   url: "/dashboard/facility",
+    //   icon: SquareTerminal,
+    //   isActive: true,
+    //   items: [
+    //     {
+    //       title: "Submit a Report",
+    //       url: "/dashboard/facility/submit-report",
+    //     },
+    //     {
+    //       title: "My Facility Reports",
+    //       url: "/dashboard/facility/my-reports",
+    //     },
+    //     {
+    //       title: "All Facility Reports",
+    //       url: "/dashboard/facility/reports",
+    //     }
+    //   ],
+    // },
     {
       title: "Emergency Services",
       url: "/dashboard/emergency-services",
@@ -100,10 +100,10 @@ const getNavMainByRole = (role: string | undefined) => {
           title: "Crime Reports",
           url: "/dashboard/reports/crime",
         },
-        {
-          title: "Facility Reports",
-          url: "/dashboard/reports/facility",
-        },
+        // {
+        //   title: "Facility Reports",
+        //   url: "/dashboard/reports/facility",
+        // },
         {
           title: "My Assigned Reports",
           url: "/dashboard/reports/my-assignments",
@@ -184,10 +184,10 @@ const getNavMainByRole = (role: string | undefined) => {
           title: "Crime Reports",
           url: "/dashboard/reports/crime",
         },
-        {
-          title: "Facility Reports",
-          url: "/dashboard/reports/facility",
-        },
+        // {
+        //   title: "Facility Reports",
+        //   url: "/dashboard/reports/facility",
+        // },
         {
           title: "My Assigned Reports",
           url: "/dashboard/reports/my-assignments",
@@ -286,10 +286,10 @@ const getNavMainByRole = (role: string | undefined) => {
           title: "Crime Reports",
           url: "/dashboard/reports/crime",
         },
-        {
-          title: "Facility Reports",
-          url: "/dashboard/reports/facility",
-        },
+        // {
+        //   title: "Facility Reports",
+        //   url: "/dashboard/reports/facility",
+        // },
         {
           title: "My Assigned Reports",
           url: "/dashboard/reports/my-assignments",
@@ -387,10 +387,10 @@ const getNavMainByRole = (role: string | undefined) => {
           title: "Crime Reports",
           url: "/dashboard/reports/crime",
         },
-        {
-          title: "Facility Reports",
-          url: "/dashboard/reports/facility",
-        },
+        // {
+        //   title: "Facility Reports",
+        //   url: "/dashboard/reports/facility",
+        // },
         {
           title: "My Assigned Reports",
           url: "/dashboard/reports/my-assignments",

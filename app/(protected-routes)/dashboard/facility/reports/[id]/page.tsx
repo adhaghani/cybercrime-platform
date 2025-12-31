@@ -52,7 +52,22 @@ export default function ReportDetailsPage({ params }: { params: { id: string } }
         throw new Error('Failed to fetch report');
       }
       const data = await response.json();
-      setReport(data.data);
+      const report = data.data;
+            // Parse ATTACHMENT_PATH if it's a JSON string
+      if (report.ATTACHMENT_PATH) {
+        try {
+          const parsed = typeof report.ATTACHMENT_PATH === 'string' 
+            ? JSON.parse(report.ATTACHMENT_PATH) 
+            : report.ATTACHMENT_PATH;
+          report.ATTACHMENT_PATH = Array.isArray(parsed) ? parsed : [report.ATTACHMENT_PATH];
+        } catch (e) {
+          // If parsing fails, treat as single path or empty array
+          report.ATTACHMENT_PATH = report.ATTACHMENT_PATH ? [report.ATTACHMENT_PATH] : [];
+        }
+      } else {
+        report.ATTACHMENT_PATH = [];
+      }
+      setReport(report);
     } catch (error) {
       console.error('Failed to fetch report:', error);
     } finally {

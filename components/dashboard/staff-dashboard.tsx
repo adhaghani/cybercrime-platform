@@ -35,6 +35,7 @@ interface StaffDashboardProps {
 export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps) {
   const allRecentReports = [...reports]
     .sort((a, b) => new Date(b.SUBMITTED_AT).getTime() - new Date(a.SUBMITTED_AT).getTime())
+    .filter((r) => r.TYPE === "CRIME")
     .slice(0, 5);
 
   const getStatusColor = (status: string) => {
@@ -46,6 +47,8 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
     }
   };
 
+  const facilityReport = reports.filter(r => r.TYPE === "FACILITY");
+
   return (
     <>
       {/* Staff/Admin Stats */}
@@ -56,7 +59,7 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalReports}</div>
+            <div className="text-2xl font-bold">{stats.totalReports - facilityReport.length}</div>
             <p className="text-xs text-muted-foreground">
               All campus reports
             </p>
@@ -69,7 +72,7 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-500">{stats.allPending}</div>
+            <div className="text-2xl font-bold text-yellow-500">{stats.allPending - facilityReport.filter(r => r.STATUS === "PENDING").length}</div>
             <p className="text-xs text-muted-foreground">
               Awaiting action
             </p>
@@ -82,7 +85,7 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-500">{stats.allInProgress}</div>
+            <div className="text-2xl font-bold text-blue-500">{stats.allInProgress - facilityReport.filter(r => r.STATUS === "IN_PROGRESS").length}</div>
             <p className="text-xs text-muted-foreground">
               Being handled
             </p>
@@ -95,7 +98,7 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
             <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-500">{stats.allResolved}</div>
+            <div className="text-2xl font-bold text-green-500">{stats.allResolved - facilityReport.filter(r => r.STATUS === "RESOLVED").length}</div>
             <p className="text-xs text-muted-foreground">
               {stats.totalReports > 0 ? Math.round((stats.allResolved / stats.totalReports) * 100) : 0}% resolution rate
             </p>
@@ -104,7 +107,7 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
       </div>
 
       {/* Main Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
         {/* Crime Reports Section */}
         <Card className="flex flex-col">
           <CardHeader>
@@ -136,7 +139,7 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
         </Card>
 
         {/* Facility Reports Section */}
-        <Card className="flex flex-col">
+        {/* <Card className="flex flex-col">
           <CardHeader>
             <div className="mb-2 h-12 w-12 rounded-lg bg-orange-500/10 flex items-center justify-center">
               <Wrench className="h-6 w-6 text-orange-500" />
@@ -163,7 +166,7 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
               <Link href="/dashboard/facility/reports">View All</Link>
             </Button>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Emergency Services Section */}
         <Card className="flex flex-col">
@@ -230,9 +233,9 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
                       <Badge className={getStatusColor(report.STATUS)}>
                         {report.STATUS.replace("_", " ")}
                       </Badge>
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/dashboard/${report.TYPE.toLowerCase()}/reports/${report.REPORT_ID}`}>
-                          View
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/dashboard/reports/${report.REPORT_ID}`}>
+                          View Details
                         </Link>
                       </Button>
                     </div>
@@ -260,12 +263,12 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
                 All Crime Reports
               </Link>
             </Button>
-            <Button asChild variant="outline" className="w-full justify-start">
+            {/* <Button asChild variant="outline" className="w-full justify-start">
               <Link href="/dashboard/facility/reports">
                 <Wrench className="h-4 w-4 mr-2" />
                 All Facility Reports
               </Link>
-            </Button>
+            </Button> */}
             <Button asChild variant="outline" className="w-full justify-start">
               <Link href="/dashboard/announcement">
                 <Bell className="h-4 w-4 mr-2" />
