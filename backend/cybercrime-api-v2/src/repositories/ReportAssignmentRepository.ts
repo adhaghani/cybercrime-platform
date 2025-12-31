@@ -203,7 +203,7 @@ export class ReportAssignmentRepository extends BaseRepository<ReportAssignment>
       SELECT ra.ASSIGNMENT_ID, ra.ACCOUNT_ID, ra.REPORT_ID, ra.ASSIGNED_AT, 
              ra.ACTION_TAKEN, ra.ADDITIONAL_FEEDBACK, ra.UPDATED_AT,
              r.TITLE as REPORT_TITLE, r.TYPE as REPORT_TYPE, r.STATUS as REPORT_STATUS,
-             r.LOCATION as REPORT_LOCATION, r.SUBMITTED_AT as REPORT_SUBMITTED_AT,
+             r.SUBMITTED_AT as REPORT_SUBMITTED_AT,
              r.DESCRIPTION as REPORT_DESCRIPTION
       FROM ${this.tableName} ra
       JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
@@ -223,10 +223,9 @@ export class ReportAssignmentRepository extends BaseRepository<ReportAssignment>
       ADDITIONAL_FEEDBACK: row.ADDITIONAL_FEEDBACK,
       UPDATED_AT: row.UPDATED_AT,
       // Map to frontend-expected field names
-      TITLE: row.REPORT_TITLE,
-      TYPE: row.REPORT_TYPE,
-      STATUS: row.REPORT_STATUS,
-      LOCATION: row.REPORT_LOCATION,
+      REPORT_TITLE: row.REPORT_TITLE,
+      REPORT_TYPE: row.REPORT_TYPE,
+      REPORT_STATUS: row.REPORT_STATUS,
       SUBMITTED_AT: row.REPORT_SUBMITTED_AT,
       DESCRIPTION: row.REPORT_DESCRIPTION
     }));

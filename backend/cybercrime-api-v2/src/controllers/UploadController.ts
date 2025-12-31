@@ -3,12 +3,17 @@ import { Request, Response } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// Extend Express Request to include multer's file property
+interface MulterRequest extends Request {
+  file?: Express.Multer.File;
+}
+
 export class UploadController {
   /**
    * POST /api/v2/upload/report-evidence
    * Upload evidence file for a report
    */
-  uploadReportEvidence = async (req: Request, res: Response): Promise<void> => {
+  uploadReportEvidence = async (req: MulterRequest, res: Response): Promise<void> => {
     try {
       // Check if file was uploaded
       if (!req.file) {
@@ -56,7 +61,7 @@ export class UploadController {
    * POST /api/v2/upload/profile-picture
    * Upload profile picture
    */
-  uploadProfilePicture = async (req: Request, res: Response): Promise<void> => {
+  uploadProfilePicture = async (req: MulterRequest, res: Response): Promise<void> => {
     try {
       if (!req.file) {
         res.status(400).json({ success: false, error: 'No file provided' });
@@ -100,7 +105,7 @@ export class UploadController {
    * POST /api/v2/upload/announcement-photo
    * Upload announcement photo
    */
-  uploadAnnouncementPhoto = async (req: Request, res: Response): Promise<void> => {
+  uploadAnnouncementPhoto = async (req: MulterRequest, res: Response): Promise<void> => {
     try {
       if (!req.file) {
         res.status(400).json({ success: false, error: 'No file provided' });
