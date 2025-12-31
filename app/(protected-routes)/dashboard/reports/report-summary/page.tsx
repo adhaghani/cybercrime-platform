@@ -46,7 +46,6 @@ export default function AllGeneratedReportsPage() {
   const categories = Array.from(
     new Set(
       reports
-        .filter((r) => r.REPORT_CATEGORY !== "FACILITY")
         .map((r) => r.REPORT_CATEGORY)
     )
   );
@@ -75,7 +74,8 @@ export default function AllGeneratedReportsPage() {
   ];
 
   const stats = {
-    total: reports.filter((r) => r.REPORT_CATEGORY !== "FACILITY").length,
+    total: reports.length,
+    facility: reports.filter((r) => r.REPORT_CATEGORY === "FACILITY").length,
     crime: reports.filter((r) => r.REPORT_CATEGORY === "CRIME").length,
     all: reports.filter((r) => r.REPORT_CATEGORY === "ALL REPORTS").length,
   };
@@ -119,7 +119,7 @@ export default function AllGeneratedReportsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Reports</CardTitle>
@@ -141,7 +141,7 @@ export default function AllGeneratedReportsPage() {
           </CardContent>
         </Card>
 
-        {/* <Card>
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Facility Reports</CardTitle>
           </CardHeader>
@@ -149,7 +149,7 @@ export default function AllGeneratedReportsPage() {
             <div className="text-2xl font-bold text-orange-500">{stats.facility}</div>
             <p className="text-xs text-muted-foreground">Facility analysis</p>
           </CardContent>
-        </Card> */}
+        </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -165,13 +165,13 @@ export default function AllGeneratedReportsPage() {
       {/* Reports Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Generated Reports ({reports.filter((r) => r.REPORT_CATEGORY !== "FACILITY").length})</CardTitle>
+          <CardTitle>Generated Reports ({reports.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          {reports.filter((r) => r.REPORT_CATEGORY !== "FACILITY").length > 0 ? (
+          {reports.length > 0 ? (
             <DataTable
               columns={columns}
-              data={reports.filter((r) => r.REPORT_CATEGORY !== "FACILITY")}
+              data={reports}
               searchKey="TITLE"
               searchPlaceholder="Search by title or summary..."
               filterableColumns={filterableColumns}
