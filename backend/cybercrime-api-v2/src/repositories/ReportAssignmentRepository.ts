@@ -202,9 +202,9 @@ export class ReportAssignmentRepository extends BaseRepository<ReportAssignment>
     const sql = `
       SELECT ra.ASSIGNMENT_ID, ra.ACCOUNT_ID, ra.REPORT_ID, ra.ASSIGNED_AT, 
              ra.ACTION_TAKEN, ra.ADDITIONAL_FEEDBACK, ra.UPDATED_AT,
-             r.TITLE as REPORT_TITLE, r.TYPE as REPORT_TYPE, r.STATUS as REPORT_STATUS,
-             r.SUBMITTED_AT as REPORT_SUBMITTED_AT,
-             r.DESCRIPTION as REPORT_DESCRIPTION
+             r.TITLE, r.TYPE, r.STATUS, r.LOCATION,
+             r.SUBMITTED_AT,
+             r.DESCRIPTION
       FROM ${this.tableName} ra
       JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
       WHERE ra.ACCOUNT_ID = :account_id
@@ -222,12 +222,13 @@ export class ReportAssignmentRepository extends BaseRepository<ReportAssignment>
       ACTION_TAKEN: row.ACTION_TAKEN,
       ADDITIONAL_FEEDBACK: row.ADDITIONAL_FEEDBACK,
       UPDATED_AT: row.UPDATED_AT,
+      LOCATION: row.LOCATION,
       // Map to frontend-expected field names
-      REPORT_TITLE: row.REPORT_TITLE,
-      REPORT_TYPE: row.REPORT_TYPE,
-      REPORT_STATUS: row.REPORT_STATUS,
-      SUBMITTED_AT: row.REPORT_SUBMITTED_AT,
-      DESCRIPTION: row.REPORT_DESCRIPTION
+      TITLE: row.TITLE,
+      TYPE: row.TYPE,
+      STATUS: row.STATUS,
+      SUBMITTED_AT: row.SUBMITTED_AT,
+      DESCRIPTION: row.DESCRIPTION
     }));
   }
 
