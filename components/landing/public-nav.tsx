@@ -21,9 +21,9 @@ export function PublicNav() {
           <Button asChild variant="ghost" size="sm">
             <Link href="/faq">FAQ</Link>
           </Button>
-          <Button asChild variant="ghost" size="sm">
+          {/* <Button asChild variant="ghost" size="sm">
             <Link href="/contact">Contact</Link>
-          </Button>
+          </Button> */}
         </nav>
 
         <div className="flex items-center gap-2">

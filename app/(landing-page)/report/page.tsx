@@ -48,10 +48,10 @@ export default function PublicLatestReportsPage() {
 	useEffect(() => {
 		const fetchLatestReports = async () => {
 			try {
-				const response = await fetch('/api/reports/public-latest');
+				const response = await fetch('/api/reports');
 				if (!response.ok) throw new Error('Failed to fetch reports');
 				const data = await response.json();
-				setReports(data);
+				setReports(data.data || []);
 			} catch (err) {
 				console.error('Error fetching latest reports:', err);
 				setError('Failed to load latest reports');
@@ -62,6 +62,9 @@ export default function PublicLatestReportsPage() {
 
 		fetchLatestReports();
 	}, []);
+
+	const LimitReportDisplay = 6;
+	const limitedReports = reports.slice(0, LimitReportDisplay);
 
 	if (loading) {
 		return (
@@ -100,7 +103,7 @@ export default function PublicLatestReportsPage() {
 			</div>
 
 			<div className="grid gap-4 md:grid-cols-2">
-				{reports.map((report) => (
+				{limitedReports.map((report) => (
 					<Card key={report.REPORT_ID}>
 						<CardHeader className="space-y-2">
 							<div className="flex flex-wrap items-center justify-between gap-2">
@@ -144,7 +147,7 @@ export default function PublicLatestReportsPage() {
 			)}
 
 			<div className="rounded-lg border bg-card p-4 text-sm text-muted-foreground">
-				To view full report details and submit new reports, please log in.
+				To view All report and the details and submit new reports, please log in.
 				<div className="mt-3">
 					<Button asChild>
 						<Link href="/auth/login">Login</Link>

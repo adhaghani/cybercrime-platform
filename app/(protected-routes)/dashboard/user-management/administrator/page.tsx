@@ -1,14 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getInitials, getDepartmentColor } from "@/lib/utils/badge-helpers";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PaginationControls } from "@/components/ui/pagination-controls";
 import Link from "next/link";
 import { Staff } from "@/lib/types";
 import {Skeleton} from "@/components/ui/skeleton";
@@ -18,9 +12,8 @@ import { DeleteUserDialog } from "@/components/users/deleteUserDialog";
 import { useHasAnyRole } from "@/hooks/use-user-role";
 import { useAuth } from "@/lib/context/auth-provider";
 import { 
-  ArrowLeft, Search, Mail, Phone, 
-  ShieldCheck, UserX, Shield, ShieldAlert,
-  UserCheck,
+  ArrowLeft,
+  ShieldCheck,
   UsersIcon
 } from "lucide-react";
 import {
@@ -31,19 +24,17 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
+import { ViewStaffAssignmentDialog } from "@/components/users/viewStaffAssignmentDialog";
+import { DataTable } from "@/components/ui/data-table/data-table";
+import { createColumns } from "@/components/administrator/columns";
 
-const ITEMS_PER_PAGE = 10;
+
 
 export default function AdministratorPage() {
-  const [searchQuery, setSearchQuery] = useState("");
+
   const [administrators, setAdministrators] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [OpenStaffAssignmentDIalog, setOpenStaffAssignmentDIalog] = useState(false)
   const [openViewDialog, setOpenViewDialog] = useState(false);
   const [openDemoteDialog, setOpenDemoteDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -72,27 +63,11 @@ export default function AdministratorPage() {
     fetchAdministrators();
   }, []);
 
-  const filteredAdministrators = administrators.length > 0 ? administrators.filter((admin) => {
-    const matchesSearch = 
-      admin.NAME.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      admin.EMAIL.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      admin.DEPARTMENT.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      admin.POSITION.toLowerCase().includes(searchQuery.toLowerCase());
 
-    return matchesSearch;
-  }) : [];
+    // Get unique departments for filter
+  const departments = Array.from(new Set(administrators.map(s => s.DEPARTMENT)));
 
-  // Pagination
-  const totalPages = Math.ceil(filteredAdministrators.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const paginatedAdministrators = filteredAdministrators.slice(startIndex, endIndex);
 
-  // Reset to page 1 when search changes
-  const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
-    setCurrentPage(1);
-  };
 
   const handleViewDetails = (accountId: string) => {
     setSelectedAdminId(accountId);
@@ -127,6 +102,22 @@ export default function AdministratorPage() {
     }
   };
 
+  const filterableColumns = [
+    {
+      id: "DEPARTMENT",
+      title: "Department",
+      options: departments.map(dept => ({ label: dept, value: dept })),
+    },
+  ]
+
+    const columns = useMemo(() => createColumns({
+    onViewDetails: handleViewDetails,
+    onDemote: handleRevokeAdmin,
+    onDelete: handleDeleteAccount,
+    isAdmin: isAdmin,
+    currentAccountId: ACCOUNT_ID,
+  }), [isAdmin, ACCOUNT_ID]);
+
 
    if (loading) {
     return (
@@ -156,161 +147,29 @@ export default function AdministratorPage() {
               Administrators
             </h1>
             <p className="text-muted-foreground">
-              Manage system administrators and their privileges ({filteredAdministrators.length} administrators)
+              Manage system administrators and their privileges ({administrators.length} administrators)
             </p>
           </div>
         </div>
       </div>
 
-      {/* Info Banner */}
-      <Card className="border-purple-500/20 bg-purple-500/5">
-        <CardHeader>
-          <div className="flex items-start gap-4">
-            <ShieldAlert className="h-5 w-5 text-purple-500 mt-0.5" />
-            <div>
-              <CardTitle className="text-base">Administrator Access</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
-                Administrators have elevated privileges including user management, report oversight, 
-                and system configuration. Exercise caution when granting or revoking admin access.
-              </p>
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
-
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search administrators by name, email, staff ID, department, or position..."
-          className="pl-8"
-          value={searchQuery}
-          onChange={(e) => handleSearchChange(e.target.value)}
-        />
-      </div>
-
       {/* Administrators Table */}
-      {administrators.length > 0 ? (<Card>
-        <CardHeader>
-          <CardTitle>Administrator List ({filteredAdministrators.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Administrator</TableHead>
-                <TableHead>Staff ID</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Position</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedAdministrators.map((admin) => (
-                <TableRow key={admin.ACCOUNT_ID}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarImage src={admin.AVATAR_URL} />
-                        <AvatarFallback className="bg-purple-500/10 text-purple-500">
-                          {getInitials(admin.NAME)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium flex items-center gap-2">
-                          {admin.NAME}
-                          <Badge variant="outline" className="text-purple-500 border-purple-500/50">
-                            <Shield className="h-3 w-3 mr-1" />
-                            Admin
-                          </Badge>
-                        </div>
-                        <div className="text-sm text-muted-foreground flex items-center gap-1">
-                          <Mail className="h-3 w-3" />
-                          {admin.EMAIL}
-                        </div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-mono text-sm">
-                    {admin.STAFF_ID}
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getDepartmentColor(admin.DEPARTMENT)}>
-                      {admin.DEPARTMENT}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="font-medium text-sm">{admin.POSITION}</div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1 text-sm">
-                      {admin.CONTACT_NUMBER ? <Phone className="h-3 w-3" /> : null}
-                      {admin.CONTACT_NUMBER ? admin.CONTACT_NUMBER : "N/A"}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex gap-2 justify-end">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="icon-sm" 
-                          onClick={() => handleViewDetails(admin.ACCOUNT_ID)}
-                        >
-                          <UserCheck className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        View Details
-                      </TooltipContent>
-                    </Tooltip>
-                    {(ACCOUNT_ID !== admin.ACCOUNT_ID) &&<>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="icon-sm" 
-                          className="bg-amber-500/10 text-amber-500 border-amber-500 hover:bg-amber-500/20 hover:text-amber-500"
-                          onClick={() => handleRevokeAdmin(admin.ACCOUNT_ID, admin.NAME, admin.ROLE)}
-                        >
-                          <UserX className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Revoke Admin Access
-                      </TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="icon-sm" 
-                          className="bg-red-500/10 text-red-500 border-red-500 hover:bg-red-500/20 hover:text-red-500"
-                          onClick={() => handleDeleteAccount(admin.ACCOUNT_ID, admin.NAME, admin.EMAIL)}
-                        >
-                          <ShieldAlert className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Delete Account
-                      </TooltipContent>
-                    </Tooltip>
-                    </>}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-
-          {paginatedAdministrators.length === 0 && (
-            <div className="text-center py-12 text-muted-foreground">
-              No administrators found matching your search.
-            </div>
-          )}
+      {administrators.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Administrators ({administrators.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+        <DataTable 
+          columns={columns}
+          data={administrators}
+          searchKey="NAME"
+          searchPlaceholder="Search by name, email, staff ID, department, or position..."
+          filterableColumns={filterableColumns}
+        />
         </CardContent>
-      </Card>) : (
+        </Card>
+      ) : (
     <Empty className="border border-dashed">
       <EmptyHeader>
         <EmptyMedia variant="icon">
@@ -329,17 +188,6 @@ export default function AdministratorPage() {
         </div>}
       </EmptyContent>
     </Empty>
-      )}
-
-      {/* Pagination Controls */}
-      {filteredAdministrators.length > 0 && (
-        <PaginationControls
-          totalItems={administrators.length}
-          itemsPerPage={ITEMS_PER_PAGE}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
       )}
 
       {/* Dialogs */}
@@ -365,6 +213,13 @@ export default function AdministratorPage() {
         open={openDeleteDialog}
         onOpenChange={setOpenDeleteDialog}
         onSuccess={handleRefreshAdministrators}
+      />
+
+      <ViewStaffAssignmentDialog
+        accountId={selectedAdminId}
+        staffName={selectedAdminName}
+        open={OpenStaffAssignmentDIalog}
+        onOpenChange={setOpenStaffAssignmentDIalog}
       />
     </div>
   );

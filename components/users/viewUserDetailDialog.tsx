@@ -5,9 +5,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, Mail, Phone, Hash, Building2, Briefcase, GraduationCap, Calendar, Shield } from 'lucide-react';
+import { Mail, Phone, Hash, Building2, Briefcase, GraduationCap, Calendar, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { getInitials, getDepartmentColor } from '@/lib/utils/badge-helpers';
+import { Skeleton } from '../ui/skeleton';
 
 interface ViewUserDetailDialogProps {
   accountId: string | null;
@@ -87,8 +88,52 @@ export function ViewUserDetailDialog({ accountId, open, onOpenChange }: ViewUser
         </DialogHeader>
 
         {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <div >
+            
+            <div className='flex items-center gap-4'>
+              <Skeleton className="size-20 rounded-full" />
+              <div className='flex-1'>
+                <Skeleton className="h-6 w-3/4 mb-2" />
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+            </div>
+            <Separator className="my-4" />
+            <div className='space-y-4'>
+              <Skeleton className="h-5 w-1/3" />
+              <div className='grid gap-4 md:grid-cols-2'>
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+            </div>
+            <Separator className="my-4" />
+            <div className='space-y-4'>
+              <Skeleton className="h-5 w-1/3" />
+              <div className='grid gap-4 md:grid-cols-2'>
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+            </div>
+            <Separator className="my-4" />
+            <div className='space-y-4'>
+              <Skeleton className="h-5 w-1/3" />
+              <div className='grid gap-4 md:grid-cols-2'>
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+            </div>
+            <Separator className="my-4" />
+            <div className='space-y-4'>
+              <Skeleton className="h-5 w-1/3" />
+              <div className='grid gap-4 md:grid-cols-2'>
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+              </div> 
+            </div>
           </div>
         ) : user ? (
           <div className="space-y-6">

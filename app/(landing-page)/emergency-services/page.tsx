@@ -26,7 +26,7 @@ export default function PublicEmergencyServicesPage() {
 	useEffect(() => {
 		const fetchEmergencyContacts = async () => {
 			try {
-				const response = await fetch('/api/emergency/public');
+				const response = await fetch('/api/emergency');
 				if (!response.ok) throw new Error('Failed to fetch emergency contacts');
 				const data = await response.json();
 				setContacts(data);

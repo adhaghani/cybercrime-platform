@@ -1,43 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getInitials, getDepartmentColor } from "@/lib/utils/badge-helpers";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {Skeleton} from "@/components/ui/skeleton";
 import { 
-  ArrowLeft, Search, Mail, Phone, 
-  Briefcase, Building2, UserX, Shield, UserPlus,
-  ShieldCheck,
-  UserCheck,
+  ArrowLeft, 
+  Briefcase, 
+  UserPlus,
   Download
 } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 import Link from "next/link";
 import { Staff } from "@/lib/types";
-import { PaginationControls } from "@/components/ui/pagination-controls";
 import { ViewUserDetailDialog } from "@/components/users/viewUserDetailDialog";
 import { ViewStaffAssignmentDialog } from "@/components/users/viewStaffAssignmentDialog";
 import { PromoteStaffDialog } from "@/components/users/promoteStaffDialog";
 import { DeleteUserDialog } from "@/components/users/deleteUserDialog";
 import { useAuth } from "@/lib/context/auth-provider";
 import { useHasAnyRole } from "@/hooks/use-user-role";
-const ITEMS_PER_PAGE = 10;
+import { DataTable } from "@/components/ui/data-table/data-table";
+import { createColumns } from "@/components/staff/columns";
 
 export default function StaffManagementPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [departmentFilter, setDepartmentFilter] = useState<string>("ALL");
-  const [roleFilter, setRoleFilter] = useState<string>("ALL");
-  const [currentPage, setCurrentPage] = useState(1);
   const [staffMembers, setStaffMembers] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
   const [openViewDialog, setOpenViewDialog] = useState(false);
@@ -87,57 +71,53 @@ export default function StaffManagementPage() {
       console.error('Failed to download CSV:', error);
     }
   }
+
   // Get unique departments for filter
   const departments = Array.from(new Set(staffMembers.map(s => s.DEPARTMENT)));
+  const roles = Array.from(new Set(staffMembers.map(s => s.ROLE)));
 
-  const filteredStaff = staffMembers.filter((member) => {
-    const matchesSearch = 
-      member.NAME.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.EMAIL.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.DEPARTMENT.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.POSITION.toLowerCase().includes(searchQuery.toLowerCase());
+  // Create columns with handlers
+  const columns = useMemo(
+    () => createColumns({
+      onViewDetails: (accountId: string) => {
+        setSelectedStaffId(accountId);
+        setOpenViewDialog(true);
+      },
+      onViewAssignments: (accountId: string, name: string) => {
+        setSelectedStaffId(accountId);
+        setSelectedStaffName(name);
+        setOpenAssignmentsDialog(true);
+      },
+      onPromote: (accountId: string, name: string) => {
+        setSelectedStaffId(accountId);
+        setSelectedStaffName(name);
+        setOpenPromoteDialog(true);
+      },
+      onDelete: (accountId: string, name: string, email: string) => {
+        setSelectedStaffId(accountId);
+        setSelectedStaffName(name);
+        setSelectedStaffEmail(email);
+        setOpenDeleteDialog(true);
+      },
+      isAdmin,
+      currentAccountId: ACCOUNT_ID,
+    }),
+    [isAdmin, ACCOUNT_ID]
+  );
 
-    const matchesDepartment = departmentFilter === "ALL" || member.DEPARTMENT === departmentFilter;
-    const matchesRole = roleFilter === "ALL" || member.ROLE === roleFilter;
-
-    return matchesSearch && matchesDepartment && matchesRole;
-  });
-
-  // Pagination
-  const totalPages = Math.ceil(filteredStaff.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const paginatedStaff = filteredStaff.slice(startIndex, endIndex);
-
-  // Reset to page 1 when filters change
-  const handleFilterChange = (callback: () => void) => {
-    callback();
-    setCurrentPage(1);
-  };
-
-  const handleViewDetails = (accountId: string) => {
-    setSelectedStaffId(accountId);
-    setOpenViewDialog(true);
-  };
-
-  const handleViewAssignments = (accountId: string, name: string) => {
-    setSelectedStaffId(accountId);
-    setSelectedStaffName(name);
-    setOpenAssignmentsDialog(true);
-  };
-
-  const handlePromoteToAdmin = (accountId: string, name: string) => {
-    setSelectedStaffId(accountId);
-    setSelectedStaffName(name);
-    setOpenPromoteDialog(true);
-  };
-
-  const handleDeleteAccount = (accountId: string, name: string, email: string) => {
-    setSelectedStaffId(accountId);
-    setSelectedStaffName(name);
-    setSelectedStaffEmail(email);
-    setOpenDeleteDialog(true);
-  };
+  // Prepare filterable columns
+  const filterableColumns = [
+    {
+      id: "ROLE",
+      title: "Role",
+      options: roles.map(role => ({ label: role, value: role })),
+    },
+    {
+      id: "DEPARTMENT",
+      title: "Department",
+      options: departments.map(dept => ({ label: dept, value: dept })),
+    },
+  ];
 
   const handleRefreshStaff = async () => {
     setLoading(true);
@@ -182,7 +162,7 @@ export default function StaffManagementPage() {
             Staff Members
           </h1>
           <p className="text-muted-foreground">
-            Manage staff accounts and department information ({filteredStaff.length} staff members)
+            Manage staff accounts and department information ({staffMembers.length} staff members)
           </p>
         </div>
         </div>
@@ -194,198 +174,27 @@ export default function StaffManagementPage() {
         </Button>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by name, email, staff ID, department, or position..."
-            className="pl-8"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <Select value={roleFilter} onValueChange={(v) => handleFilterChange(() => setRoleFilter(v))}>
-          <SelectTrigger className="w-full md:w-[180px]">
-            <ShieldCheck className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Role" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All Roles</SelectItem>
-            <SelectItem value="STAFF">Staff</SelectItem>
-            <SelectItem value="SUPERVISOR">Supervisor</SelectItem>
-            <SelectItem value="ADMIN">Admin</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={departmentFilter} onValueChange={(v) => handleFilterChange(() => setDepartmentFilter(v))}>
-          <SelectTrigger className="w-full md:w-[240px]">
-            <Building2 className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Department" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All Departments</SelectItem>
-            {departments.map((dept) => (
-              <SelectItem key={dept} value={dept}>
-                {dept}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
       {/* Staff Table */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 justify-between">
-            <p>Staff List ({filteredStaff.length})</p>
+            <p>Staff List ({staffMembers.length})</p>
             {isAdmin && <Button onClick={handleDownloadCSV} variant={"secondary"}>
-              <Download  />
+              <Download className="h-4 w-4 mr-2" />
               Download as CSV</Button>}
             </CardTitle>
-
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Staff Member</TableHead>
-                <TableHead>Staff ID</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Position</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedStaff.map((member) => (
-                <TableRow key={member.ACCOUNT_ID}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarImage src={member.AVATAR_URL} />
-                        <AvatarFallback className="bg-green-500/10 text-green-500">{getInitials(member.NAME)}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium flex gap-1 items-center">
-                          <p>
-                          {member.NAME}
-                          </p>
-                          <p>
-                            <Badge variant="outline" className={getDepartmentColor(member.DEPARTMENT)}>
-                              {member.ROLE}
-                            </Badge>
-                          </p>
-                          </div>
-                        <div className="text-sm text-muted-foreground flex items-center gap-1">
-                          <Mail className="h-3 w-3" />
-                          {member.EMAIL}
-                        </div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-mono text-sm">
-                    {member.STAFF_ID}
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getDepartmentColor(member.DEPARTMENT)}>
-                      {member.DEPARTMENT}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="font-medium text-sm">{member.POSITION}</div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1 text-sm">
-                      <Phone className="h-3 w-3" />
-                      {member.CONTACT_NUMBER}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex gap-2 justify-end">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          variant="outline"
-                          size="icon-sm"
-                          onClick={() => handleViewDetails(member.ACCOUNT_ID)}
-                        >
-                          <UserCheck className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        View Staff Details
-                      </TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          variant="outline"
-                          size="icon-sm"
-                          onClick={() => handleViewAssignments(member.ACCOUNT_ID, member.NAME)}
-                        >
-                          <Briefcase className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        View Staff Assignments
-                      </TooltipContent>
-                    </Tooltip>
-                    {isAdmin && ACCOUNT_ID !== member.ACCOUNT_ID && (
-                      <>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          variant="outline"
-                          size="icon-sm"
-                          onClick={() => handlePromoteToAdmin(member.ACCOUNT_ID, member.NAME)}
-                        >
-                          <Shield className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Promote to Admin
-                      </TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          variant="outline"
-                          size="icon-sm"
-                          className="bg-red-500/10 text-red-500 border-red-500 hover:bg-red-500/20 hover:text-red-500"
-                          onClick={() => handleDeleteAccount(member.ACCOUNT_ID, member.NAME, member.EMAIL)}
-                        >
-                          <UserX className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Delete Account
-                      </TooltipContent>
-                    </Tooltip>
-                    </>
-                    )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-
-          {filteredStaff.length === 0 && (
-            <div className="text-center py-12 text-muted-foreground">
-              No staff members found matching your filters.
-            </div>
-          )}
+          <DataTable 
+            columns={columns} 
+            data={staffMembers}
+            searchKey="NAME"
+            searchPlaceholder="Search by name, email, staff ID, department, or position..."
+            filterableColumns={filterableColumns}
+          />
         </CardContent>
       </Card>
-          {paginatedStaff.length > 0 && (
-            <PaginationControls
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              itemsPerPage={ITEMS_PER_PAGE}
-              totalItems={filteredStaff.length}
-            />
-          )}
+
       {/* Dialogs */}
       <ViewUserDetailDialog
         accountId={selectedStaffId}

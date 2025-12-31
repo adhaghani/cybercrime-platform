@@ -27,9 +27,9 @@ export function PublicFooter() {
             <Link href="/faq" className="text-muted-foreground hover:text-foreground">
               FAQ
             </Link>
-            <Link href="/contact" className="text-muted-foreground hover:text-foreground">
+            {/* <Link href="/contact" className="text-muted-foreground hover:text-foreground">
               Contact
-            </Link>
+            </Link> */}
             <Link href="/auth/login" className="text-muted-foreground hover:text-foreground">
               Login
             </Link>
