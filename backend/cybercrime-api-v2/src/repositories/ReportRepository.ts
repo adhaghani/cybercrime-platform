@@ -368,7 +368,7 @@ export class ReportRepository extends BaseRepository<Report> {
       SELECT f.SEVERITY_LEVEL, COUNT(*) as COUNT
       FROM ${this.tableName} r
       JOIN FACILITY f ON r.REPORT_ID = f.REPORT_ID
-      WHERE r.TYPE = 'FACILITY'
+      WHERE r.FACILITY_TYPE = 'FACILITY'
       GROUP BY f.SEVERITY_LEVEL
     `;
     
