@@ -10,14 +10,15 @@ oracledb.fetchAsString = [oracledb.CLOB];
 
 // Default volumes; override with CLI args like --students=15 --staff=8 --reports=25
 const defaults = {
-	students: 3200,
+	students: 3500,
 	staff: 128,
 	reports: 1000,
 	reportAssignments: 600,
 	resolutions: 700,
 	announcements: 64,
 	emergencies: 64,
-	generatedReports: 12
+	UiTMAuxiliaryPolice: 16,
+	generatedReports: 6
 };
 
 const roles = ['STAFF', 'SUPERVISOR', 'ADMIN'];
@@ -400,38 +401,80 @@ async function seedEmergencies(connection, count) {
 	const emergencyTypes = ['Police', 'Fire', 'Medical', 'Civil Defence'];
 	for (let i = 0; i < count; i += 1) {
 		const type = pick(emergencyTypes);
-		const campus = pick(campuses);
 		const state = pick(states);
-		const name = `${campus} ${type} Desk`;
-		const address = `${campus} Campus, ${state}`;
+		const name = `${type} Desk`;
+		const address = `${state}`;
 		const phone = randomPhone();
-		const email = `contact.${campus.toLowerCase().replace(/\s/g, '')}@alerts.my`;
+		const email = `contact@alerts.my`;
 		const hotline = `1-800-${Math.floor(100000 + Math.random() * 900000)}`;
 
 		const result = await connection.execute(
-			`INSERT INTO EMERGENCY_INFO (EMERGENCY_ID, NAME, CAMPUS, ADDRESS, PHONE, EMAIL, STATE, TYPE, HOTLINE, OPERATING_HOURS)
-			 VALUES (emergency_seq.NEXTVAL, :name, :campus, :address, :phone, :email, :state, :type, :hotline, '24/7')
+			`INSERT INTO EMERGENCY_INFO (EMERGENCY_ID, NAME, ADDRESS, PHONE, EMAIL, STATE, TYPE, HOTLINE)
+			 VALUES (emergency_seq.NEXTVAL, :name, :address, :phone, :email, :state, :type, :hotline)
 			 RETURNING EMERGENCY_ID INTO :id`,
-			{ name, campus, address, phone, email, state, type, hotline, id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER } },
+			{ name,address, phone, email, state, type, hotline, id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER } },
 			{ autoCommit: false }
 		);
 
-		list.push({ id: result.outBinds.id[0], type, campus });
+		list.push({ id: result.outBinds.id[0] });
 	}
 
 	// Create auxiliary police entries for a subset of police emergency rows
 	const policeEntries = list.filter((item) => item.type === 'Police');
 	const samplePolice = policeEntries.slice(0, Math.min(3, policeEntries.length));
 	for (const entry of samplePolice) {
+		const campus = pick(campuses);
 		await connection.execute(
 			`INSERT INTO UITM_AUXILIARY_POLICE (EMERGENCY_ID, CAMPUS, OPERATING_HOURS)
 			 VALUES (:emergencyId, :campus, '24/7')`,
-			{ emergencyId: entry.id, campus: entry.campus },
+			{ emergencyId: entry.id, campus: campus },
 			{ autoCommit: false }
 		);
 	}
 
 	return list;
+}
+
+async function seedUiTMAuxiliaryPolice(connection, count) {
+	const list = [];
+	for (let i = 0; i < count; i += 1) {
+		const campus = pick(campuses);
+		const address = `${campus} Campus Security Office`;
+		const phone = randomPhone();
+		const email = `auxpolice.${campus.toLowerCase().replace(/ /g, '')}@uitm.edu.my`;
+		const state = pick(states);
+		const hotline = `1-800-${Math.floor(100000 + Math.random() * 900000)}`;
+		const type = 'Police';
+
+		const emergencyResult = await connection.execute(
+			`INSERT INTO EMERGENCY_INFO (EMERGENCY_ID, ADDRESS, PHONE, EMAIL, STATE, TYPE, HOTLINE, CREATED_AT, UPDATED_AT)
+			 VALUES (emergency_seq.NEXTVAL, :address, :phone, :email, :state, :type, :hotline, SYSTIMESTAMP, SYSTIMESTAMP)
+			 RETURNING EMERGENCY_ID INTO :id`,
+			{
+				address,
+				phone,
+				email,
+				state,
+				type,
+				hotline,
+				id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
+			},
+			{ autoCommit: true }
+		);
+
+		const emergencyId = emergencyResult.outBinds.id[0];
+		
+		await connection.execute(
+			`INSERT INTO UITM_AUXILIARY_POLICE (EMERGENCY_ID, CAMPUS, OPERATING_HOURS)
+			 VALUES (:emergencyId, :campus, '24/7')`,
+			{ emergencyId, campus },
+			{ autoCommit: true }
+		);
+
+		list.push({ emergencyId, campus });
+	}
+	return list;
+
 }
 
 async function seedGeneratedReports(connection, count, staff, reports) {
@@ -487,6 +530,7 @@ async function seedAll() {
 		await seedResolutions(connection, config.resolutions, reports, staff);
 		await seedAnnouncements(connection, config.announcements, staff);
 		await seedEmergencies(connection, config.emergencies);
+		await seedUiTMAuxiliaryPolice(connection, config.UiTMAuxiliaryPolice);
 		await seedGeneratedReports(connection, config.generatedReports, staff, reports);
 
 		await connection.commit();

@@ -8,6 +8,7 @@ const authMiddleware = new AuthMiddleware();
 
 // Public routes (can view emergency contacts)
 router.get('/', emergencyController.getAllContacts);
+router.get('/national', emergencyController.getNationalContacts);
 router.get('/grouped/state', emergencyController.getContactsGroupedByState);
 router.get('/grouped/type', emergencyController.getContactsGroupedByType);
 router.get('/state/:state', emergencyController.getContactsByState);

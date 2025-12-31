@@ -15,8 +15,8 @@ export interface EmergencyContactData {
 }
 
 export class EmergencyContact extends BaseModel {
-  constructor(data: EmergencyContactData) {
-    super(data);
+  constructor(data: EmergencyContactData, skipValidation: boolean = false) {
+    super(data, skipValidation);
   }
 
   protected validate(): void {

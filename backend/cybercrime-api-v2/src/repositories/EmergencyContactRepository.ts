@@ -9,7 +9,8 @@ export class EmergencyContactRepository extends BaseRepository<EmergencyContact>
   }
 
   protected toModel(row: any): EmergencyContact {
-    return new EmergencyContact(row);
+    // Skip validation when creating from DB rows - trust what's already in DB
+    return new EmergencyContact(row, true);
   }
 
   /**
@@ -18,7 +19,7 @@ export class EmergencyContactRepository extends BaseRepository<EmergencyContact>
   async findByState(state: string): Promise<EmergencyContact[]> {
     const sql = `
       SELECT * FROM ${this.tableName} 
-      WHERE STATE = :state AND TYPE IS NOT NULL
+      WHERE STATE = :state AND TYPE IS NOT NULL AND NAME IS NOT NULL
       ORDER BY NAME
     `;
     const result: any = await this.execute(sql, { state });
@@ -31,7 +32,7 @@ export class EmergencyContactRepository extends BaseRepository<EmergencyContact>
   async findByType(type: string): Promise<EmergencyContact[]> {
     const sql = `
       SELECT * FROM ${this.tableName} 
-      WHERE TYPE = :type
+      WHERE TYPE = :type AND NAME IS NOT NULL
       ORDER BY STATE, NAME
     `;
     const result: any = await this.execute(sql, { type });
@@ -45,7 +46,7 @@ export class EmergencyContactRepository extends BaseRepository<EmergencyContact>
     state?: string;
     type?: string;
   }): Promise<EmergencyContact[]> {
-    let sql = `SELECT * FROM ${this.tableName} WHERE TYPE IS NOT NULL`;
+    let sql = `SELECT * FROM ${this.tableName} WHERE TYPE IS NOT NULL AND NAME IS NOT NULL`;
     const binds: any = {};
 
     if (filters.state) {
@@ -159,7 +160,7 @@ export class EmergencyContactRepository extends BaseRepository<EmergencyContact>
    * Get all emergency contacts (override to filter out null types)
    */
   async findAll(filters?: Record<string, any>): Promise<EmergencyContact[]> {
-    let sql = `SELECT * FROM ${this.tableName} WHERE TYPE IS NOT NULL`;
+    let sql = `SELECT * FROM ${this.tableName} WHERE TYPE IS NOT NULL AND NAME IS NOT NULL`;
     const binds: Record<string, any> = {};
 
     if (filters && Object.keys(filters).length > 0) {
@@ -173,6 +174,21 @@ export class EmergencyContactRepository extends BaseRepository<EmergencyContact>
     sql += ' ORDER BY STATE, NAME';
 
     const result: any = await this.execute(sql, binds);
+    return result.rows.map((row: any) => this.toModel(row));
+  }
+
+  /**
+   * Get national emergency contacts (excluding UiTM AP specific contacts)
+   */
+  async findNationalContacts(): Promise<EmergencyContact[]> {
+    const sql = `
+      SELECT * FROM ${this.tableName} 
+      WHERE TYPE IS NOT NULL 
+        AND NAME IS NOT NULL
+        AND NAME NOT LIKE '%UiTM%'
+      ORDER BY TYPE, NAME
+    `;
+    const result: any = await this.execute(sql, {});
     return result.rows.map((row: any) => this.toModel(row));
   }
 }

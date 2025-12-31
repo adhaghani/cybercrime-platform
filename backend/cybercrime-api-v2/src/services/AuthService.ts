@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Account, AccountData } from '../models/Account';
+import { Student } from '../models/Student';
 import { Staff } from '../models/Staff';
 import { AccountRepository } from '../repositories/AccountRepository';
+import { StudentRepository } from '../repositories/StudentRepository';
+import { StaffRepository } from '../repositories/StaffRepository';
 import { PasswordHasher } from '../utils/PasswordHasher';
 import { JwtManager } from '../utils/JwtManager';
 import { Logger } from '../utils/Logger';
@@ -15,6 +18,17 @@ export interface RegisterDTO {
   password: string;
   contact_number?: string;
   account_type: 'STUDENT' | 'STAFF';
+  // Student-specific fields
+  studentID?: string;
+  program?: string;
+  semester?: number;
+  year_of_study?: number;
+  // Staff-specific fields
+  staffID?: string;
+  role?: string;
+  department?: string;
+  position?: string;
+  supervisorID?: string;
 }
 
 export interface LoginDTO {
@@ -31,13 +45,19 @@ export interface AuthResult {
 
 export class AuthService {
   private accountRepo: AccountRepository;
+  private studentRepo: StudentRepository;
+  private staffRepo: StaffRepository;
   private jwtManager: JwtManager;
 
   constructor(
     accountRepo: AccountRepository = new AccountRepository(),
+    studentRepo: StudentRepository = new StudentRepository(),
+    staffRepo: StaffRepository = new StaffRepository(),
     jwtManager: JwtManager = new JwtManager()
   ) {
     this.accountRepo = accountRepo;
+    this.studentRepo = studentRepo;
+    this.staffRepo = staffRepo;
     this.jwtManager = jwtManager;
   }
 
@@ -79,19 +99,66 @@ export class AuthService {
       const account = new Account(accountData);
       const createdAccount = await this.accountRepo.create(account);
 
-      logger.info(`New account registered: ${createdAccount.getEmail()}`);
+      // Create student or staff profile based on account type
+      let profileAccount: Account | Student | Staff = createdAccount;
+      
+      if (data.account_type === 'STUDENT') {
+        // Validate student-specific fields
+        if (!data.studentID || !data.program || !data.semester || !data.year_of_study) {
+          throw new Error('Student ID, program, semester, and year of study are required for student accounts');
+        }
 
-      // Generate JWT token
-      const token = this.jwtManager.generateToken({
-        accountId: createdAccount.getId()!,
-        email: createdAccount.getEmail(),
-        accountType: createdAccount.getAccountType()
-      });
+        const studentData = {
+          ...accountData,
+          ACCOUNT_ID: createdAccount.getId(),
+          STUDENT_ID: data.studentID,
+          PROGRAM: data.program,
+          SEMESTER: data.semester,
+          YEAR_OF_STUDY: data.year_of_study
+        };
+        
+        const student = new Student(studentData);
+        profileAccount = await this.studentRepo.create(student);
+        logger.info(`New student registered: ${profileAccount.getEmail()} (${data.studentID})`);
+      } else if (data.account_type === 'STAFF') {
+        // Validate staff-specific fields
+        if (!data.staffID || !data.role || !data.department || !data.position) {
+          throw new Error('Staff ID, role, department, and position are required for staff accounts');
+        }
+
+        const staffData = {
+          ...accountData,
+          ACCOUNT_ID: createdAccount.getId(),
+          STAFF_ID: data.staffID,
+          ROLE: data.role as any,
+          DEPARTMENT: data.department,
+          POSITION: data.position,
+          SUPERVISOR_ID: data.supervisorID ? parseInt(data.supervisorID) : undefined
+        };
+        
+        const staff = new Staff(staffData);
+        profileAccount = await this.staffRepo.create(staff);
+        logger.info(`New staff registered: ${profileAccount.getEmail()} (${data.role})`);
+      }
+
+      // Generate JWT token with role for staff
+      const tokenPayload: any = {
+        accountId: profileAccount.getId()!,
+        email: profileAccount.getEmail(),
+        accountType: profileAccount.getAccountType()
+      };
+
+      // Add role for staff users
+      if (data.account_type === 'STAFF' && data.role) {
+        tokenPayload.role = data.role;
+      }
+
+      const token = this.jwtManager.generateToken(tokenPayload);
 
       return {
         success: true,
         token,
-        account: createdAccount,
+        account: profileAccount,
         message: 'Registration successful'
       };
     } catch (error) {

@@ -9,7 +9,7 @@ import { proxyToBackend } from '@/lib/api/proxy';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, password, contact_number, account_type } = body;
+    const { name, email, password } = body;
 
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -18,11 +18,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Proxy to new backend
+    // Proxy to new backend with the body we already parsed
     return proxyToBackend(request, {
       path: '/auth/register',
       method: 'POST',
       includeAuth: false,
+      body: body, // Pass the already-parsed body
     });
   } catch (error) {
     console.error('Registration error:', error);

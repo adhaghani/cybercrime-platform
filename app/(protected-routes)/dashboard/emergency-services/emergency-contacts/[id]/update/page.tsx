@@ -80,7 +80,7 @@ export default function UpdateEmergencyContactPage() {
 
   const onSubmit = async (data: EmergencyContactFormValues) => {
     setIsLoading(true);
-
+    
     try {
       const response = await fetch(`/api/emergency/${params.id}`, {
         method: 'PUT',

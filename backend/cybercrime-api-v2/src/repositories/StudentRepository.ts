@@ -8,7 +8,7 @@ export class StudentRepository extends BaseRepository<Student> {
   }
 
   protected toModel(row: any): Student {
-    return new Student(row);
+    return new Student(row, true); // Skip validation for DB records
   }
 
   async findAll(filters?: Record<string, any>): Promise<Student[]> {

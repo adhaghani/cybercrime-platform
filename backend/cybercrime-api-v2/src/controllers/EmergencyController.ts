@@ -245,4 +245,20 @@ export class EmergencyController {
       });
     }
   };
+
+  /**
+   * GET /api/v2/emergency/national
+   */
+  getNationalContacts = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const contacts = await this.emergencyService.getNationalContacts();
+      res.status(200).json(contacts.map(c => c.toJSON()));
+    } catch (error) {
+      logger.error('Get national contacts error:', error);
+      res.status(500).json({
+        error: 'Failed to get national emergency contacts',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  };
 }

@@ -198,4 +198,16 @@ export class EmergencyService {
       throw error;
     }
   }
+
+  /**
+   * Get national emergency contacts (excluding UiTM AP specific contacts)
+   */
+  async getNationalContacts(): Promise<EmergencyContact[]> {
+    try {
+      return this.emergencyRepo.findNationalContacts();
+    } catch (error) {
+      logger.error('Error getting national emergency contacts:', error);
+      throw error;
+    }
+  }
 }

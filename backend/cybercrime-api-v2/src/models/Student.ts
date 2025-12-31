@@ -8,8 +8,8 @@ export interface StudentData extends AccountData {
 }
 
 export class Student extends Account {
-  constructor(data: StudentData) {
-    super(data);
+  constructor(data: StudentData, skipValidation: boolean = false) {
+    super(data, skipValidation);
   }
 
   protected validate(): void {
