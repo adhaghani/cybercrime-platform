@@ -70,8 +70,14 @@ export class AccountController {
     try {
       const { id } = req.params;
       const updates = req.body;
-
-      const updatedAccount = await this.accountRepo.update(Number(id), updates);
+      
+      const NewUpdate = {
+        NAME: updates.name,
+        EMAIL: updates.email,
+        CONTACT_NUMBER: updates.contact_number,
+        AVATAR_URL: updates.avatar_url,
+      }
+      const updatedAccount = await this.accountRepo.update(Number(id), NewUpdate);
       res.status(200).json({ 
         success: true, 
         message: 'Account updated successfully',
