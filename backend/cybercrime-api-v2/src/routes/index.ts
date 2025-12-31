@@ -14,6 +14,7 @@ import facilityRoutes from './facility.routes';
 import teamRoutes from './team.routes';
 import policeRoutes from './police.routes';
 import uploadRoutes from './upload.routes';
+import aiRoutes from './ai.routes';
 
 const router = Router();
 
@@ -33,6 +34,7 @@ router.use('/facilities', facilityRoutes);
 router.use('/teams', teamRoutes);
 router.use('/police', policeRoutes);
 router.use('/upload', uploadRoutes);
+router.use('/ai', aiRoutes);
 
 // Health check
 router.get('/health', (req, res) => {

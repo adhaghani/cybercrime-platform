@@ -9,7 +9,9 @@ export interface ReportFilters {
   status?: ReportStatus;
   submitterId?: number;
   startDate?: Date;
+  start_date?: Date;
   endDate?: Date;
+  end_date?: Date;
 }
 
 export class ReportRepository extends BaseRepository<Report> {
@@ -53,13 +55,13 @@ export class ReportRepository extends BaseRepository<Report> {
       whereClauses.push('r.SUBMITTED_BY = :submitterId');
       binds.submitterId = filters.submitterId;
     }
-    if (filters?.startDate) {
+    if (filters?.startDate || filters?.start_date) {
       whereClauses.push('r.SUBMITTED_AT >= :startDate');
-      binds.startDate = filters.startDate;
+      binds.startDate = filters.startDate || filters.start_date ;
     }
-    if (filters?.endDate) {
+    if (filters?.endDate  || filters?.end_date) {
       whereClauses.push('r.SUBMITTED_AT <= :endDate');
-      binds.endDate = filters.endDate;
+      binds.endDate = filters.endDate || filters.end_date;
     }
 
     const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
@@ -368,7 +370,7 @@ export class ReportRepository extends BaseRepository<Report> {
       SELECT f.SEVERITY_LEVEL, COUNT(*) as COUNT
       FROM ${this.tableName} r
       JOIN FACILITY f ON r.REPORT_ID = f.REPORT_ID
-      WHERE r.FACILITY_TYPE = 'FACILITY'
+      WHERE r.TYPE = 'FACILITY'
       GROUP BY f.SEVERITY_LEVEL
     `;
     

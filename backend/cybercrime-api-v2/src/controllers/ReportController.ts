@@ -15,7 +15,7 @@ export class ReportController {
    */
   getAllReports = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { type, status, submitterId, submitted_by, startDate, endDate } = req.query;
+      const { type, status, submitterId, submitted_by, startDate, endDate, start_date, end_date } = req.query;
 
       const filters: any = {};
       if (type) filters.type = type as ReportType;
@@ -25,6 +25,8 @@ export class ReportController {
       if (submitter) filters.submitterId = Number(submitter);
       if (startDate) filters.startDate = new Date(startDate as string);
       if (endDate) filters.endDate = new Date(endDate as string);
+      if (start_date) filters.start_date = new Date(start_date as string);
+      if (end_date) filters.end_date = new Date(end_date as string);
 
       const reports = await this.reportService.getAllReports(filters);
       res.status(200).json({ success: true, data: reports, reports });

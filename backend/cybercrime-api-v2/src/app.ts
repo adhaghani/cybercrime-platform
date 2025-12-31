@@ -26,9 +26,9 @@ export class App {
       credentials: true
     }));
 
-    // Body parsing
-    this.app.use(express.json());
-    this.app.use(express.urlencoded({ extended: true }));
+    // Body parsing with increased limits for large payloads (e.g., AI-generated reports)
+    this.app.use(express.json({ limit: '10mb' }));
+    this.app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
     // Static file serving for uploads
     const uploadsPath = path.join(process.cwd(), 'public/uploads');
