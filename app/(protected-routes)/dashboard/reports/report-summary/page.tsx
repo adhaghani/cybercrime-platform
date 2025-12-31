@@ -1,47 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect, useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { getCategoryColor, getGeneratedReportTypeColor } from "@/lib/utils/badge-helpers";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Search, FileText, Download, Eye, Calendar, Filter } from "lucide-react";
+import { FileText } from "lucide-react";
 import Link from "next/link";
-import { format } from "date-fns";
-import { GeneratedReport, GeneratedReportCategory, GeneratedReportDataType } from "@/lib/types";
-import { PaginationControls } from "@/components/ui/pagination-controls";
+import { GeneratedReport } from "@/lib/types";
 import { generateMetadata } from "@/lib/seo";
 import { Skeleton } from "@/components/ui/skeleton";
-const ITEMS_PER_PAGE = 10;
+import { DataTable } from "@/components/ui/data-table/data-table";
+import { createColumns } from "@/components/generated-report/columns";
 
 export default function AllGeneratedReportsPage() {
   const [reports, setReports] = useState<GeneratedReport[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<GeneratedReportCategory | "ALL">("ALL");
-  const [typeFilter, setTypeFilter] = useState<GeneratedReportDataType | "ALL">("ALL");
-  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const fetchGeneratedReports = async () => {
@@ -59,31 +31,6 @@ export default function AllGeneratedReportsPage() {
     fetchGeneratedReports();
   }, []);
 
-  // Filter reports
-  const filteredReports = reports.filter((report) => {
-    const notFacility = report.REPORT_CATEGORY !== "FACILITY";
-    const matchesSearch =
-      report.TITLE.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.SUMMARY.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      categoryFilter === "ALL" || report.REPORT_CATEGORY === categoryFilter;
-    const matchesType =
-      typeFilter === "ALL" || report.REPORT_DATA_TYPE === typeFilter;
-    return notFacility && matchesSearch && matchesCategory && matchesType;
-  });
-
-  // Pagination
-  const totalPages = Math.ceil(filteredReports.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const paginatedReports = filteredReports.slice(startIndex, endIndex);
-
-  // Reset to page 1 when filters change
-  const handleFilterChange = (callback: () => void) => {
-    callback();
-    setCurrentPage(1);
-  };
-
   const handleDownload = (report: GeneratedReport) => {
     const dataStr = JSON.stringify(report, null, 2);
     const dataBlob = new Blob([dataStr], { type: "application/json" });
@@ -95,10 +42,41 @@ export default function AllGeneratedReportsPage() {
     URL.revokeObjectURL(url);
   };
 
+  // Get unique values for filters
+  const categories = Array.from(
+    new Set(
+      reports
+        .filter((r) => r.REPORT_CATEGORY !== "FACILITY")
+        .map((r) => r.REPORT_CATEGORY)
+    )
+  );
+  const types = Array.from(new Set(reports.map((r) => r.REPORT_DATA_TYPE)));
+
+  // Create columns with handlers
+  const columns = useMemo(
+    () => createColumns({
+      onDownload: handleDownload,
+    }),
+    []
+  );
+
+  // Prepare filterable columns
+  const filterableColumns = [
+    {
+      id: "REPORT_CATEGORY",
+      title: "Category",
+      options: categories.map((cat) => ({ label: cat, value: cat })),
+    },
+    {
+      id: "REPORT_DATA_TYPE",
+      title: "Type",
+      options: types.map((type) => ({ label: type, value: type })),
+    },
+  ];
+
   const stats = {
-    total: reports.length - reports.filter((r) => r.REPORT_CATEGORY === "FACILITY").length,
+    total: reports.filter((r) => r.REPORT_CATEGORY !== "FACILITY").length,
     crime: reports.filter((r) => r.REPORT_CATEGORY === "CRIME").length,
-    facility: reports.filter((r) => r.REPORT_CATEGORY === "FACILITY").length,
     all: reports.filter((r) => r.REPORT_CATEGORY === "ALL REPORTS").length,
   };
 
@@ -184,169 +162,25 @@ export default function AllGeneratedReportsPage() {
         </Card>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filter Reports</CardTitle>
-          <CardDescription>Search and filter AI-generated reports</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by title or summary..."
-                  value={searchQuery}
-                  onChange={(e) => handleFilterChange(() => setSearchQuery(e.target.value))}
-                  className="pl-8"
-                />
-              </div>
-            </div>
-            <Select
-              value={categoryFilter}
-              onValueChange={(value) =>
-                handleFilterChange(() =>
-                  setCategoryFilter(value as GeneratedReportCategory | "ALL")
-                )
-              }
-            >
-              <SelectTrigger className="w-full md:w-[180px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Categories</SelectItem>
-                <SelectItem value="CRIME">Crime</SelectItem>
-                {/* <SelectItem value="FACILITY">Facility</SelectItem> */}
-                <SelectItem value="USER">User</SelectItem>
-                <SelectItem value="ALL REPORTS">All Reports</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select
-              value={typeFilter}
-              onValueChange={(value) =>
-                handleFilterChange(() =>
-                  setTypeFilter(value as GeneratedReportDataType | "ALL")
-                )
-              }
-            >
-              <SelectTrigger className="w-full md:w-[180px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Types</SelectItem>
-                <SelectItem value="SUMMARY">Summary</SelectItem>
-                <SelectItem value="DETAILED">Detailed</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Reports Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Generated Reports ({filteredReports.length})</CardTitle>
-          <CardDescription className="flex justify-between gap-2 items-center f">
-            {filteredReports.length === reports.length
-              ? "Showing all AI-generated reports"
-              : `Showing ${filteredReports.length} of ${reports.length - reports.filter((r) => r.REPORT_CATEGORY === "FACILITY").length} reports`}
-              {totalPages > 1 && (
-                <PaginationControls
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={setCurrentPage}
-                  itemsPerPage={ITEMS_PER_PAGE}
-                  totalItems={filteredReports.length}
-                />
-              )}
-          </CardDescription>
+          <CardTitle>Generated Reports ({reports.filter((r) => r.REPORT_CATEGORY !== "FACILITY").length})</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {paginatedReports.length > 0 ? (
-            <>
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Report</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Date Range</TableHead>
-                      
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedReports.map((report) => (
-                      <TableRow key={report.GENERATE_ID}>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">{report.TITLE}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={getCategoryColor(report.REPORT_CATEGORY)}>
-                            {report.REPORT_CATEGORY}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={getGeneratedReportTypeColor(report.REPORT_DATA_TYPE)}>
-                            {report.REPORT_DATA_TYPE}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          <div className="flex items-center gap-1 text-muted-foreground">
-                            <Calendar className="h-3 w-3" />
-                            <span>
-                              {format(new Date(report.DATE_RANGE_START), "MMM d")} -{" "}
-                              {format(new Date(report.DATE_RANGE_END), "MMM d, yyyy")}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                            <Button variant="outline" size="icon-sm" asChild>
-                              <Link href={`/dashboard/reports/report-summary/${report.GENERATE_ID}`}>
-                                <Eye className="h-4 w-4" />
-                              </Link>
-                            </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              View Report Summary
-                            </TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="icon-sm"
-                              onClick={() => handleDownload(report)}
-                            >
-                              <Download className="h-4 w-4" />
-                            </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              Download Report JSON
-                            </TooltipContent>
-                            </Tooltip>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </>
+        <CardContent>
+          {reports.filter((r) => r.REPORT_CATEGORY !== "FACILITY").length > 0 ? (
+            <DataTable
+              columns={columns}
+              data={reports.filter((r) => r.REPORT_CATEGORY !== "FACILITY")}
+              searchKey="TITLE"
+              searchPlaceholder="Search by title or summary..."
+              filterableColumns={filterableColumns}
+            />
           ) : (
             <div className="text-center py-12 text-muted-foreground">
               <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No generated reports found matching your filters.</p>
-              <p className="text-sm mt-2">Try adjusting your search criteria.</p>
+              <p>No generated reports found.</p>
+              <p className="text-sm mt-2">Try generating a new report.</p>
               <Button variant="outline" className="mt-4" asChild>
                 <Link href="/dashboard/reports/report-summary/generate">
                   <FileText className="h-4 w-4 mr-2" />
