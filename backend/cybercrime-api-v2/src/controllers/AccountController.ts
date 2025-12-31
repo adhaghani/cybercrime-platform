@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response } from 'express';
 import { AccountRepository } from '../repositories/AccountRepository';
-import { Account } from '../models/Account';
 import { Logger } from '../utils/Logger';
 
 const logger = new Logger('AccountController');
@@ -70,12 +69,20 @@ export class AccountController {
     try {
       const { id } = req.params;
       const updates = req.body;
-      
+
       const NewUpdate = {
         NAME: updates.name,
         EMAIL: updates.email,
         CONTACT_NUMBER: updates.contact_number,
         AVATAR_URL: updates.avatar_url,
+        ACCOUNT_TYPE: updates.account_type,
+        STUDENT_ID: updates.student_id,
+        PROGRAM: updates.program,
+        SEMESTER: updates.semester,
+        YEAR_OF_STUDY: updates.year_of_study,
+        STAFF_ID: updates.staff_id,
+        DEPARTMENT: updates.department,
+        POSITION: updates.position,
       }
       const updatedAccount = await this.accountRepo.update(Number(id), NewUpdate);
       res.status(200).json({ 

@@ -95,6 +95,7 @@ export default function SettingsProfilePage() {
             name: data.name,
             contact_number: data.contactNumber,
             avatar_url: avatarUrl,
+            account_type: AccountType,
             ...(AccountType === 'STUDENT' ? {
               student_id: claims?.STUDENT_ID,
               program: data.program,

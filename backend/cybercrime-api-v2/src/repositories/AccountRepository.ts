@@ -98,7 +98,7 @@ export class AccountRepository extends BaseRepository<Account> {
   /**
    * Update account
    */
-  async update(id: string | number, updates: Partial<AccountData>): Promise<Account> {
+  async update(id: string | number, updates: Partial<AccountData & { STUDENT_ID?: string; PROGRAM?: string; SEMESTER?: number; YEAR_OF_STUDY?: number; STAFF_ID?: string; DEPARTMENT?: string; POSITION?: string; ROLE?: string }>): Promise<Account> {
     const setClauses: string[] = [];
     const binds: Record<string, any> = { id };
 
@@ -137,7 +137,69 @@ export class AccountRepository extends BaseRepository<Account> {
 
     await this.execute(sql, binds, { autoCommit: true });
     
+    if(updates.ACCOUNT_TYPE === "STUDENT") {
+      // Also update STUDENT table
+      const studentSetClauses: string[] = [];
+      const studentBinds: Record<string, any> = { accountId: id };
+
+      if (updates.STUDENT_ID !== undefined) {
+        studentSetClauses.push('STUDENT_ID = :studentId');
+        studentBinds.studentId = updates.STUDENT_ID;
+      }
+      if (updates.PROGRAM !== undefined) {
+        studentSetClauses.push('PROGRAM = :program');
+        studentBinds.program = updates.PROGRAM;
+      }
+      if (updates.SEMESTER !== undefined) {
+        studentSetClauses.push('SEMESTER = :semester');
+        studentBinds.semester = updates.SEMESTER;
+      }
+      if (updates.YEAR_OF_STUDY !== undefined) {
+        studentSetClauses.push('YEAR_OF_STUDY = :yearOfStudy');
+        studentBinds.yearOfStudy = updates.YEAR_OF_STUDY;
+      }
+
+      if (studentSetClauses.length > 0) {
+        studentSetClauses.push('UPDATED_AT = SYSTIMESTAMP');
+
+        const studentSql = `
+          UPDATE  STUDENT
+          SET ${studentSetClauses.join(', ')}
+          WHERE ACCOUNT_ID = :accountId
+        `;
+
+        await this.execute(studentSql, studentBinds, { autoCommit: true });
+      }
+    }
+    if(updates.ACCOUNT_TYPE === "STAFF") {
+      // Also update STAFF table
+      const staffSetClauses: string[] = [];
+      const staffBinds: Record<string, any> = { accountId: id };
+
+      if (updates.DEPARTMENT !== undefined) {
+        staffSetClauses.push('DEPARTMENT = :department');
+        staffBinds.department = updates.DEPARTMENT;
+      }
+      if (updates.POSITION !== undefined) {
+        staffSetClauses.push('POSITION = :position');
+        staffBinds.position = updates.POSITION;
+      }
+
+      if (staffSetClauses.length > 0) {
+        staffSetClauses.push('UPDATED_AT = SYSTIMESTAMP');
+
+        const staffSql = `
+          UPDATE STAFF
+          SET ${staffSetClauses.join(', ')}
+          WHERE ACCOUNT_ID = :accountId
+        `;
+
+        await this.execute(staffSql, staffBinds, { autoCommit: true });
+      }
+    }
+
     const updatedAccount = await this.findById(id);
+
     if (!updatedAccount) {
       throw new Error('Failed to update account');
     }
