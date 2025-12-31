@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { proxyToBackend, getPathParam } from '@/lib/api/proxy';
+import { proxyToBackend } from '@/lib/api/proxy';
 
 /**
  * GET /api/report-assignments/by-staff/[staffId]
@@ -10,9 +10,10 @@ import { proxyToBackend, getPathParam } from '@/lib/api/proxy';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { staffId: string } }
+  { params }: { params: Promise<{ staffId: string }> }
 ) {
-  const staffId = await getPathParam(params, 'staffId');
+  const { staffId } = await params;
+  console.log('[API /report-assignments/by-staff/[staffId]] staffId:', staffId);
   return proxyToBackend(request, {
     path: `/report-assignments/by-staff/${staffId}`,
     includeAuth: true,

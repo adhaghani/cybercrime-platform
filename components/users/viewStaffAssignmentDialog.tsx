@@ -56,6 +56,7 @@ export function ViewStaffAssignmentDialog({
       }
       
       const data = await response.json();
+      console.log('Fetched assignments:', data);
       setAssignments(data);
     } catch (error) {
       console.error('Failed to fetch assignments:', error);
