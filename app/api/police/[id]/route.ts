@@ -16,9 +16,9 @@ import { proxyToBackend, getPathParam } from '@/lib/api/proxy';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const id = getPathParam(request, 'id');
+  const { id } = await params;
   return proxyToBackend(request, {
     path: `/police/${id}`,
     includeAuth: false, // Public endpoint
@@ -27,9 +27,9 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }>  }
 ) {
-  const id = getPathParam(request, 'id');
+  const { id } = await params;
   return proxyToBackend(request, {
     path: `/police/${id}`,
     method: 'PUT',

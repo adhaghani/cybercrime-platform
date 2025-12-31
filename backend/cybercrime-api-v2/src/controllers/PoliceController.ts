@@ -104,9 +104,23 @@ export class PoliceController {
   update = async (req: Request, res: Response): Promise<void> => {
     try {
       const id = parseInt(req.params.id);
-      const updates = req.body;
+      const { campus, state, address, phone, hotline, email, operating_hours } = req.body;
+
+      logger.info(`Updating police station ${id} with data: ${JSON.stringify({ campus, state, address, phone, hotline, email, operating_hours })}`);
+
+      // Transform lowercase keys to uppercase keys expected by the repository
+      const updates: Record<string, any> = {};
+      if (campus !== undefined) updates.CAMPUS = campus;
+      if (state !== undefined) updates.STATE = state;
+      if (address !== undefined) updates.ADDRESS = address;
+      if (phone !== undefined) updates.PHONE = phone;
+      if (hotline !== undefined) updates.HOTLINE = hotline;
+      if (email !== undefined) updates.EMAIL = email;
+      if (operating_hours !== undefined) updates.OPERATING_HOURS = operating_hours;
 
       const policeStation = await this.policeService.updatePoliceStation(id, updates);
+
+      logger.info(`Police station ${id} updated successfully`);
 
       res.json({
         message: 'Police station updated successfully',

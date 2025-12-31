@@ -72,7 +72,7 @@ export default function UpdateUitmPolicePage() {
 
   const onSubmit = async (data: UitmPoliceFormValues) => {
     setIsLoading(true);
-
+    console.log("Submitting update with data:", data);
     try {
       const response = await fetch(`/api/police/${params.id}`, {
         method: 'PUT',
