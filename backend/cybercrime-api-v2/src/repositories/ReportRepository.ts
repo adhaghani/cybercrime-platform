@@ -313,6 +313,10 @@ export class ReportRepository extends BaseRepository<Report> {
     total: number;
     byStatus: Record<string, number>;
     byType: Record<string, number>;
+    byCrimeCategory: Record<string, number>;
+    byFacilitySeverity: Record<string, number>;
+    overTime: Array<{ report_date: string; desktop: number; mobile: number }>;
+    userGrowth: Array<{ month_name: string; desktop: number }>;
   }> {
     const sql = `
       SELECT 
@@ -328,7 +332,11 @@ export class ReportRepository extends BaseRepository<Report> {
     const stats = {
       total: 0,
       byStatus: {} as Record<string, number>,
-      byType: {} as Record<string, number>
+      byType: {} as Record<string, number>,
+      byCrimeCategory: {} as Record<string, number>,
+      byFacilitySeverity: {} as Record<string, number>,
+      overTime: [] as Array<{ report_date: string; desktop: number; mobile: number }>,
+      userGrowth: [] as Array<{ month_name: string; desktop: number }>
     };
 
     result.rows.forEach((row: any) => {
@@ -336,6 +344,87 @@ export class ReportRepository extends BaseRepository<Report> {
       stats.byStatus[row.STATUS] = (stats.byStatus[row.STATUS] || 0) + row.TOTAL;
       stats.byType[row.TYPE] = (stats.byType[row.TYPE] || 0) + row.TOTAL;
     });
+
+    // Get crime categories for CRIME reports
+    const crimeSql = `
+      SELECT c.CRIME_CATEGORY, COUNT(*) as COUNT
+      FROM ${this.tableName} r
+      JOIN CRIME c ON r.REPORT_ID = c.REPORT_ID
+      WHERE r.TYPE = 'CRIME'
+      GROUP BY c.CRIME_CATEGORY
+    `;
+    
+    try {
+      const crimeResult: any = await this.execute(crimeSql);
+      crimeResult.rows.forEach((row: any) => {
+        stats.byCrimeCategory[row.CRIME_CATEGORY] = row.COUNT;
+      });
+    } catch (err) {
+      console.log('No crime data found:', err);
+    }
+
+    // Get facility severities for FACILITY reports  
+    const facilitySql = `
+      SELECT f.SEVERITY_LEVEL, COUNT(*) as COUNT
+      FROM ${this.tableName} r
+      JOIN FACILITY f ON r.REPORT_ID = f.REPORT_ID
+      WHERE r.TYPE = 'FACILITY'
+      GROUP BY f.SEVERITY_LEVEL
+    `;
+    
+    try {
+      const facilityResult: any = await this.execute(facilitySql);
+      facilityResult.rows.forEach((row: any) => {
+        stats.byFacilitySeverity[row.SEVERITY_LEVEL] = row.COUNT;
+      });
+    } catch (err) {
+      console.log('No facility data found:', err);
+    }
+
+    // Get reports over time (last 30 days)
+    const overTimeSql = `
+      SELECT 
+        TO_CHAR(r.SUBMITTED_AT, 'YYYY-MM-DD') as "report_date",
+        COUNT(CASE WHEN r.TYPE = 'CRIME' THEN 1 END) as "desktop",
+        COUNT(CASE WHEN r.TYPE = 'FACILITY' THEN 1 END) as "mobile"
+      FROM ${this.tableName} r
+      WHERE r.SUBMITTED_AT >= SYSDATE - 30
+      GROUP BY TO_CHAR(r.SUBMITTED_AT, 'YYYY-MM-DD')
+      ORDER BY "report_date"
+    `;
+    
+    try {
+      const overTimeResult: any = await this.execute(overTimeSql);
+      stats.overTime = overTimeResult.rows.map((row: any) => ({
+        report_date: row["report_date"],
+        desktop: Number(row["desktop"]),
+        mobile: Number(row["mobile"])
+      }));
+    } catch (err) {
+      console.log('No overTime data found:', err);
+    }
+
+    // Get user growth (last 12 months)
+    const userGrowthSql = `
+      SELECT 
+        TO_CHAR(a.CREATED_AT, 'YYYY-MM') as "month_name",
+        COUNT(*) as "desktop"
+      FROM ACCOUNT a
+      WHERE a.ACCOUNT_TYPE = 'STUDENT'
+        AND a.CREATED_AT >= ADD_MONTHS(SYSDATE, -12)
+      GROUP BY TO_CHAR(a.CREATED_AT, 'YYYY-MM')
+      ORDER BY "month_name"
+    `;
+    
+    try {
+      const userGrowthResult: any = await this.execute(userGrowthSql);
+      stats.userGrowth = userGrowthResult.rows.map((row: any) => ({
+        month_name: row["month_name"],
+        desktop: Number(row["desktop"])
+      }));
+    } catch (err) {
+      console.log('No user growth data found:', err);
+    }
 
     return stats;
   }

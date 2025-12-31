@@ -102,37 +102,37 @@ export class EmergencyContactRepository extends BaseRepository<EmergencyContact>
   /**
    * Update emergency contact
    */
-  async update(id: string | number, updates: Partial<EmergencyContactData>): Promise<EmergencyContact> {
+  async update(id: string | number, updates: any): Promise<EmergencyContact> {
     const setClauses: string[] = [];
     const binds: Record<string, any> = { id };
 
-    if (updates.NAME) {
+    if (updates.NAME || updates.name) {
       setClauses.push('NAME = :name');
-      binds.name = updates.NAME;
+      binds.name = updates.NAME || updates.name;
     }
-    if (updates.ADDRESS) {
+    if (updates.ADDRESS || updates.address) {
       setClauses.push('ADDRESS = :address');
-      binds.address = updates.ADDRESS;
+      binds.address = updates.ADDRESS || updates.address;
     }
-    if (updates.PHONE) {
+    if (updates.PHONE || updates.phone) {
       setClauses.push('PHONE = :phone');
-      binds.phone = updates.PHONE;
+      binds.phone = updates.PHONE || updates.phone;
     }
-    if (updates.EMAIL !== undefined) {
+    if (updates.EMAIL !== undefined || updates.email !== undefined) {
       setClauses.push('EMAIL = :email');
-      binds.email = updates.EMAIL;
+      binds.email = updates.EMAIL !== undefined ? updates.EMAIL : updates.email;
     }
-    if (updates.STATE) {
+    if (updates.STATE || updates.state) {
       setClauses.push('STATE = :state');
-      binds.state = updates.STATE;
+      binds.state = updates.STATE || updates.state;
     }
-    if (updates.TYPE) {
+    if (updates.TYPE || updates.type) {
       setClauses.push('TYPE = :type');
-      binds.type = updates.TYPE;
+      binds.type = updates.TYPE || updates.type;
     }
-    if (updates.HOTLINE !== undefined) {
+    if (updates.HOTLINE !== undefined || updates.hotline !== undefined) {
       setClauses.push('HOTLINE = :hotline');
-      binds.hotline = updates.HOTLINE;
+      binds.hotline = updates.HOTLINE !== undefined ? updates.HOTLINE : updates.hotline;
     }
 
     if (setClauses.length === 0) {

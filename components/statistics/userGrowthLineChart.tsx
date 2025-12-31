@@ -34,6 +34,23 @@ const chartConfig = {
 } satisfies ChartConfig
 
 export function UserGrowthLineChart({ data }: UserGrowthLineChartProps) {
+  // Add null check to prevent undefined error
+  if (!data || !Array.isArray(data)) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>User Growth Chart</CardTitle>
+          <CardDescription>monthly for the past 12 months</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center text-muted-foreground py-8">
+            No user growth data available to display
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const chartData = data.map(item => ({
     month: item.MONTH_NAME?.trim() || '',
     desktop: Number(item.DESKTOP)

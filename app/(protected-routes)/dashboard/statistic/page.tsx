@@ -13,12 +13,12 @@ import { AlertCircle } from 'lucide-react';
 import { useHasAnyRole } from '@/hooks/use-user-role';
 
 interface StatisticsData {
-  reportTypes: Array<{ name: string; value: number }>;
-  reportStatus: Array<{ name: string; value: number }>;
-  crimeCategories: Array<{ name: string; value: number }>;
-  facilitySeverities: Array<{ name: string; value: number }>;
-  reportsOverTime: Array<{ report_date: string; desktop: number; mobile: number }>;
-  userGrowth: Array<{ month_name: string; desktop: number }>;
+  reportTypes: Array<{ NAME: string; VALUE: number }>;
+  reportStatus: Array<{ NAME: string; VALUE: number }>;
+  crimeCategories: Array<{ NAME: string; VALUE: number }>;
+  facilitySeverities: Array<{ NAME: string; VALUE: number }>;
+  reportsOverTime: Array<{ REPORT_DATE: string; DESKTOP: number; MOBILE: number }>;
+  userGrowth: Array<{ MONTH_NAME: string; DESKTOP: number }>;
 }
 
 const StatisticsPage = () => {
@@ -42,8 +42,31 @@ const StatisticsPage = () => {
         }
         
         const result = await response.json();
-        setData(result);
+        
+        // Transform backend data to frontend format
+        const transformedData = {
+          reportTypes: result.data?.byType ? 
+            Object.entries(result.data.byType).map(([name, value]) => ({ NAME: name, VALUE: Number(value) })) : [],
+          reportStatus: result.data?.byStatus ? 
+            Object.entries(result.data.byStatus).map(([name, value]) => ({ NAME: name, VALUE: Number(value) })) : [],
+          crimeCategories: result.data?.byCrimeCategory ? 
+            Object.entries(result.data.byCrimeCategory).map(([name, value]) => ({ NAME: name, VALUE: Number(value) })) : [],
+          facilitySeverities: result.data?.byFacilitySeverity ? 
+            Object.entries(result.data.byFacilitySeverity).map(([name, value]) => ({ NAME: name, VALUE: Number(value) })) : [],
+          reportsOverTime: result.data?.overTime?.map((item: any) => ({
+            REPORT_DATE: item.report_date,
+            DESKTOP: Number(item.desktop),
+            MOBILE: Number(item.mobile)
+          })) || [],
+          userGrowth: result.data?.userGrowth?.map((item: any) => ({
+            MONTH_NAME: item.month_name,
+            DESKTOP: Number(item.desktop)
+          })) || []
+        };
+        
+        setData(transformedData);
         console.log('Statistics data fetched:', result);
+        console.log('Transformed data:', transformedData);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {

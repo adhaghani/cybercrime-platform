@@ -45,6 +45,23 @@ export function ReportChartOverTime({ data }: ReportChartOverTimeProps) {
   const [activeChart, setActiveChart] =
     React.useState<keyof typeof chartConfig>("DESKTOP")
 
+  // Add null check to prevent undefined error
+  if (!data || !Array.isArray(data)) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Reports Over Time</CardTitle>
+          <CardDescription>No data available</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center text-muted-foreground py-8">
+            No report data available to display
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const chartData = data.map(item => ({
     date: item.REPORT_DATE,
     DESKTOP: Number(item.DESKTOP),

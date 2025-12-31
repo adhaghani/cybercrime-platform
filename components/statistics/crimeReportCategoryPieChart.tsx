@@ -53,6 +53,22 @@ const chartConfig = {
 } satisfies ChartConfig
 
 export function CrimeReportCategoryPieChart({ data }: CrimeReportCategoryPieChartProps) {
+  // Add null check to prevent undefined error
+  if (!data || !Array.isArray(data)) {
+    return (
+      <Card className="flex flex-col">
+        <CardHeader className="items-center pb-0">
+          <CardTitle>Type of Reports</CardTitle>
+          <CardDescription>Past 30 Days</CardDescription>
+        </CardHeader>
+        <CardContent className="flex-1 pb-0">
+          <div className="text-center text-muted-foreground py-8">
+            No report data available to display
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
   const chartData = data.map((item) => ({
     browser: item.NAME,
     visitors: item.VALUE,
