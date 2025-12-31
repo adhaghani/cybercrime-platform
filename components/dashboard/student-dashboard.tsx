@@ -33,7 +33,7 @@ export function StudentDashboard({ stats, reports }: StudentDashboardProps) {
   const currentUserId = claims?.ACCOUNT_ID || '';
   
   const crimeReports = reports.filter((r) => r.TYPE === "CRIME") as Crime[];
-  const facilityReports = reports.filter((r) => r.TYPE === "FACILITY") as Facility[];
+  // const facilityReports = reports.filter((r) => r.TYPE === "FACILITY") as Facility[];
   
   const myReports = reports.filter((r) => r.SUBMITTED_BY === currentUserId);
   const recentReports = [...myReports]
@@ -53,7 +53,7 @@ export function StudentDashboard({ stats, reports }: StudentDashboardProps) {
     <>
 
       {/* Main Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
         {/* Crime Reports Section */}
         <Card className="flex flex-col">
           <CardHeader>
@@ -90,7 +90,7 @@ export function StudentDashboard({ stats, reports }: StudentDashboardProps) {
         </Card>
 
         {/* Facility Reports Section */}
-        <Card className="flex flex-col">
+        {/* <Card className="flex flex-col">
           <CardHeader>
             <div className="mb-2 h-12 w-12 rounded-lg bg-orange-500/10 flex items-center justify-center">
               <Wrench className="h-6 w-6 text-orange-500" />
@@ -122,7 +122,7 @@ export function StudentDashboard({ stats, reports }: StudentDashboardProps) {
               </Button>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Emergency Services Section */}
         <Card className="flex flex-col">

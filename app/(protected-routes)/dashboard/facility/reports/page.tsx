@@ -154,16 +154,14 @@ export default function AllReportsPage() {
             size="icon-sm"
             onClick={() => setViewMode("card")}
           >
-            <LayoutGrid className="h-4 w-4 mr-2" />
-            Cards
+            <LayoutGrid className="h-4 w-4" />
           </Button>
           <Button
             variant={viewMode === "table" ? "default" : "outline"}
             size="icon-sm"
             onClick={() => setViewMode("table")}
           >
-            <Table2 className="h-4 w-4 mr-2" />
-            Table
+            <Table2 className="h-4 w-4" />
           </Button>
         </div>
       </div>

@@ -11,7 +11,7 @@ const layout = ({children}: {children: React.ReactNode}) => {
         </div>
         <div className='flex-1 bottom-0 w-full h-1/2 -z-10 md:relative md:bottom-auto md:h-auto md:w-auto bg-gradient-to-br from-primary/20 via-secondary to-primary/10 rounded-xl relative overflow-hidden'>
           <h1 className='absolute top-1/2 text-lg md:text-2xl font-medium left-1/4'>
-          Crime, Facility, and Announcement Platform,
+          Crime and Announcement Platform,
           <br />
           All in One, universal, convenient place.
           </h1>
