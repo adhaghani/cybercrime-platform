@@ -1,77 +1,53 @@
-import { BaseModel } from './base/BaseModel';
+import { Staff, StaffData } from './Staff';
 
+/**
+ * Team is a DTO (Data Transfer Object) representing a hierarchical team structure
+ * based on the SUPERVISOR_ID relationship in the STAFF table.
+ * A team consists of a supervisor and their direct reports.
+ */
 export interface TeamData {
-  TEAM_ID?: number;
-  TEAM_NAME: string;
-  DESCRIPTION?: string;
-  TEAM_LEAD_ID?: number;
-  CREATED_AT?: Date;
-  UPDATED_AT?: Date;
-  TEAM_LEAD_NAME?: string;
-  TEAM_LEAD_EMAIL?: string;
-  MEMBER_COUNT?: number;
+  supervisor: StaffData;
+  members: StaffData[];
+  teamSize: number;
 }
 
-export class Team extends BaseModel {
+export class Team {
+  private supervisor: Staff;
+  private members: Staff[];
+  private teamSize: number;
+
   constructor(data: TeamData) {
-    super(data);
+    this.supervisor = new Staff(data.supervisor, true);
+    this.members = data.members.map(m => new Staff(m, true));
+    this.teamSize = data.teamSize;
   }
 
-  protected validate(): void {
-    if (!this.getTeamName()) {
-      throw new Error('Team name is required');
-    }
+  getSupervisor(): Staff {
+    return this.supervisor;
   }
 
-  getId(): number | undefined {
-    return this.get<number>('TEAM_ID');
+  getMembers(): Staff[] {
+    return this.members;
   }
 
-  getTeamId(): number | undefined {
-    return this.get<number>('TEAM_ID');
+  getTeamSize(): number {
+    return this.teamSize;
   }
 
-  getTeamName(): string {
-    return this.get<string>('TEAM_NAME');
+  // Convenience getters for supervisor info
+  getSupervisorId(): number | undefined {
+    return this.supervisor.getId();
   }
 
-  getDescription(): string | undefined {
-    return this.get<string>('DESCRIPTION');
+  getSupervisorName(): string {
+    return this.supervisor.getName();
   }
 
-  getTeamLeadId(): number | undefined {
-    return this.get<number>('TEAM_LEAD_ID');
-  }
-
-  getCreatedAt(): Date | undefined {
-    return this.get<Date>('CREATED_AT');
-  }
-
-  getUpdatedAt(): Date | undefined {
-    return this.get<Date>('UPDATED_AT');
-  }
-
-  getTeamLeadName(): string | undefined {
-    return this.get<string>('TEAM_LEAD_NAME');
-  }
-
-  getTeamLeadEmail(): string | undefined {
-    return this.get<string>('TEAM_LEAD_EMAIL');
-  }
-
-  getMemberCount(): number | undefined {
-    return this.get<number>('MEMBER_COUNT');
-  }
-
-  setTeamName(name: string): void {
-    this.set('TEAM_NAME', name);
-  }
-
-  setDescription(description: string): void {
-    this.set('DESCRIPTION', description);
-  }
-
-  setTeamLeadId(id: number): void {
-    this.set('TEAM_LEAD_ID', id);
+  toJSON(): any {
+    return {
+      supervisor: this.supervisor.toJSON(),
+      members: this.members.map(m => m.toJSON()),
+      teamSize: this.teamSize
+    };
   }
 }

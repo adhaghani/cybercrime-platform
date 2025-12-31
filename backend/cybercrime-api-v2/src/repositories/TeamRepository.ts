@@ -1,209 +1,402 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Team } from '../models/Team';
+import { Team, TeamData } from '../models/Team';
+import { StaffData } from '../models/Staff';
 import { BaseRepository } from './base/BaseRepository';
-import oracledb from 'oracledb';
+import { AccountType } from '../types/enums';
 
+/**
+ * TeamRepository - Manages team queries based on the hierarchical Staff structure
+ * Teams are formed by the SUPERVISOR_ID relationship in the STAFF table
+ */
 export class TeamRepository extends BaseRepository<Team> {
-  protected tableName = 'TEAM';
-
   constructor() {
-    super('TEAM', 'TEAM_ID');
+    super('STAFF', 'ACCOUNT_ID');
   }
 
   protected toModel(row: any): Team {
-    return new Team({
-      TEAM_ID: row.TEAM_ID,
-      TEAM_NAME: row.TEAM_NAME,
-      TEAM_LEAD_ID: row.TEAM_LEAD_ID,
-      DESCRIPTION: row.DESCRIPTION,
-      CREATED_AT: row.CREATED_AT,
-      UPDATED_AT: row.UPDATED_AT,
-      // Include team lead info from JOIN
-      TEAM_LEAD_NAME: row.TEAM_LEAD_NAME,
-      TEAM_LEAD_EMAIL: row.TEAM_LEAD_EMAIL
-    });
+    throw new Error('Not implemented - use specific methods that build Team objects');
   }
 
-  async findAll(): Promise<Team[]> {
-    const sql = `
-      SELECT t.*,
-             a.NAME as TEAM_LEAD_NAME,
-             a.EMAIL as TEAM_LEAD_EMAIL
-      FROM ${this.tableName} t
-      LEFT JOIN ACCOUNT a ON t.TEAM_LEAD_ID = a.ACCOUNT_ID
-      ORDER BY t.TEAM_NAME
-    `;
-
-    const result: any = await this.execute(sql);
-    return result.rows.map((row: any) => this.toModel(row));
-  }
-
-  async findById(id: string | number): Promise<Team | null> {
-    const sql = `
-      SELECT t.*,
-             a.NAME as TEAM_LEAD_NAME,
-             a.EMAIL as TEAM_LEAD_EMAIL
-      FROM ${this.tableName} t
-      LEFT JOIN ACCOUNT a ON t.TEAM_LEAD_ID = a.ACCOUNT_ID
-      WHERE t.TEAM_ID = :id
-    `;
-    const result: any = await this.execute(sql, { id });
-    
-    if (result.rows.length === 0) return null;
-    return this.toModel(result.rows[0]);
-  }
-
-  async findByTeamLead(leadId: number): Promise<Team[]> {
-    const sql = `
-      SELECT t.*,
-             a.NAME as TEAM_LEAD_NAME,
-             a.EMAIL as TEAM_LEAD_EMAIL
-      FROM ${this.tableName} t
-      LEFT JOIN ACCOUNT a ON t.TEAM_LEAD_ID = a.ACCOUNT_ID
-      WHERE t.TEAM_LEAD_ID = :leadId
-      ORDER BY t.TEAM_NAME
-    `;
-
-    const result: any = await this.execute(sql, { leadId });
-    return result.rows.map((row: any) => this.toModel(row));
-  }
-
-  async findByName(name: string): Promise<Team | null> {
-    const sql = `
-      SELECT t.*,
-             a.NAME as TEAM_LEAD_NAME,
-             a.EMAIL as TEAM_LEAD_EMAIL
-      FROM ${this.tableName} t
-      LEFT JOIN ACCOUNT a ON t.TEAM_LEAD_ID = a.ACCOUNT_ID
-      WHERE UPPER(t.TEAM_NAME) = :name
-    `;
-
-    const result: any = await this.execute(sql, { name: name.toUpperCase() });
-    
-    if (result.rows.length === 0) return null;
-    return this.toModel(result.rows[0]);
-  }
-
+  // Override abstract methods (not used for Team since it's a DTO)
   async create(team: Team): Promise<Team> {
-    const sql = `
-      INSERT INTO ${this.tableName} (
-        TEAM_ID, TEAM_NAME, TEAM_LEAD_ID, DESCRIPTION, CREATED_AT, UPDATED_AT
-      ) VALUES (
-        team_seq.NEXTVAL, :teamName, :teamLeadId, :description,
-        SYSTIMESTAMP, SYSTIMESTAMP
-      ) RETURNING TEAM_ID INTO :id
-    `;
-
-    const binds = {
-      teamName: team.getTeamName(),
-      teamLeadId: team.getTeamLeadId() || null,
-      description: team.getDescription() || null,
-      id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
-    };
-
-    const result: any = await this.execute(sql, binds, { autoCommit: true });
-    const newId = result.outBinds.id[0];
-
-    const created = await this.findById(newId);
-    if (!created) {
-      throw new Error('Failed to create team');
-    }
-    return created;
+    throw new Error('Teams cannot be created directly - they are formed by staff supervisor relationships');
   }
 
   async update(id: number, updates: any): Promise<Team> {
-    const setClauses: string[] = [];
-    const binds: any = { id };
-
-    if (updates.TEAM_NAME) {
-      setClauses.push('TEAM_NAME = :teamName');
-      binds.teamName = updates.TEAM_NAME;
-    }
-    if (updates.TEAM_LEAD_ID !== undefined) {
-      setClauses.push('TEAM_LEAD_ID = :teamLeadId');
-      binds.teamLeadId = updates.TEAM_LEAD_ID;
-    }
-    if (updates.DESCRIPTION !== undefined) {
-      setClauses.push('DESCRIPTION = :description');
-      binds.description = updates.DESCRIPTION;
-    }
-
-    if (setClauses.length === 0) {
-      throw new Error('No fields to update');
-    }
-
-    setClauses.push('UPDATED_AT = SYSTIMESTAMP');
-
-    const sql = `
-      UPDATE ${this.tableName}
-      SET ${setClauses.join(', ')}
-      WHERE TEAM_ID = :id
-    `;
-
-    await this.execute(sql, binds, { autoCommit: true });
-
-    const updated = await this.findById(id);
-    if (!updated) {
-      throw new Error('Failed to update team');
-    }
-    return updated;
+    throw new Error('Teams cannot be updated directly - update staff supervisor relationships instead');
   }
 
-  async getTeamMembers(teamId: number): Promise<any[]> {
-    const sql = `
-      SELECT tm.*, a.NAME, a.EMAIL, a.CONTACT_NUMBER, s.ROLE, s.POSITION
-      FROM TEAM_MEMBER tm
-      JOIN ACCOUNT a ON tm.MEMBER_ID = a.ACCOUNT_ID
-      LEFT JOIN STAFF s ON tm.MEMBER_ID = s.ACCOUNT_ID
-      WHERE tm.TEAM_ID = :teamId
+  /**
+   * Convert database row to StaffData
+   */
+  private rowToStaffData(row: any): StaffData {
+    return {
+      ACCOUNT_ID: row.ACCOUNT_ID,
+      STAFF_ID: row.STAFF_ID,
+      ROLE: row.ROLE,
+      DEPARTMENT: row.DEPARTMENT,
+      POSITION: row.POSITION,
+      SUPERVISOR_ID: row.SUPERVISOR_ID,
+      NAME: row.NAME,
+      EMAIL: row.EMAIL,
+      CONTACT_NUMBER: row.CONTACT_NUMBER,
+      AVATAR_URL: row.AVATAR_URL,
+      ACCOUNT_TYPE: row.ACCOUNT_TYPE,
+      PASSWORD_HASH: '',
+      CREATED_AT: row.CREATED_AT,
+      UPDATED_AT: row.UPDATED_AT
+    };
+  }
+
+  /**
+   * Get all teams - returns all supervisors with their team members
+   */
+  async getAllTeams(): Promise<Team[]> {
+    // First, get all supervisors
+    const supervisorsSql = `
+      SELECT 
+        s.ACCOUNT_ID as SUPERVISOR_ID,
+        a.NAME as SUPERVISOR_NAME,
+        a.EMAIL as SUPERVISOR_EMAIL,
+        a.CONTACT_NUMBER as SUPERVISOR_CONTACT,
+        a.AVATAR_URL as SUPERVISOR_AVATAR_URL,
+        s.STAFF_ID as SUPERVISOR_STAFF_ID,
+        s.ROLE as SUPERVISOR_ROLE,
+        s.DEPARTMENT as SUPERVISOR_DEPARTMENT,
+        s.POSITION as SUPERVISOR_POSITION,
+        COUNT(team.ACCOUNT_ID) as TEAM_SIZE
+      FROM STAFF s
+      JOIN ACCOUNT a ON s.ACCOUNT_ID = a.ACCOUNT_ID
+      LEFT JOIN STAFF team ON team.SUPERVISOR_ID = s.ACCOUNT_ID AND team.ACCOUNT_ID != s.ACCOUNT_ID
+      WHERE s.ROLE = 'SUPERVISOR'
+      GROUP BY s.ACCOUNT_ID, a.NAME, a.EMAIL, a.CONTACT_NUMBER, a.AVATAR_URL, 
+               s.STAFF_ID, s.ROLE, s.DEPARTMENT, s.POSITION
+      ORDER BY TEAM_SIZE DESC, a.NAME
+    `;
+
+    const supervisorResult: any = await this.execute(supervisorsSql);
+    const supervisors = supervisorResult.rows;
+
+    // For each supervisor, get their team members
+    const teams: Team[] = [];
+    for (const supervisor of supervisors) {
+      const membersSql = `
+        SELECT 
+          s.ACCOUNT_ID,
+          s.STAFF_ID,
+          s.ROLE,
+          s.DEPARTMENT,
+          s.POSITION,
+          s.SUPERVISOR_ID,
+          a.NAME,
+          a.AVATAR_URL,
+          a.EMAIL,
+          a.CONTACT_NUMBER,
+          a.ACCOUNT_TYPE,
+          a.CREATED_AT,
+          a.UPDATED_AT
+        FROM STAFF s
+        JOIN ACCOUNT a ON s.ACCOUNT_ID = a.ACCOUNT_ID
+        WHERE s.SUPERVISOR_ID = :supervisorId AND s.ACCOUNT_ID != :supervisorId
+        ORDER BY a.NAME
+      `;
+
+      const membersResult: any = await this.execute(membersSql, { 
+        supervisorId: supervisor.SUPERVISOR_ID 
+      });
+
+      const supervisorData: StaffData = {
+        ACCOUNT_ID: supervisor.SUPERVISOR_ID,
+        STAFF_ID: supervisor.SUPERVISOR_STAFF_ID,
+        ROLE: supervisor.SUPERVISOR_ROLE,
+        DEPARTMENT: supervisor.SUPERVISOR_DEPARTMENT,
+        POSITION: supervisor.SUPERVISOR_POSITION,
+        NAME: supervisor.SUPERVISOR_NAME,
+        EMAIL: supervisor.SUPERVISOR_EMAIL,
+        CONTACT_NUMBER: supervisor.SUPERVISOR_CONTACT,
+        AVATAR_URL: supervisor.SUPERVISOR_AVATAR_URL,
+        ACCOUNT_TYPE: AccountType.STAFF,
+        PASSWORD_HASH: ''
+      };
+
+      const members: StaffData[] = membersResult.rows.map((row: any) => this.rowToStaffData(row));
+
+      const teamData: TeamData = {
+        supervisor: supervisorData,
+        members,
+        teamSize: supervisor.TEAM_SIZE
+      };
+
+      teams.push(new Team(teamData));
+    }
+
+    return teams;
+  }
+
+  /**
+   * Get a team by supervisor ID
+   */
+  async getTeamBySupervisorId(supervisorId: number): Promise<Team | null> {
+    // Get supervisor info
+    const supervisorSql = `
+      SELECT 
+        s.ACCOUNT_ID,
+        s.STAFF_ID,
+        s.ROLE,
+        s.DEPARTMENT,
+        s.POSITION,
+        s.SUPERVISOR_ID,
+        a.NAME,
+        a.EMAIL,
+        a.CONTACT_NUMBER,
+        a.AVATAR_URL,
+        a.ACCOUNT_TYPE,
+        a.CREATED_AT,
+        a.UPDATED_AT
+      FROM STAFF s
+      JOIN ACCOUNT a ON s.ACCOUNT_ID = a.ACCOUNT_ID
+      WHERE s.ACCOUNT_ID = :supervisorId AND s.ROLE = 'SUPERVISOR'
+    `;
+
+    const supervisorResult: any = await this.execute(supervisorSql, { supervisorId });
+    
+    if (supervisorResult.rows.length === 0) {
+      return null;
+    }
+
+    const supervisorData = this.rowToStaffData(supervisorResult.rows[0]);
+
+    // Get team members
+    const membersSql = `
+      SELECT 
+        s.ACCOUNT_ID,
+        s.STAFF_ID,
+        s.ROLE,
+        s.DEPARTMENT,
+        s.POSITION,
+        s.SUPERVISOR_ID,
+        a.NAME,
+        a.AVATAR_URL,
+        a.EMAIL,
+        a.CONTACT_NUMBER,
+        a.ACCOUNT_TYPE,
+        a.CREATED_AT,
+        a.UPDATED_AT
+      FROM STAFF s
+      JOIN ACCOUNT a ON s.ACCOUNT_ID = a.ACCOUNT_ID
+      WHERE s.SUPERVISOR_ID = :supervisorId AND s.ACCOUNT_ID != :supervisorId
       ORDER BY a.NAME
     `;
 
-    const result: any = await this.execute(sql, { teamId });
-    return result.rows;
+    const membersResult: any = await this.execute(membersSql, { supervisorId });
+    const members: StaffData[] = membersResult.rows.map((row: any) => this.rowToStaffData(row));
+
+    const teamData: TeamData = {
+      supervisor: supervisorData,
+      members,
+      teamSize: members.length
+    };
+
+    return new Team(teamData);
   }
 
-  async addMember(teamId: number, memberId: number): Promise<boolean> {
-    const sql = `
-      INSERT INTO TEAM_MEMBER (TEAM_ID, MEMBER_ID, JOINED_AT)
-      VALUES (:teamId, :memberId, SYSTIMESTAMP)
+  /**
+   * Get the current user's team (whether they are a supervisor or a team member)
+   */
+  async getMyTeam(accountId: number): Promise<any> {
+    // Get current user's details
+    const userSql = `
+      SELECT 
+        s.ACCOUNT_ID,
+        s.STAFF_ID,
+        s.ROLE,
+        s.DEPARTMENT,
+        s.POSITION,
+        s.SUPERVISOR_ID,
+        a.NAME,
+        a.EMAIL,
+        a.AVATAR_URL,
+        a.CONTACT_NUMBER,
+        a.ACCOUNT_TYPE,
+        a.CREATED_AT,
+        a.UPDATED_AT
+      FROM STAFF s
+      JOIN ACCOUNT a ON s.ACCOUNT_ID = a.ACCOUNT_ID
+      WHERE s.ACCOUNT_ID = :accountId
     `;
 
-    try {
-      await this.execute(sql, { teamId, memberId }, { autoCommit: true });
-      return true;
-    } catch (error: any) {
-      // Handle duplicate member error
-      if (error.errorNum === 1) { // ORA-00001: unique constraint violated
-        return false;
-      }
-      throw error;
+    const userResult: any = await this.execute(userSql, { accountId });
+    
+    if (userResult.rows.length === 0) {
+      return null;
     }
+
+    const currentUser = this.rowToStaffData(userResult.rows[0]);
+    let supervisor: StaffData | null = null;
+    let teamMembers: StaffData[] = [];
+
+    // If user is a supervisor, get their team
+    if (currentUser.ROLE === 'SUPERVISOR') {
+      const teamSql = `
+        SELECT 
+          s.ACCOUNT_ID,
+          s.STAFF_ID,
+          s.ROLE,
+          s.DEPARTMENT,
+          s.POSITION,
+          s.SUPERVISOR_ID,
+          a.AVATAR_URL,
+          a.NAME,
+          a.EMAIL,
+          a.CONTACT_NUMBER,
+          a.ACCOUNT_TYPE,
+          a.CREATED_AT,
+          a.UPDATED_AT
+        FROM STAFF s
+        JOIN ACCOUNT a ON s.ACCOUNT_ID = a.ACCOUNT_ID
+        WHERE s.SUPERVISOR_ID = :supervisorId AND s.ACCOUNT_ID != :supervisorId
+        ORDER BY a.NAME
+      `;
+
+      const teamResult: any = await this.execute(teamSql, { supervisorId: accountId });
+      teamMembers = teamResult.rows.map((row: any) => this.rowToStaffData(row));
+    } else if (currentUser.SUPERVISOR_ID) {
+      // If user has a supervisor, get supervisor details
+      const supervisorSql = `
+        SELECT 
+          s.ACCOUNT_ID,
+          s.STAFF_ID,
+          s.ROLE,
+          s.DEPARTMENT,
+          s.POSITION,
+          s.SUPERVISOR_ID,
+          a.NAME,
+          a.AVATAR_URL,
+          a.EMAIL,
+          a.CONTACT_NUMBER,
+          a.ACCOUNT_TYPE,
+          a.CREATED_AT,
+          a.UPDATED_AT
+        FROM STAFF s
+        JOIN ACCOUNT a ON s.ACCOUNT_ID = a.ACCOUNT_ID
+        WHERE s.ACCOUNT_ID = :supervisorId
+      `;
+
+      const supervisorResult: any = await this.execute(supervisorSql, { 
+        supervisorId: currentUser.SUPERVISOR_ID 
+      });
+      
+      if (supervisorResult.rows.length > 0) {
+        supervisor = this.rowToStaffData(supervisorResult.rows[0]);
+      }
+
+      // Get other team members with same supervisor
+      const teamSql = `
+        SELECT 
+          s.ACCOUNT_ID,
+          s.STAFF_ID,
+          s.ROLE,
+          s.DEPARTMENT,
+          s.POSITION,
+          s.SUPERVISOR_ID,
+          a.NAME,
+          a.EMAIL,
+          a.AVATAR_URL,
+          a.CONTACT_NUMBER,
+          a.ACCOUNT_TYPE,
+          a.CREATED_AT,
+          a.UPDATED_AT
+        FROM STAFF s
+        JOIN ACCOUNT a ON s.ACCOUNT_ID = a.ACCOUNT_ID
+        WHERE s.SUPERVISOR_ID = :supervisorId AND s.ACCOUNT_ID != :currentUserId
+        ORDER BY a.NAME
+      `;
+
+      const teamResult: any = await this.execute(teamSql, { 
+        supervisorId: currentUser.SUPERVISOR_ID,
+        currentUserId: accountId
+      });
+      teamMembers = teamResult.rows.map((row: any) => this.rowToStaffData(row));
+    }
+
+    return {
+      currentUser,
+      supervisor,
+      teamMembers,
+      teamSize: teamMembers.length
+    };
   }
 
-  async removeMember(teamId: number, memberId: number): Promise<boolean> {
+  /**
+   * Get team members for a specific supervisor
+   */
+  async getTeamMembers(supervisorId: number): Promise<StaffData[]> {
     const sql = `
-      DELETE FROM TEAM_MEMBER
-      WHERE TEAM_ID = :teamId AND MEMBER_ID = :memberId
+      SELECT 
+        s.ACCOUNT_ID,
+        s.STAFF_ID,
+        s.ROLE,
+        s.DEPARTMENT,
+        s.POSITION,
+        s.SUPERVISOR_ID,
+        a.NAME,
+        a.EMAIL,
+        a.CONTACT_NUMBER,
+        a.AVATAR_URL,
+        a.ACCOUNT_TYPE,
+        a.CREATED_AT,
+        a.UPDATED_AT
+      FROM STAFF s
+      JOIN ACCOUNT a ON s.ACCOUNT_ID = a.ACCOUNT_ID
+      WHERE s.SUPERVISOR_ID = :supervisorId
+      ORDER BY a.NAME
     `;
 
-    const result: any = await this.execute(sql, { teamId, memberId }, { autoCommit: true });
-    return result.rowsAffected > 0;
+    const result: any = await this.execute(sql, { supervisorId });
+    return result.rows.map((row: any) => this.rowToStaffData(row));
   }
 
-  async search(query: string): Promise<Team[]> {
+  /**
+   * Search teams by supervisor name, department, or position
+   */
+  async searchTeams(query: string): Promise<Team[]> {
     const sql = `
-      SELECT t.*,
-             a.NAME as TEAM_LEAD_NAME,
-             a.EMAIL as TEAM_LEAD_EMAIL
-      FROM ${this.tableName} t
-      LEFT JOIN ACCOUNT a ON t.TEAM_LEAD_ID = a.ACCOUNT_ID
-      WHERE UPPER(t.TEAM_NAME) LIKE :search
-         OR UPPER(t.DESCRIPTION) LIKE :search
-      ORDER BY t.TEAM_NAME
+      SELECT 
+        s.ACCOUNT_ID as SUPERVISOR_ID,
+        a.NAME as SUPERVISOR_NAME,
+        a.EMAIL as SUPERVISOR_EMAIL,
+        a.CONTACT_NUMBER as SUPERVISOR_CONTACT,
+        a.AVATAR_URL as SUPERVISOR_AVATAR_URL,
+        s.STAFF_ID as SUPERVISOR_STAFF_ID,
+        s.ROLE as SUPERVISOR_ROLE,
+        s.DEPARTMENT as SUPERVISOR_DEPARTMENT,
+        s.POSITION as SUPERVISOR_POSITION,
+        COUNT(team.ACCOUNT_ID) as TEAM_SIZE
+      FROM STAFF s
+      JOIN ACCOUNT a ON s.ACCOUNT_ID = a.ACCOUNT_ID
+      LEFT JOIN STAFF team ON team.SUPERVISOR_ID = s.ACCOUNT_ID AND team.ACCOUNT_ID != s.ACCOUNT_ID
+      WHERE s.ROLE = 'SUPERVISOR'
+        AND (
+          UPPER(a.NAME) LIKE :search
+          OR UPPER(s.DEPARTMENT) LIKE :search
+          OR UPPER(s.POSITION) LIKE :search
+        )
+      GROUP BY s.ACCOUNT_ID, a.NAME, a.EMAIL, a.CONTACT_NUMBER, a.AVATAR_URL, 
+               s.STAFF_ID, s.ROLE, s.DEPARTMENT, s.POSITION
+      ORDER BY a.NAME
     `;
 
     const result: any = await this.execute(sql, { search: `%${query.toUpperCase()}%` });
-    return result.rows.map((row: any) => this.toModel(row));
+    const supervisors = result.rows;
+
+    const teams: Team[] = [];
+    for (const supervisor of supervisors) {
+      const team = await this.getTeamBySupervisorId(supervisor.SUPERVISOR_ID);
+      if (team) {
+        teams.push(team);
+      }
+    }
+
+    return teams;
   }
 }

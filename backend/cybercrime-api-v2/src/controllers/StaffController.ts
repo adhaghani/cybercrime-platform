@@ -22,8 +22,6 @@ export class StaffController {
         role: req.query.role as Role | undefined,
         department: req.query.department as string | undefined
       };
-      console.log('Get all staff with filters:', filters);
-
       const staff = await this.staffService.getAll(filters);
       res.status(200).json({
         staff: staff.map(s => s.toJSON())

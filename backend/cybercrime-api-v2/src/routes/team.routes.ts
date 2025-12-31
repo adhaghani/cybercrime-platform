@@ -12,13 +12,19 @@ router.use(authenticate); // All routes require authentication
 
 /**
  * GET /api/v2/teams
- * Get all teams
+ * Get all teams (all supervisors with their team members)
  */
 router.get('/', authorize([Role.STAFF, Role.ADMIN, Role.SUPERADMIN]), teamController.getAllTeams);
 
 /**
+ * GET /api/v2/teams/my-team
+ * Get the current user's team
+ */
+router.get('/my-team', authorize([Role.STAFF, Role.ADMIN, Role.SUPERADMIN]), teamController.getMyTeam);
+
+/**
  * GET /api/v2/teams/search
- * Search teams
+ * Search teams by supervisor name, department, or position
  */
 router.get('/search', authorize([Role.STAFF, Role.ADMIN, Role.SUPERADMIN]), teamController.searchTeams);
 
@@ -30,19 +36,19 @@ router.get('/statistics/all', authorize([Role.ADMIN, Role.SUPERADMIN]), teamCont
 
 /**
  * GET /api/v2/teams/lead/:leadId
- * Get all teams led by a specific person
+ * Get all teams led by a specific supervisor
  */
 router.get('/lead/:leadId', authorize([Role.STAFF, Role.ADMIN, Role.SUPERADMIN]), teamController.getTeamsByLead);
 
 /**
  * GET /api/v2/teams/:id
- * Get a specific team by ID
+ * Get a specific team by supervisor ID
  */
 router.get('/:id', authorize([Role.STAFF, Role.ADMIN, Role.SUPERADMIN]), teamController.getTeamById);
 
 /**
  * GET /api/v2/teams/:id/members
- * Get all members of a team
+ * Get all members of a team (by supervisor ID)
  */
 router.get('/:id/members', authorize([Role.STAFF, Role.ADMIN, Role.SUPERADMIN]), teamController.getTeamMembers);
 
@@ -51,47 +57,5 @@ router.get('/:id/members', authorize([Role.STAFF, Role.ADMIN, Role.SUPERADMIN]),
  * Get statistics for a specific team
  */
 router.get('/:id/statistics', authorize([Role.STAFF, Role.ADMIN, Role.SUPERADMIN]), teamController.getTeamStatistics);
-
-/**
- * POST /api/v2/teams
- * Create a new team
- */
-router.post('/', authorize([Role.ADMIN, Role.SUPERADMIN]), teamController.createTeam);
-
-/**
- * POST /api/v2/teams/:id/members
- * Add a member to a team
- */
-router.post('/:id/members', authorize([Role.ADMIN, Role.SUPERADMIN]), teamController.addMember);
-
-/**
- * POST /api/v2/teams/:id/members/bulk
- * Bulk add members to a team
- */
-router.post('/:id/members/bulk', authorize([Role.ADMIN, Role.SUPERADMIN]), teamController.bulkAddMembers);
-
-/**
- * PUT /api/v2/teams/:id
- * Update a team
- */
-router.put('/:id', authorize([Role.ADMIN, Role.SUPERADMIN]), teamController.updateTeam);
-
-/**
- * PATCH /api/v2/teams/:id/lead
- * Change team lead
- */
-router.patch('/:id/lead', authorize([Role.ADMIN, Role.SUPERADMIN]), teamController.changeTeamLead);
-
-/**
- * DELETE /api/v2/teams/:id
- * Delete a team
- */
-router.delete('/:id', authorize([Role.SUPERADMIN]), teamController.deleteTeam);
-
-/**
- * DELETE /api/v2/teams/:id/members/:memberId
- * Remove a member from a team
- */
-router.delete('/:id/members/:memberId', authorize([Role.ADMIN, Role.SUPERADMIN]), teamController.removeMember);
 
 export default router;

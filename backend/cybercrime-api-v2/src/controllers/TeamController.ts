@@ -1,6 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */import { Request, Response } from 'express';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Request, Response } from 'express';
 import { TeamService } from '../services/TeamService';
 
+/**
+ * TeamController - Handles team-related HTTP requests
+ * Teams are based on hierarchical Staff relationships (supervisor -> team members)
+ */
 export class TeamController {
   private teamService: TeamService;
 
@@ -10,12 +15,12 @@ export class TeamController {
 
   /**
    * GET /api/v2/teams
-   * Get all teams
+   * Get all teams (all supervisors with their team members)
    */
   getAllTeams = async (req: Request, res: Response): Promise<void> => {
     try {
       const teams = await this.teamService.getAllTeams();
-      res.status(200).json({ success: true, data: teams });
+      res.status(200).json({ success: true, teams: teams.map(t => t.toJSON()) });
     } catch (error: any) {
       res.status(400).json({ success: false, error: error.message });
     }
@@ -23,13 +28,13 @@ export class TeamController {
 
   /**
    * GET /api/v2/teams/:id
-   * Get a specific team by ID
+   * Get a specific team by supervisor ID
    */
   getTeamById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
       const team = await this.teamService.getTeamById(Number(id));
-      res.status(200).json({ success: true, data: team });
+      res.status(200).json({ success: true, data: team.toJSON() });
     } catch (error: any) {
       res.status(404).json({ success: false, error: error.message });
     }
@@ -37,13 +42,33 @@ export class TeamController {
 
   /**
    * GET /api/v2/teams/lead/:leadId
-   * Get all teams led by a specific person
+   * Get all teams led by a specific supervisor
    */
   getTeamsByLead = async (req: Request, res: Response): Promise<void> => {
     try {
       const { leadId } = req.params;
       const teams = await this.teamService.getTeamsByLead(Number(leadId));
-      res.status(200).json({ success: true, data: teams });
+      res.status(200).json({ success: true, teams: teams.map(t => t.toJSON()) });
+    } catch (error: any) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  };
+
+  /**
+   * GET /api/v2/teams/my-team
+   * Get the current user's team
+   */
+  getMyTeam = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const userId = (req as any).user?.accountId || (req as any).user?.ACCOUNT_ID || (req as any).user?.id;
+      
+      if (!userId) {
+        res.status(401).json({ success: false, error: 'User not authenticated' });
+        return;
+      }
+
+      const myTeam = await this.teamService.getMyTeam(userId);
+      res.status(200).json({ success: true, ...myTeam });
     } catch (error: any) {
       res.status(400).json({ success: false, error: error.message });
     }
@@ -51,7 +76,7 @@ export class TeamController {
 
   /**
    * GET /api/v2/teams/:id/members
-   * Get all members of a team
+   * Get all members of a team (by supervisor ID)
    */
   getTeamMembers = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -92,7 +117,7 @@ export class TeamController {
 
   /**
    * GET /api/v2/teams/search
-   * Search teams
+   * Search teams by supervisor name, department, or position
    */
   searchTeams = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -104,125 +129,7 @@ export class TeamController {
       }
 
       const teams = await this.teamService.searchTeams(q as string);
-      res.status(200).json({ success: true, data: teams });
-    } catch (error: any) {
-      res.status(400).json({ success: false, error: error.message });
-    }
-  };
-
-  /**
-   * POST /api/v2/teams
-   * Create a new team
-   */
-  createTeam = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const team = await this.teamService.createTeam(req.body);
-      res.status(201).json({ success: true, data: team });
-    } catch (error: any) {
-      res.status(400).json({ success: false, error: error.message });
-    }
-  };
-
-  /**
-   * PUT /api/v2/teams/:id
-   * Update a team
-   */
-  updateTeam = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { id } = req.params;
-      const team = await this.teamService.updateTeam(Number(id), req.body);
-      res.status(200).json({ success: true, data: team });
-    } catch (error: any) {
-      res.status(400).json({ success: false, error: error.message });
-    }
-  };
-
-  /**
-   * DELETE /api/v2/teams/:id
-   * Delete a team
-   */
-  deleteTeam = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { id } = req.params;
-      await this.teamService.deleteTeam(Number(id));
-      res.status(200).json({ success: true, message: 'Team deleted successfully' });
-    } catch (error: any) {
-      res.status(400).json({ success: false, error: error.message });
-    }
-  };
-
-  /**
-   * POST /api/v2/teams/:id/members
-   * Add a member to a team
-   */
-  addMember = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { id } = req.params;
-      const { memberId } = req.body;
-
-      if (!memberId) {
-        res.status(400).json({ success: false, error: 'Member ID is required' });
-        return;
-      }
-
-      await this.teamService.addMember(Number(id), Number(memberId));
-      res.status(200).json({ success: true, message: 'Member added successfully' });
-    } catch (error: any) {
-      res.status(400).json({ success: false, error: error.message });
-    }
-  };
-
-  /**
-   * DELETE /api/v2/teams/:id/members/:memberId
-   * Remove a member from a team
-   */
-  removeMember = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { id, memberId } = req.params;
-      await this.teamService.removeMember(Number(id), Number(memberId));
-      res.status(200).json({ success: true, message: 'Member removed successfully' });
-    } catch (error: any) {
-      res.status(400).json({ success: false, error: error.message });
-    }
-  };
-
-  /**
-   * PATCH /api/v2/teams/:id/lead
-   * Change team lead
-   */
-  changeTeamLead = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { id } = req.params;
-      const { newLeadId } = req.body;
-
-      if (!newLeadId) {
-        res.status(400).json({ success: false, error: 'New lead ID is required' });
-        return;
-      }
-
-      const team = await this.teamService.changeTeamLead(Number(id), Number(newLeadId));
-      res.status(200).json({ success: true, data: team });
-    } catch (error: any) {
-      res.status(400).json({ success: false, error: error.message });
-    }
-  };
-
-  /**
-   * POST /api/v2/teams/:id/members/bulk
-   * Bulk add members to a team
-   */
-  bulkAddMembers = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { id } = req.params;
-      const { memberIds } = req.body;
-
-      if (!memberIds || !Array.isArray(memberIds) || memberIds.length === 0) {
-        res.status(400).json({ success: false, error: 'Member IDs array is required' });
-        return;
-      }
-
-      const result = await this.teamService.bulkAddMembers(Number(id), memberIds);
-      res.status(200).json({ success: true, data: result });
+      res.status(200).json({ success: true, teams: teams.map(t => t.toJSON()) });
     } catch (error: any) {
       res.status(400).json({ success: false, error: error.message });
     }
