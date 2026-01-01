@@ -49,7 +49,54 @@ export class TeamRepository extends BaseRepository<Team> {
   }
 
   /**
-   * Get all teams - returns all supervisors with their team members
+   * Get report statistics for a team (supervisor and members)
+   */
+  private async getTeamStatistics(supervisorId: number, memberIds: number[]): Promise<any> {
+    // Combine supervisor and all member IDs
+    const allStaffIds = [supervisorId, ...memberIds];
+    
+    if (allStaffIds.length === 0) {
+      return {
+        totalReports: 0,
+        assignedReports: 0,
+        resolvedReports: 0,
+        pendingReports: 0,
+        inProgressReports: 0
+      };
+    }
+
+    const placeholders = allStaffIds.map((_, i) => `:id${i}`).join(', ');
+    const binds: any = {};
+    allStaffIds.forEach((id, i) => {
+      binds[`id${i}`] = id;
+    });
+
+    const sql = `
+      SELECT 
+        COUNT(*) as TOTAL_REPORTS,
+        COUNT(ra.ASSIGNMENT_ID) as ASSIGNED_REPORTS,
+        SUM(CASE WHEN r.STATUS = 'RESOLVED' THEN 1 ELSE 0 END) as RESOLVED_REPORTS,
+        SUM(CASE WHEN r.STATUS = 'PENDING' THEN 1 ELSE 0 END) as PENDING_REPORTS,
+        SUM(CASE WHEN r.STATUS = 'IN_PROGRESS' THEN 1 ELSE 0 END) as IN_PROGRESS_REPORTS
+      FROM REPORT_ASSIGNMENT ra
+      JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+      WHERE ra.ACCOUNT_ID IN (${placeholders})
+    `;
+
+    const result: any = await this.execute(sql, binds);
+    const stats = result.rows[0];
+
+    return {
+      totalReports: Number(stats.TOTAL_REPORTS) || 0,
+      assignedReports: Number(stats.ASSIGNED_REPORTS) || 0,
+      resolvedReports: Number(stats.RESOLVED_REPORTS) || 0,
+      pendingReports: Number(stats.PENDING_REPORTS) || 0,
+      inProgressReports: Number(stats.IN_PROGRESS_REPORTS) || 0
+    };
+  }
+
+  /**
+   * Get all teams - returns all supervisors with their team members and statistics
    */
   async getAllTeams(): Promise<Team[]> {
     // First, get all supervisors
@@ -77,7 +124,7 @@ export class TeamRepository extends BaseRepository<Team> {
     const supervisorResult: any = await this.execute(supervisorsSql);
     const supervisors = supervisorResult.rows;
 
-    // For each supervisor, get their team members
+    // For each supervisor, get their team members and statistics
     const teams: Team[] = [];
     for (const supervisor of supervisors) {
       const membersSql = `
@@ -120,11 +167,16 @@ export class TeamRepository extends BaseRepository<Team> {
       };
 
       const members: StaffData[] = membersResult.rows.map((row: any) => this.rowToStaffData(row));
+      const memberIds = members.map(m => m.ACCOUNT_ID).filter((id): id is number => id !== undefined);
+
+      // Get team statistics
+      const statistics = await this.getTeamStatistics(supervisor.SUPERVISOR_ID, memberIds);
 
       const teamData: TeamData = {
         supervisor: supervisorData,
         members,
-        teamSize: supervisor.TEAM_SIZE
+        teamSize: supervisor.TEAM_SIZE,
+        statistics
       };
 
       teams.push(new Team(teamData));

@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Users, ChevronLeft, ChevronRight, FileText, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { Staff } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -20,6 +21,13 @@ interface Team {
   supervisor: Staff;
   members: Staff[];
   teamSize: number;
+  statistics?: {
+    totalReports: number;
+    assignedReports: number;
+    resolvedReports: number;
+    pendingReports: number;
+    inProgressReports: number;
+  };
 }
 
 interface TeamsResponse {
@@ -29,6 +37,8 @@ interface TeamsResponse {
 export default function AllTeamsPage() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const teamsPerPage = 6;
 
   useEffect(() => {
     fetchTeams();
@@ -56,6 +66,24 @@ export default function AllTeamsPage() {
       .join('')
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  // Pagination calculations
+  const totalPages = Math.ceil(teams.length / teamsPerPage);
+  const startIndex = (currentPage - 1) * teamsPerPage;
+  const endIndex = startIndex + teamsPerPage;
+  const currentTeams = teams.slice(startIndex, endIndex);
+
+  const goToNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
+  const goToPreviousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const goToPage = (page: number) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
   };
 
   if (loading) {
@@ -97,8 +125,9 @@ export default function AllTeamsPage() {
       </EmptyHeader>
     </Empty>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2">
-          {teams.map((team) => (
+        <>
+          <div className="grid gap-6 md:grid-cols-2">
+            {currentTeams.map((team) => (
             <Card key={team.supervisor.ACCOUNT_ID}>
               <CardHeader>
                 <div className="flex items-center space-x-4">
@@ -117,6 +146,52 @@ export default function AllTeamsPage() {
                     {team.teamSize} {team.teamSize === 1 ? 'Member' : 'Members'}
                   </Badge>
                 </div>
+
+                {/* Team Statistics */}
+                {team.statistics && (
+                  <div className="grid grid-cols-2 gap-2 pt-4 border-t mt-4">
+                    <Card className="flex  gap-2 text-sm">
+                      
+                      <CardContent className='flex items-center gap-4 '>
+                        <FileText className="size-5 text-muted-foreground" />
+                        <div className=''>
+                        <p className="text-lg font-semibold">{team.statistics.totalReports}</p>
+                        <p className="text-muted-foreground">Total Reports</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card className="flex  gap-2 text-sm">
+        
+                      <CardContent className='flex items-center gap-4  '>
+                          <CheckCircle className="size-5 text-green-600" />
+                        <div>
+                        <p className="text-lg font-semibold">{team.statistics.resolvedReports}</p>
+                        <p className="text-muted-foreground">Resolved</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card className="flex  gap-2 text-sm">
+                      
+                      <CardContent className='flex items-center gap-4 '>
+                        <Clock className="size-5 text-blue-600" />
+                        <div>
+                        <p className="text-lg font-semibold">{team.statistics.inProgressReports}</p>
+                        <p className="text-muted-foreground">In Progress</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card className="flex  gap-2 text-sm">
+                      
+                      <CardContent className='flex items-center gap-4 '>
+                        <AlertCircle className="size-5 text-yellow-600" />
+                        <div>
+                        <p className="text-lg font-semibold">{team.statistics.pendingReports}</p>
+                        <p className="text-muted-foreground">Pending</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
               </CardHeader>
               <CardContent>
                 {team.members.length === 0 ? (
@@ -146,6 +221,51 @@ export default function AllTeamsPage() {
             </Card>
           ))}
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between border-t pt-4">
+            <div className="text-sm text-muted-foreground">
+              Showing {startIndex + 1} to {Math.min(endIndex, teams.length)} of {teams.length} teams
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goToPreviousPage}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Previous
+              </Button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => goToPage(page)}
+                    className="w-9"
+                  >
+                    {page}
+                  </Button>
+                ))}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goToNextPage}
+                disabled={currentPage === totalPages}
+              >
+                Next
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </div>
+        )}
+        </>
       )}
     </div>
   );

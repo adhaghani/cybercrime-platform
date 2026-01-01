@@ -15,6 +15,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Bell,
   ArrowLeft,
   Edit,
@@ -104,18 +109,30 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
         </Button>
                 {hasManageAccess && (
           <div className="flex items-center gap-2">
+            <Tooltip>
+            <TooltipTrigger asChild>
             <Button variant="outline" size="icon-sm" asChild>
               <Link href={`/dashboard/announcement/${announcement.ANNOUNCEMENT_ID}/update`}>
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
+                <Edit className="h-4 w-4" />
               </Link>
             </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Edit this announcement</p>
+            </TooltipContent>
+            </Tooltip>
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="outline" size="icon-sm">
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="icon-sm">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Delete this announcement</p>
+                  </TooltipContent>
+                </Tooltip>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>

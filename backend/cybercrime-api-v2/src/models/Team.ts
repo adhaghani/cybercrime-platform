@@ -9,17 +9,32 @@ export interface TeamData {
   supervisor: StaffData;
   members: StaffData[];
   teamSize: number;
+  statistics?: {
+    totalReports: number;
+    assignedReports: number;
+    resolvedReports: number;
+    pendingReports: number;
+    inProgressReports: number;
+  };
 }
 
 export class Team {
   private supervisor: Staff;
   private members: Staff[];
   private teamSize: number;
+  private statistics?: {
+    totalReports: number;
+    assignedReports: number;
+    resolvedReports: number;
+    pendingReports: number;
+    inProgressReports: number;
+  };
 
   constructor(data: TeamData) {
     this.supervisor = new Staff(data.supervisor, true);
     this.members = data.members.map(m => new Staff(m, true));
     this.teamSize = data.teamSize;
+    this.statistics = data.statistics;
   }
 
   getSupervisor(): Staff {
@@ -32,6 +47,10 @@ export class Team {
 
   getTeamSize(): number {
     return this.teamSize;
+  }
+
+  getStatistics() {
+    return this.statistics;
   }
 
   // Convenience getters for supervisor info
@@ -47,7 +66,8 @@ export class Team {
     return {
       supervisor: this.supervisor.toJSON(),
       members: this.members.map(m => m.toJSON()),
-      teamSize: this.teamSize
+      teamSize: this.teamSize,
+      statistics: this.statistics
     };
   }
 }
