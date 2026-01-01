@@ -155,11 +155,31 @@ export default function EmergencyContactsPage() {
               <CardDescription className="font-medium text-primary">{contact.TYPE || 'Unknown'} • {contact.STATE || 'Unknown'}</CardDescription>
             </CardHeader>
             <CardContent className="flex-1 space-y-4">
-              <div className="flex items-start gap-3 text-sm">
+
+              <div>
+              <div className="flex items-start gap-3 text-sm mb-2">
                 <MapPin className="h-4 w-4 mt-1 text-muted-foreground shrink-0" />
                 <span>{contact.ADDRESS || 'No address available'}</span>
               </div>
-              
+                {
+                  contact.EMAIL && (
+                <div className="flex items-start gap-3 text-sm mb-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mt-1 text-muted-foreground shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                  </svg>
+                  <span>{contact.EMAIL}</span>  
+                </div>
+                  ) 
+                }
+                {
+                  contact.HOTLINE && (
+                <div className="flex items-start gap-3 text-sm">
+                  <Phone className="h-4 w-4 mt-1 text-muted-foreground shrink-0" />
+                  <span>Hotline: {contact.HOTLINE}</span>
+                </div>
+                  )
+                }
+              </div>
               <div className="mt-auto flex gap-2 justify-between w-full items-center pt-4">
 
                   {contact.PHONE && (

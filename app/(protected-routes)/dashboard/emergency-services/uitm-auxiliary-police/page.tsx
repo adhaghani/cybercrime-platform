@@ -132,13 +132,13 @@ export default function UitmAuxiliaryPolicePage() {
               </CardTitle>
               <CardDescription>{station.STATE}</CardDescription>
             </CardHeader>
-            <CardContent className="flex-1 space-y-2">
+            <CardContent className="flex-1 flex-col space-y-2">
               <div className="flex items-start gap-3 text-sm">
                 <MapPin className="h-4 w-4 mt-1 shrink-0" />
                 <span>{station.ADDRESS}</span>
               </div>
               
-              <div className="flex flex-wrap gap-3 items-center ">
+              <div className="flex flex-col gap-3 ">
                 <div className="flex items-center gap-3 text-sm">
                    <Mail className="h-4 w-4 shrink-0" />
                    <span>{station.EMAIL}</span>
