@@ -10,6 +10,7 @@ import { generateMetadata } from "@/lib/seo";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { createColumns } from "@/components/generated-report/columns";
+import { format } from "date-fns";
 
 export default function AllGeneratedReportsPage() {
   const [reports, setReports] = useState<GeneratedReport[]>([]);
@@ -42,6 +43,59 @@ export default function AllGeneratedReportsPage() {
     URL.revokeObjectURL(url);
   };
 
+    const handleDownloadTXT = (report: GeneratedReport) => {
+      if (!report) return;
+      
+      // Create a formatted text version for download
+      let content = `${report.TITLE}\n`;
+      content += `${"=".repeat(report.TITLE.length)}\n\n`;
+      content += `Generated: ${format(new Date(report.REQUESTED_AT), "PPP")}\n`;
+      content += `Period: ${format(new Date(report.DATE_RANGE_START), "PP")} - ${format(new Date(report.DATE_RANGE_END), "PP")}\n`;
+      content += `Category: ${report.REPORT_CATEGORY}\n`;
+      content += `Type: ${report.REPORT_DATA_TYPE}\n\n`;
+      content += `Summary\n${"=".repeat(50)}\n${report.SUMMARY}\n\n`;
+      
+      if (report.REPORT_DATA?.executiveSummary) {
+        content += `Executive Summary\n${"=".repeat(50)}\n${report.REPORT_DATA.executiveSummary}\n\n`;
+      }
+      
+      if (report.REPORT_DATA?.detailedAnalysis) {
+        content += `Detailed Analysis\n${"=".repeat(50)}\n${report.REPORT_DATA.detailedAnalysis}\n\n`;
+      }
+      
+      if (report.REPORT_DATA?.riskAssessment) {
+        content += `Risk Assessment\n${"=".repeat(50)}\n`;
+        content += `Level: ${report.REPORT_DATA.riskAssessment.level}\n\n`;
+        if (report.REPORT_DATA.riskAssessment.factors) {
+          content += `Key Factors:\n`;
+          report.REPORT_DATA.riskAssessment.factors.forEach((factor: string, i: number) => {
+            content += `${i + 1}. ${factor}\n`;
+          });
+          content += `\n`;
+        }
+      }
+      
+      if (report.REPORT_DATA?.recommendations) {
+        content += `Recommendations\n${"=".repeat(50)}\n`;
+        report.REPORT_DATA.recommendations.forEach((rec: string, i: number) => {
+          content += `${i + 1}. ${rec}\n`;
+        });
+        content += `\n`;
+      }
+      
+      if (report.REPORT_DATA?.conclusion) {
+        content += `Conclusion\n${"=".repeat(50)}\n${report.REPORT_DATA.conclusion}\n`;
+      }
+      
+      const blob = new Blob([content], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${report.GENERATE_ID}-report.txt`;
+      link.click();
+      URL.revokeObjectURL(url);
+    };
+
   // Get unique values for filters
   const categories = Array.from(
     new Set(
@@ -55,6 +109,7 @@ export default function AllGeneratedReportsPage() {
   const columns = useMemo(
     () => createColumns({
       onDownload: handleDownload,
+      onDownloadTXT: handleDownloadTXT,
     }),
     []
   );

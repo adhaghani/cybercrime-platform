@@ -56,7 +56,7 @@ export default function ReportSummaryDetailPage() {
     URL.revokeObjectURL(url);
   };
 
-  const handleDownloadPDF = () => {
+  const handleDownloadTXT = () => {
     if (!report) return;
     
     // Create a formatted text version for download
@@ -385,7 +385,7 @@ export default function ReportSummaryDetailPage() {
               <CardTitle className="text-sm">Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button variant="outline" size="sm" className="w-full" onClick={handleDownloadPDF}>
+              <Button variant="outline" size="sm" className="w-full" onClick={handleDownloadTXT}>
                 <Download className="h-4 w-4 mr-2" />
                 Download as TXT
               </Button>

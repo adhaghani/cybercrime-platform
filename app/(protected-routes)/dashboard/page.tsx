@@ -81,7 +81,7 @@ export default function DashboardPage() {
       // Sort by priority
       const priorityOrder = { HIGH: 3, MEDIUM: 2, LOW: 1 };
       return priorityOrder[b.PRIORITY] - priorityOrder[a.PRIORITY];
-    }).slice(0, 3); // Limit to top 3 announcements
+    }).slice(0, 6); // Limit to top 6 announcements
 
   const stats = {
     totalCrime: crimeReports.length,

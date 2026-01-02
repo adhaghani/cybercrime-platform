@@ -59,14 +59,13 @@ export default function SubmitReportPage() {
           TITLE: data.title,
           DESCRIPTION: data.description,
           LOCATION: data.location,
-          INCIDENT_DATE: new Date().toISOString(),
           SUBMITTER_ID: AccountID,
           STATUS: 'PENDING',
           TYPE: 'FACILITY',
           FACILITY_TYPE: data.facilityType,
           SEVERITY_LEVEL: data.severityLevel,
           AFFECTED_EQUIPMENT: data.affectedEquipment,
-          EVIDENCE_PATH: evidenceImages.length > 0 ? JSON.stringify(evidenceImages) : null,
+          ATTACHMENT_PATH: evidenceImages.length > 0 ? evidenceImages : null,
         }),
       });
       

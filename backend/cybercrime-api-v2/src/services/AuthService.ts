@@ -5,10 +5,13 @@ import { Staff } from '../models/Staff';
 import { AccountRepository } from '../repositories/AccountRepository';
 import { StudentRepository } from '../repositories/StudentRepository';
 import { StaffRepository } from '../repositories/StaffRepository';
+import { PasswordResetTokenRepository } from '../repositories/PasswordResetTokenRepository';
 import { PasswordHasher } from '../utils/PasswordHasher';
 import { JwtManager } from '../utils/JwtManager';
 import { Logger } from '../utils/Logger';
 import { AccountType } from '../types/enums';
+import { EmailService } from './EmailService';
+import crypto from 'crypto';
 
 const logger = new Logger('AuthService');
 
@@ -47,18 +50,24 @@ export class AuthService {
   private accountRepo: AccountRepository;
   private studentRepo: StudentRepository;
   private staffRepo: StaffRepository;
+  private passwordResetTokenRepo: PasswordResetTokenRepository;
   private jwtManager: JwtManager;
+  private emailService: EmailService;
 
   constructor(
     accountRepo: AccountRepository = new AccountRepository(),
     studentRepo: StudentRepository = new StudentRepository(),
     staffRepo: StaffRepository = new StaffRepository(),
-    jwtManager: JwtManager = new JwtManager()
+    passwordResetTokenRepo: PasswordResetTokenRepository = new PasswordResetTokenRepository(),
+    jwtManager: JwtManager = new JwtManager(),
+    emailService: EmailService = new EmailService()
   ) {
     this.accountRepo = accountRepo;
     this.studentRepo = studentRepo;
     this.staffRepo = staffRepo;
+    this.passwordResetTokenRepo = passwordResetTokenRepo;
     this.jwtManager = jwtManager;
+    this.emailService = emailService;
   }
 
   /**
@@ -252,5 +261,130 @@ export class AuthService {
     }
 
     return this.accountRepo.update(id, updates);
+  }
+
+  /**
+   * Request password reset
+   */
+  async requestPasswordReset(email: string): Promise<{ success: boolean; message: string }> {
+    try {
+      // Check if account exists
+      const account = await this.accountRepo.findByEmail(email);
+      
+      // Always return success message for security (don't reveal if email exists)
+      if (!account) {
+        logger.info(`Password reset requested for non-existent email: ${email}`);
+        return {
+          success: true,
+          message: 'If your email is registered, you will receive a password reset link.'
+        };
+      }
+
+      // Generate reset token
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const tokenHash = await PasswordHasher.hash(resetToken);
+      
+      // Set expiry to 1 hour from now
+      const expiresAt = new Date(Date.now() + 3600000); // 1 hour
+
+      // Delete any existing tokens for this email
+      await this.passwordResetTokenRepo.deleteByEmail(email);
+
+      // Save token to database
+      await this.passwordResetTokenRepo.create({
+        email,
+        token: tokenHash,
+        expiresAt
+      });
+
+      // Send email
+      await this.emailService.sendPasswordResetEmail(email, resetToken);
+
+      logger.info(`Password reset email sent to ${email}`);
+
+      return {
+        success: true,
+        message: 'If your email is registered, you will receive a password reset link.'
+      };
+    } catch (error) {
+      logger.error('Password reset request error:', error);
+      // Preserve the original error message for debugging
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process password reset request';
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Reset password with token
+   */
+  async resetPassword(token: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+    try {
+      // Validate password strength
+      const passwordValidation = PasswordHasher.validateStrength(newPassword);
+      if (!passwordValidation.valid) {
+        return {
+          success: false,
+          message: passwordValidation.errors.join(', ')
+        };
+      }
+
+      // Get all valid tokens (not expired, not used)
+      const validTokens = await this.passwordResetTokenRepo.findAllValidTokens();
+
+      if (validTokens.length === 0) {
+        return {
+          success: false,
+          message: 'Invalid or expired reset token'
+        };
+      }
+
+      // Check each token to find a match
+      let matchedToken: any = null;
+      for (const tokenRecord of validTokens) {
+        const isValid = await PasswordHasher.compare(token, tokenRecord.token);
+        if (isValid) {
+          matchedToken = tokenRecord;
+          break;
+        }
+      }
+
+      if (!matchedToken) {
+        return {
+          success: false,
+          message: 'Invalid or expired reset token'
+        };
+      }
+
+      // Get the account
+      const account = await this.accountRepo.findByEmail(matchedToken.email);
+      if (!account) {
+        return {
+          success: false,
+          message: 'Account not found'
+        };
+      }
+
+      // Update password
+      const newPasswordHash = await PasswordHasher.hash(newPassword);
+      await this.accountRepo.update(account.getId()!, {
+        PASSWORD_HASH: newPasswordHash
+      });
+
+      // Mark token as used
+      await this.passwordResetTokenRepo.markAsUsed(matchedToken.id!);
+
+      // Send confirmation email
+      await this.emailService.sendPasswordChangedEmail(matchedToken.email);
+
+      logger.info(`Password reset successful for ${matchedToken.email}`);
+
+      return {
+        success: true,
+        message: 'Password reset successful. You can now login with your new password.'
+      };
+    } catch (error) {
+      logger.error('Password reset error:', error);
+      throw new Error('Failed to reset password');
+    }
   }
 }

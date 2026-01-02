@@ -15,9 +15,6 @@ export function PublicFooter() {
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-3">
-            <Link href="/report" className="text-muted-foreground hover:text-foreground">
-              Latest Reports
-            </Link>
             <Link
               href="/emergency-services"
               className="text-muted-foreground hover:text-foreground"

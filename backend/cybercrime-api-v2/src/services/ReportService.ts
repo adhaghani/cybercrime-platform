@@ -46,18 +46,23 @@ export class ReportService {
       throw new Error('Report type, title, and description are required');
     }
 
-    if (!reportData.INCIDENT_DATE) {
-      throw new Error('Incident date is required');
-    }
-
-    // Validate incident date is not in the future
-    if (new Date(reportData.INCIDENT_DATE) > new Date()) {
-      throw new Error('Incident date cannot be in the future');
-    }
-
     // Validate report type
     if (!Object.values(ReportType).includes(reportData.REPORT_TYPE)) {
       throw new Error('Invalid report type');
+    }
+
+    // Handle attachment path - convert array to JSON string if needed
+    let attachmentPath: string | string[] | undefined = undefined;
+    if (reportData.ATTACHMENT_PATH) {
+      if (Array.isArray(reportData.ATTACHMENT_PATH)) {
+        // Validate max 5 attachments
+        if (reportData.ATTACHMENT_PATH.length > 5) {
+          throw new Error('Maximum 5 attachments allowed per report');
+        }
+        attachmentPath = reportData.ATTACHMENT_PATH;
+      } else {
+        attachmentPath = reportData.ATTACHMENT_PATH;
+      }
     }
 
     const report = new Report({
@@ -66,7 +71,8 @@ export class ReportService {
       DESCRIPTION: reportData.DESCRIPTION,
       LOCATION: reportData.LOCATION || '',
       STATUS: ReportStatus.PENDING,
-      TYPE: reportData.REPORT_TYPE
+      TYPE: reportData.REPORT_TYPE,
+      ATTACHMENT_PATH: attachmentPath
     });
 
     // Create the report with crime/facility specific data
@@ -85,24 +91,16 @@ export class ReportService {
           AFFECTED_EQUIPMENT: reportData.AFFECTED_EQUIPMENT
         };
 
-    return await this.reportRepo.create(report, crimeOrFacilityData);
+    return await this.reportRepo.create(report, crimeOrFacilityData, reportData.ATTACHMENT_PATH);
   }
 
   async updateReport(id: number, updates: {
     TITLE?: string;
     DESCRIPTION?: string;
-    INCIDENT_DATE?: Date;
     LOCATION?: string;
     ANONYMOUS?: boolean;
   }): Promise<Report> {
     const report = await this.getReportById(id);
-
-    // Validate incident date if provided
-    if (updates.INCIDENT_DATE) {
-      if (new Date(updates.INCIDENT_DATE) > new Date()) {
-        throw new Error('Incident date cannot be in the future');
-      }
-    }
 
     // Only allow updates if report is in PENDING status
     if (report.getStatus() !== ReportStatus.PENDING) {
@@ -179,7 +177,6 @@ export class ReportService {
       ReportStatus.IN_PROGRESS
     ];
 
-    const filters: any = {};
     const allReports: Report[] = [];
 
     for (const status of activeStatuses) {

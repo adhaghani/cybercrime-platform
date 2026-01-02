@@ -10,7 +10,6 @@ export interface CreateReportDTO {
   TITLE: string;
   DESCRIPTION: string;
   LOCATION: string;
-  INCIDENT_DATE?: Date;
   ANONYMOUS: boolean;
   SUBMITTER_ID: number;
 }

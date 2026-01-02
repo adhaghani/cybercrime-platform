@@ -60,7 +60,6 @@ export class CrimeService {
     // Report fields
     TITLE: string;
     DESCRIPTION: string;
-    INCIDENT_DATE: Date;
     LOCATION?: string;
     ANONYMOUS: boolean;
     SUBMITTER_ID: number;
@@ -112,7 +111,6 @@ export class CrimeService {
       REPORT_TYPE: ReportType.CRIME,
       TITLE: crimeData.TITLE,
       DESCRIPTION: crimeData.DESCRIPTION,
-      INCIDENT_DATE: crimeData.INCIDENT_DATE,
       LOCATION: crimeData.LOCATION,
       ANONYMOUS: crimeData.ANONYMOUS,
       SUBMITTER_ID: crimeData.SUBMITTER_ID
@@ -142,7 +140,6 @@ export class CrimeService {
     // Report fields
     TITLE?: string;
     DESCRIPTION?: string;
-    INCIDENT_DATE?: Date;
     LOCATION?: string;
     ANONYMOUS?: boolean;
     // Crime-specific fields

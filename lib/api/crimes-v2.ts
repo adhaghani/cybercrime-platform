@@ -8,7 +8,6 @@ export interface CreateCrimeDTO {
   // Report fields
   TITLE: string;
   DESCRIPTION: string;
-  INCIDENT_DATE: Date;
   LOCATION?: string;
   ANONYMOUS: boolean;
   SUBMITTER_ID: number;

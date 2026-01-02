@@ -184,16 +184,19 @@ export interface AssignmentWithStaffDetails extends Staff {
   ASSIGNED_AT: string;
   ACTION_TAKEN?: string;
   ADDITIONAL_FEEDBACK?: string;
+  
 }
 
 export interface CrimeReportWithAssignedStaffDetails extends Crime {
   STAFF_ASSIGNED?: AssignmentWithStaffDetails[];
   RESOLUTIONS?: Resolution;
+  SUBMITTED_BY_NAME?: string;
 }
 
 export interface FacilityReportWithAssignedStaffDetails extends Facility {
     STAFF_ASSIGNED?: AssignmentWithStaffDetails[];
     RESOLUTIONS?: Resolution;
+    SUBMITTED_BY_NAME?: string;
 }
 
 export type ReportWithAssignedStaffDetails = CrimeReportWithAssignedStaffDetails | FacilityReportWithAssignedStaffDetails;

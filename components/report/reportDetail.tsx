@@ -515,7 +515,7 @@ export function ReportDetail({ reportId, showAdminActions = false, showAssignDia
                   <User className="h-4 w-4" />
                   Submitted By
                 </Label>
-                <p className="mt-1 font-medium">Student Name</p>
+                <p className="mt-1 font-medium">{report.SUBMITTED_BY_NAME || "Unknown"}</p>
                 <p className="text-sm text-muted-foreground">ID: {report.SUBMITTED_BY}</p>
               </div>
               <Separator />

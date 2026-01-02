@@ -59,7 +59,6 @@ export class FacilityService {
     // Report fields
     TITLE: string;
     DESCRIPTION: string;
-    INCIDENT_DATE: Date;
     LOCATION?: string;
     ANONYMOUS: boolean;
     SUBMITTER_ID: number;
@@ -110,7 +109,6 @@ export class FacilityService {
       REPORT_TYPE: ReportType.FACILITY,
       TITLE: facilityData.TITLE,
       DESCRIPTION: facilityData.DESCRIPTION,
-      INCIDENT_DATE: facilityData.INCIDENT_DATE,
       LOCATION: facilityData.LOCATION || `${facilityData.BUILDING_NAME} ${facilityData.ROOM_NUMBER || ''}`.trim(),
       ANONYMOUS: facilityData.ANONYMOUS,
       SUBMITTER_ID: facilityData.SUBMITTER_ID
@@ -139,7 +137,6 @@ export class FacilityService {
     // Report fields
     TITLE?: string;
     DESCRIPTION?: string;
-    INCIDENT_DATE?: Date;
     LOCATION?: string;
     ANONYMOUS?: boolean;
     // Facility-specific fields

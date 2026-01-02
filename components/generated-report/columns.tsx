@@ -21,10 +21,12 @@ import { format } from "date-fns";
 
 interface ColumnsConfig {
   onDownload: (report: GeneratedReport) => void;
+  onDownloadTXT: (report: GeneratedReport) => void;
 }
 
 export const createColumns = ({
   onDownload,
+  onDownloadTXT,
 }: ColumnsConfig): ColumnDef<GeneratedReport>[] => [
   {
     accessorKey: "TITLE",
@@ -169,6 +171,10 @@ export const createColumns = ({
               <DropdownMenuItem onClick={() => onDownload(report)}>
                 <Download className="mr-2 h-4 w-4" />
                 Download JSON
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onDownloadTXT(report)}>
+                <Download className="mr-2 h-4 w-4" />
+                Download TXT
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

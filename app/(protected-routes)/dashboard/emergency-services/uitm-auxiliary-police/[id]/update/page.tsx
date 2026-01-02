@@ -12,10 +12,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { generateMetadata } from "@/lib/seo";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator } from "@/components/ui/select";
 import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,} from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { UiTMAuxiliaryPolice } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import { UITM_CAMPUS } from "@/lib/constant";
 const uitmPoliceSchema = z.object({
   campus: z.string().min(3, "Campus name must be at least 3 characters").max(100, "Campus name is too long"),
   state: z.string().min(2, "State is required").max(50, "State name is too long"),
@@ -149,9 +151,25 @@ export default function UpdateUitmPolicePage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Campus Name *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., UiTM Shah Alam (Main Campus)" {...field} />
-                      </FormControl>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select campus" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {UITM_CAMPUS.map((state, stateIndex) => (
+                            <div key={state.name}>
+                              {state.campuses.map((campus) => (
+                                <SelectItem key={`${state.name}-${campus}`} value={`UiTM ${campus} (${state.name})`}>
+                                  {campus} ({state.name})
+                                </SelectItem>
+                              ))}
+                              {stateIndex < UITM_CAMPUS.length - 1 && <SelectSeparator />}
+                            </div>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}

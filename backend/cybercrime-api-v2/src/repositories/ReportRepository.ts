@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Report } from '../models/Report';
 import { BaseRepository } from './base/BaseRepository';
@@ -182,16 +183,30 @@ export class ReportRepository extends BaseRepository<Report> {
     return updated;
   }
 
-  async create(report: Report, crimeOrFacilityData?: any): Promise<Report> {
+  async create(report: Report, crimeOrFacilityData?: any, attachmentPath?: string | string[] | null): Promise<Report> {
     const sql = `
       INSERT INTO ${this.tableName} (
         REPORT_ID, SUBMITTED_BY, TITLE, DESCRIPTION, LOCATION, 
-        STATUS, TYPE, SUBMITTED_AT, UPDATED_AT
+        STATUS, TYPE, ATTACHMENT_PATH, SUBMITTED_AT, UPDATED_AT
       ) VALUES (
         report_seq.NEXTVAL, :submittedBy, :title, :description, :location,
-        :status, :type, SYSTIMESTAMP, SYSTIMESTAMP
+        :status, :type, :attachmentPath, SYSTIMESTAMP, SYSTIMESTAMP
       ) RETURNING REPORT_ID INTO :id
     `;
+
+    // Handle attachment path - convert array to JSON string if needed
+    let attachmentPathValue: string | null = null;
+    const reportAttachmentPath = report.getAttachmentPath();
+    
+    if (attachmentPath) {
+      attachmentPathValue = Array.isArray(attachmentPath) 
+        ? JSON.stringify(attachmentPath) 
+        : attachmentPath;
+    } else if (reportAttachmentPath) {
+      attachmentPathValue = Array.isArray(reportAttachmentPath)
+        ? JSON.stringify(reportAttachmentPath)
+        : reportAttachmentPath;
+    }
 
     const binds = {
       submittedBy: report.getSubmittedBy(),
@@ -200,6 +215,7 @@ export class ReportRepository extends BaseRepository<Report> {
       location: report.getLocation(),
       status: report.getStatus(),
       type: report.getType(),
+      attachmentPath: attachmentPathValue,
       id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
     };
 
@@ -326,10 +342,17 @@ export class ReportRepository extends BaseRepository<Report> {
         STATUS,
         TYPE
       FROM ${this.tableName}
+      WHERE (:startDate IS NULL OR SUBMITTED_AT >= :startDate)
+      AND (:endDate IS NULL OR SUBMITTED_AT <= :endDate)
       GROUP BY STATUS, TYPE
     `;
 
-    const result: any = await this.execute(sql);
+    const binds: any = {
+      startDate: options?.startDate || null,
+      endDate: options?.endDate || null,
+    }
+
+    const result: any = await this.execute(sql, binds);
     
     const stats = {
       total: 0,

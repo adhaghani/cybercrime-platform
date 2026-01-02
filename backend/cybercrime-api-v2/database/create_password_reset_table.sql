@@ -1,0 +1,25 @@
+-- Create Password Reset Tokens Table
+CREATE TABLE PASSWORD_RESET_TOKENS (
+    ID NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    EMAIL VARCHAR2(255) NOT NULL,
+    TOKEN_HASH VARCHAR2(255) NOT NULL,
+    EXPIRES_AT TIMESTAMP NOT NULL,
+    USED NUMBER(1) DEFAULT 0 NOT NULL CHECK (USED IN (0, 1)),
+    CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+-- Create indexes for performance
+CREATE INDEX idx_prt_token ON PASSWORD_RESET_TOKENS(TOKEN_HASH);
+CREATE INDEX idx_prt_expires_at ON PASSWORD_RESET_TOKENS(EXPIRES_AT);
+CREATE INDEX idx_prt_email_used ON PASSWORD_RESET_TOKENS(EMAIL, USED);
+
+-- Add comments
+COMMENT ON TABLE PASSWORD_RESET_TOKENS IS 'Stores password reset tokens for user password recovery';
+COMMENT ON COLUMN PASSWORD_RESET_TOKENS.ID IS 'Unique identifier for the reset token';
+COMMENT ON COLUMN PASSWORD_RESET_TOKENS.EMAIL IS 'Email address of the user requesting password reset';
+COMMENT ON COLUMN PASSWORD_RESET_TOKENS.TOKEN_HASH IS 'Hashed reset token for security';
+COMMENT ON COLUMN PASSWORD_RESET_TOKENS.EXPIRES_AT IS 'Expiration timestamp (typically 1 hour from creation)';
+COMMENT ON COLUMN PASSWORD_RESET_TOKENS.USED IS 'Flag indicating if token has been used (0=unused, 1=used)';
+COMMENT ON COLUMN PASSWORD_RESET_TOKENS.CREATED_AT IS 'Timestamp when token was created';
+
+COMMIT;

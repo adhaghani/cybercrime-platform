@@ -144,4 +144,61 @@ export class AuthController {
       });
     }
   };
+
+  /**
+   * POST /api/v2/auth/forgot-password
+   */
+  forgotPassword = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        res.status(400).json({ error: 'Email is required' });
+        return;
+      }
+
+      const result = await this.authService.requestPasswordReset(email);
+
+      res.status(200).json({
+        message: result.message
+      });
+    } catch (error) {
+      logger.error('Forgot password error:', error);
+      res.status(500).json({
+        error: 'Failed to process password reset request',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  };
+
+  /**
+   * POST /api/v2/auth/reset-password
+   */
+  resetPassword = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { token, password } = req.body;
+
+      if (!token || !password) {
+        res.status(400).json({ error: 'Token and password are required' });
+        return;
+      }
+
+      const result = await this.authService.resetPassword(token, password);
+
+      if (!result.success) {
+        res.status(400).json({ error: result.message });
+        return;
+      }
+
+      res.status(200).json({
+        message: result.message
+      });
+    } catch (error) {
+      logger.error('Reset password error:', error);
+      res.status(500).json({
+        error: 'Failed to reset password',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  };
 }

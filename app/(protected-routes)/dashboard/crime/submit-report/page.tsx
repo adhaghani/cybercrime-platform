@@ -73,7 +73,6 @@ export default function SubmitCrimeReportPage() {
           TITLE: data.title,
           DESCRIPTION: data.description,
           LOCATION: data.location,
-          INCIDENT_DATE: new Date().toISOString(),
           SUBMITTER_ID: AccountID,
           STATUS: 'PENDING',
           TYPE: 'CRIME',
@@ -83,7 +82,7 @@ export default function SubmitCrimeReportPage() {
           WEAPON_INVOLVED: data.weaponInvolved || null,
           INJURY_LEVEL: data.injuryLevel === "" ? null : data.injuryLevel,
           EVIDENCE_DETAILS: data.evidenceDetails || null,
-          EVIDENCE_PATH: evidenceImages.length > 0 ? JSON.stringify(evidenceImages) : null,
+          ATTACHMENT_PATH: evidenceImages.length > 0 ? evidenceImages : null,
         }),
       });
       

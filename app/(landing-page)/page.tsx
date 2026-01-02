@@ -24,10 +24,7 @@ export default function LandingHomePage() {
 
 				<div className="flex flex-col gap-2 sm:flex-row">
 					<Button asChild>
-						<Link href="/auth/login">Login to Submit a Report</Link>
-					</Button>
-					<Button asChild variant="outline">
-						<Link href="/report">View Latest Reports</Link>
+						<Link href="/auth/login">Login to View a Report</Link>
 					</Button>
 				</div>
 			</section>

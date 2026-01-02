@@ -223,6 +223,21 @@ CREATE TABLE RESOLUTION (
     CONSTRAINT fk_resolution_account FOREIGN KEY (RESOLVED_BY) REFERENCES ACCOUNT(ACCOUNT_ID)
 );
 
+-- 13 PASSWORD RESET TABLE
+
+CREATE TABLE PASSWORD_RESET_TOKENS (
+    ID NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    EMAIL VARCHAR2(255) NOT NULL,
+    TOKEN_HASH VARCHAR2(255) NOT NULL,
+    EXPIRES_AT TIMESTAMP NOT NULL,
+    USED NUMBER(1) DEFAULT 0 NOT NULL CHECK (USED IN (0, 1)),
+    CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    
+    -- Indexes for performance
+    CONSTRAINT idx_prt_email UNIQUE (EMAIL),
+    CONSTRAINT idx_prt_token UNIQUE (TOKEN_HASH)
+);
+
 -- ============================================================================
 -- INDEXES FOR PERFORMANCE
 -- ============================================================================
@@ -244,6 +259,8 @@ CREATE INDEX idx_announcement_status ON ANNOUNCEMENT(STATUS);
 CREATE INDEX idx_announcement_dates ON ANNOUNCEMENT(START_DATE, END_DATE);
 CREATE INDEX idx_emergency_state ON EMERGENCY_INFO(STATE);
 CREATE INDEX idx_emergency_type ON EMERGENCY_INFO(TYPE);
+CREATE INDEX idx_prt_expires_at ON PASSWORD_RESET_TOKENS(EXPIRES_AT);
+CREATE INDEX idx_prt_email_used ON PASSWORD_RESET_TOKENS(EMAIL, USED);
 -- ============================================================================
 -- TRIGGERS FOR AUTO-UPDATE TIstudent_bi
 CREATE OR REPLACE TRIGGER trg_student_bi

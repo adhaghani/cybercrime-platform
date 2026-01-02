@@ -20,10 +20,11 @@ interface AnnouncementCardProps {
 const AnnouncementDialog = ({announcement, open, onOpenChange} : AnnouncementCardProps) => {
     const hasAnyRole = useHasAnyRole();
     const hasManageAccess = hasAnyRole(['STAFF','SUPERVISOR', 'ADMIN', 'SUPERADMIN']);
+    
     const [imageError, setImageError] = useState<boolean>(false);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}> 
-      <DialogContent className="max-w-2xl! w-full max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl! w-full">
         <DialogHeader>
             {announcement.PHOTO_PATH && !imageError ? (
               <div className="aspect-video w-full bg-accent rounded-lg flex items-center justify-center overflow-hidden">
@@ -56,7 +57,7 @@ const AnnouncementDialog = ({announcement, open, onOpenChange} : AnnouncementCar
               <DialogDescription className="flex items-center gap-2 flex-wrap">
                 <AnnouncementTypeBadge AnnouncementType={announcement.TYPE} />
                 <AnnouncementPriorityBadge priority={announcement.PRIORITY} />
-                <AnnouncementStatusBadge status={announcement.STATUS} />
+                {hasManageAccess ? <AnnouncementStatusBadge status={announcement.STATUS} /> : null}
               </DialogDescription>
             </div>
           </div>

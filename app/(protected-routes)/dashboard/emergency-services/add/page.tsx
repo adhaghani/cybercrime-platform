@@ -4,14 +4,14 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Shield, Siren, Save, Phone, Mail, MapPin, Clock } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { UITM_CAMPUS } from "@/lib/constant";
@@ -187,154 +187,169 @@ export default function AddEmergencyServicePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={uitmForm.handleSubmit(onUitmSubmit)} className="space-y-6">
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="campus">Campus Name *</Label>
-                    <Controller
+              <Form {...uitmForm}>
+                <form onSubmit={uitmForm.handleSubmit(onUitmSubmit)} className="space-y-6">
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <FormField
+                      control={uitmForm.control}
                       name="campus"
-                      control={uitmForm.control}
                       render={({ field }) => (
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger className="w-full" id="campus">
-                            <SelectValue placeholder="Select campus" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {UITM_CAMPUS.map((state, stateIndex) => (
-                              <div key={state.name}>
-                                {state.campuses.map((campus) => (
-                                  <SelectItem key={`${state.name}-${campus}`} value={`UiTM ${campus} (${state.name})`}>
-                                    {campus} ({state.name})
-                                  </SelectItem>
-                                ))}
-                                {stateIndex < UITM_CAMPUS.length - 1 && <SelectSeparator />}
-                              </div>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <FormItem>
+                          <FormLabel>Campus Name *</FormLabel>
+                          <Select value={field.value} onValueChange={field.onChange}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select campus" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {UITM_CAMPUS.map((state, stateIndex) => (
+                                <div key={state.name}>
+                                  {state.campuses.map((campus) => (
+                                    <SelectItem key={`${state.name}-${campus}`} value={`UiTM ${campus} (${state.name})`}>
+                                      {campus} ({state.name})
+                                    </SelectItem>
+                                  ))}
+                                  {stateIndex < UITM_CAMPUS.length - 1 && <SelectSeparator />}
+                                </div>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
                       )}
                     />
-                    {uitmForm.formState.errors.campus && (
-                      <p className="text-sm text-destructive">{uitmForm.formState.errors.campus.message}</p>
-                    )}
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="uitm-state">State *</Label>
-                    <Controller
+                    <FormField
+                      control={uitmForm.control}
                       name="state"
-                      control={uitmForm.control}
                       render={({ field }) => (
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger className="w-full" id="uitm-state">
-                            <SelectValue placeholder="Select state" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {UITM_STATES.map((state) => (
-                              <SelectItem key={state} value={state}>
-                                {state}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <FormItem>
+                          <FormLabel>State *</FormLabel>
+                          <Select value={field.value} onValueChange={field.onChange}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select state" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {UITM_STATES.map((state) => (
+                                <SelectItem key={state} value={state}>
+                                  {state}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
                       )}
                     />
-                    {uitmForm.formState.errors.state && (
-                      <p className="text-sm text-destructive">{uitmForm.formState.errors.state.message}</p>
-                    )}
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="address" className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    Address *
-                  </Label>
-                  <Textarea
-                    id="address"
-                    placeholder="Full address of the police station"
-                    rows={3}
-                    {...uitmForm.register("address")}
+                  <FormField
+                    control={uitmForm.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4" />
+                          Address *
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Full address of the police station"
+                            rows={3}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                  {uitmForm.formState.errors.address && (
-                    <p className="text-sm text-destructive">{uitmForm.formState.errors.address.message}</p>
-                  )}
-                </div>
 
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
-                      Phone Number *
-                    </Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="03-5544 2000"
-                      {...uitmForm.register("phone")}
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <FormField
+                      control={uitmForm.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            <Phone className="h-4 w-4" />
+                            Phone Number *
+                          </FormLabel>
+                          <FormControl>
+                            <Input type="tel" placeholder="03-5544 2000" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                    {uitmForm.formState.errors.phone && (
-                      <p className="text-sm text-destructive">{uitmForm.formState.errors.phone.message}</p>
-                    )}
+
+                    <FormField
+                      control={uitmForm.control}
+                      name="hotline"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-red-500" />
+                            Emergency Hotline *
+                          </FormLabel>
+                          <FormControl>
+                            <Input type="tel" placeholder="03-5544 2222" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="hotline">Emergency Hotline *</Label>
-                    <Input
-                      id="hotline"
-                      type="tel"
-                      placeholder="03-5544 2222"
-                      {...uitmForm.register("hotline")}
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <FormField
+                      control={uitmForm.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            <Mail className="h-4 w-4" />
+                            Email Address *
+                          </FormLabel>
+                          <FormControl>
+                            <Input type="email" placeholder="pb_uitm@uitm.edu.my" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                    {uitmForm.formState.errors.hotline && (
-                      <p className="text-sm text-destructive">{uitmForm.formState.errors.hotline.message}</p>
-                    )}
-                  </div>
-                </div>
 
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="flex items-center gap-2">
-                      <Mail className="h-4 w-4" />
-                      Email Address *
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="pb_uitm@uitm.edu.my"
-                      {...uitmForm.register("email")}
+                    <FormField
+                      control={uitmForm.control}
+                      name="operatingHours"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            Operating Hours *
+                          </FormLabel>
+                          <FormControl>
+                            <Input placeholder="24 Hours" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                    {uitmForm.formState.errors.email && (
-                      <p className="text-sm text-destructive">{uitmForm.formState.errors.email.message}</p>
-                    )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="operating-hours" className="flex items-center gap-2">
-                      <Clock className="h-4 w-4" />
-                      Operating Hours *
-                    </Label>
-                    <Input
-                      id="operating-hours"
-                      placeholder="24 Hours"
-                      {...uitmForm.register("operatingHours")}
-                    />
-                    {uitmForm.formState.errors.operatingHours && (
-                      <p className="text-sm text-destructive">{uitmForm.formState.errors.operatingHours.message}</p>
-                    )}
+                  <div className="flex justify-end gap-4">
+                    <Button type="button" variant="outline" onClick={() => router.back()}>
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={isSubmitting}>
+                      <Save className="h-4 w-4 mr-2" />
+                      {isSubmitting ? "Saving..." : "Save Police Station"}
+                    </Button>
                   </div>
-                </div>
-
-                <div className="flex justify-end gap-4">
-                  <Button type="button" variant="outline" onClick={() => router.back()}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={isSubmitting}>
-                    <Save className="h-4 w-4 mr-2" />
-                    {isSubmitting ? "Saving..." : "Save Police Station"}
-                  </Button>
-                </div>
-              </form>
+                </form>
+              </Form>
             </CardContent>
           </Card>
         </TabsContent>
@@ -349,131 +364,145 @@ export default function AddEmergencyServicePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={nationalForm.handleSubmit(onNationalSubmit)} className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="service-name">Service Name *</Label>
-                  <Input
-                    id="service-name"
-                    placeholder="e.g., Ibu Pejabat Polis Kontinjen (IPK) Selangor"
-                    {...nationalForm.register("name")}
+              <Form {...nationalForm}>
+                <form onSubmit={nationalForm.handleSubmit(onNationalSubmit)} className="space-y-6">
+                  <FormField
+                    control={nationalForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Service Name *</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="e.g., Ibu Pejabat Polis Kontinjen (IPK) Selangor"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                  {nationalForm.formState.errors.name && (
-                    <p className="text-sm text-destructive">{nationalForm.formState.errors.name.message}</p>
-                  )}
-                </div>
 
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="service-type">Service Type *</Label>
-                    <Controller
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <FormField
+                      control={nationalForm.control}
                       name="type"
-                      control={nationalForm.control}
                       render={({ field }) => (
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger className="w-full" id="service-type">
-                            <SelectValue placeholder="Select service type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {EMERGENCY_TYPES.map((type) => (
-                              <SelectItem key={type} value={type}>
-                                {type}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <FormItem>
+                          <FormLabel>Service Type *</FormLabel>
+                          <Select value={field.value} onValueChange={field.onChange}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select service type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {EMERGENCY_TYPES.map((type) => (
+                                <SelectItem key={type} value={type}>
+                                  {type}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
                       )}
                     />
-                    {nationalForm.formState.errors.type && (
-                      <p className="text-sm text-destructive">{nationalForm.formState.errors.type.message}</p>
-                    )}
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="national-state">State/Territory *</Label>
-                    <Controller
+                    <FormField
+                      control={nationalForm.control}
                       name="state"
-                      control={nationalForm.control}
                       render={({ field }) => (
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger className="w-full" id="national-state">
-                            <SelectValue placeholder="Select state" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {MALAYSIAN_STATES.map((state) => (
-                              <SelectItem key={state} value={state}>
-                                {state}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <FormItem>
+                          <FormLabel>State/Territory *</FormLabel>
+                          <Select value={field.value} onValueChange={field.onChange}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select state" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {MALAYSIAN_STATES.map((state) => (
+                                <SelectItem key={state} value={state}>
+                                  {state}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
                       )}
                     />
-                    {nationalForm.formState.errors.state && (
-                      <p className="text-sm text-destructive">{nationalForm.formState.errors.state.message}</p>
-                    )}
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="national-address" className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    Address *
-                  </Label>
-                  <Textarea
-                    id="national-address"
-                    placeholder="Full address of the emergency service"
-                    rows={3}
-                    {...nationalForm.register("address")}
+                  <FormField
+                    control={nationalForm.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4" />
+                          Address *
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Full address of the emergency service"
+                            rows={3}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                  {nationalForm.formState.errors.address && (
-                    <p className="text-sm text-destructive">{nationalForm.formState.errors.address.message}</p>
-                  )}
-                </div>
 
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="national-phone" className="flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
-                      Phone Number *
-                    </Label>
-                    <Input
-                      id="national-phone"
-                      type="tel"
-                      placeholder="03-5514 5222"
-                      {...nationalForm.register("phone")}
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <FormField
+                      control={nationalForm.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            <Phone className="h-4 w-4" />
+                            Phone Number *
+                          </FormLabel>
+                          <FormControl>
+                            <Input type="tel" placeholder="03-5514 5222" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                    {nationalForm.formState.errors.phone && (
-                      <p className="text-sm text-destructive">{nationalForm.formState.errors.phone.message}</p>
-                    )}
+
+                    <FormField
+                      control={nationalForm.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            <Mail className="h-4 w-4" />
+                            Email Address (Optional)
+                          </FormLabel>
+                          <FormControl>
+                            <Input type="email" placeholder="contact@example.gov.my" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="national-email" className="flex items-center gap-2">
-                      <Mail className="h-4 w-4" />
-                      Email Address (Optional)
-                    </Label>
-                    <Input
-                      id="national-email"
-                      type="email"
-                      placeholder="contact@example.gov.my"
-                      {...nationalForm.register("email")}
-                    />
-                    {nationalForm.formState.errors.email && (
-                      <p className="text-sm text-destructive">{nationalForm.formState.errors.email.message}</p>
-                    )}
+                  <div className="flex justify-end gap-4">
+                    <Button type="button" variant="outline" onClick={() => router.back()}>
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={isSubmitting}>
+                      <Save className="h-4 w-4 mr-2" />
+                      {isSubmitting ? "Saving..." : "Save Emergency Service"}
+                    </Button>
                   </div>
-                </div>
-
-                <div className="flex justify-end gap-4">
-                  <Button type="button" variant="outline" onClick={() => router.back()}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={isSubmitting}>
-                    <Save className="h-4 w-4 mr-2" />
-                    {isSubmitting ? "Saving..." : "Save Emergency Service"}
-                  </Button>
-                </div>
-              </form>
+                </form>
+              </Form>
             </CardContent>
           </Card>
         </TabsContent>

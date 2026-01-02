@@ -151,14 +151,6 @@ export const createColumns = ({
     ),
   },
   {
-    accessorKey: "ROLE",
-    header: "Role",
-    cell: ({ row }) => row.getValue("ROLE"),
-    filterFn: (row, id, value) => {
-      return value === "ALL" || value.includes(row.getValue(id));
-    },
-  },
-  {
     id: "actions",
     cell: ({ row }) => {
       const member = row.original;

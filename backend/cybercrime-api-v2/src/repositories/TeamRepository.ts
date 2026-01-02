@@ -65,10 +65,15 @@ export class TeamRepository extends BaseRepository<Team> {
       };
     }
 
-    const placeholders = allStaffIds.map((_, i) => `:id${i}`).join(', ');
+    // Build parameterized query placeholders for SQL IN clause
+    // Example: [1, 2, 3] becomes ':id0, :id1, :id2'
+    const placeholders = allStaffIds.map((_, index) => `:id${index}`).join(', ');
+    
+    // Create bindings object mapping each placeholder to its actual value
+    // Example: { id0: 1, id1: 2, id2: 3 }
     const binds: any = {};
-    allStaffIds.forEach((id, i) => {
-      binds[`id${i}`] = id;
+    allStaffIds.forEach((staffId, index) => {
+      binds[`id${index}`] = staffId;
     });
 
     const sql = `
