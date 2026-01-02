@@ -20,9 +20,9 @@ interface ViewStaffAssignmentDialogProps {
 interface Assignment {
   ASSIGNMENT_ID: string;
   REPORT_ID: string;
-  REPORT_TITLE: string;
-  REPORT_TYPE: string;
-  REPORT_STATUS: string;
+  TITLE: string;
+  TYPE: string;
+  STATUS: string;
   ASSIGNED_AT: string;
   ACTION_TAKEN?: string;
   ADDITIONAL_FEEDBACK?: string;
@@ -126,7 +126,7 @@ export function ViewStaffAssignmentDialog({
                       >
                         <div className="flex items-center gap-2">
                           <FileText className="h-4 w-4" />
-                          {assignment.REPORT_TITLE}
+                          {assignment.TITLE}
                         </div>
                       </Link>
                       <p className="text-xs text-muted-foreground mt-1">
@@ -134,12 +134,12 @@ export function ViewStaffAssignmentDialog({
                       </p>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={getTypeBadgeColor(assignment.REPORT_TYPE)}>
-                        {assignment.REPORT_TYPE}
+                      <Badge variant="outline" className={getTypeBadgeColor(assignment.TYPE)}>
+                        {assignment.TYPE}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <StatusBadge status={assignment.REPORT_STATUS as ReportStatus} />
+                      <StatusBadge status={assignment.STATUS as ReportStatus} />
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1 text-sm">

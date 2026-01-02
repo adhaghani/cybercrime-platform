@@ -15,6 +15,7 @@ import teamRoutes from './team.routes';
 import policeRoutes from './police.routes';
 import uploadRoutes from './upload.routes';
 import aiRoutes from './ai.routes';
+import healthRoutes from './health';
 
 const router = Router();
 
@@ -37,13 +38,6 @@ router.use('/upload', uploadRoutes);
 router.use('/ai', aiRoutes);
 
 // Health check
-router.get('/health', (req, res) => {
-  res.json({
-    status: 'OK',
-    message: 'Cybercrime API v2 is running',
-    timestamp: new Date().toISOString(),
-    version: '2.0.0'
-  });
-});
+router.use('/health', healthRoutes);
 
 export default router;

@@ -74,8 +74,6 @@ export default function StaffManagementPage() {
 
   // Get unique departments for filter
   const departments = Array.from(new Set(staffMembers.map(s => s.DEPARTMENT)));
-  const roles = Array.from(new Set(staffMembers.map(s => s.ROLE)));
-
   // Create columns with handlers
   const columns = useMemo(
     () => createColumns({
@@ -107,11 +105,6 @@ export default function StaffManagementPage() {
 
   // Prepare filterable columns
   const filterableColumns = [
-    {
-      id: "ROLE",
-      title: "Role",
-      options: roles.map(role => ({ label: role, value: role })),
-    },
     {
       id: "DEPARTMENT",
       title: "Department",

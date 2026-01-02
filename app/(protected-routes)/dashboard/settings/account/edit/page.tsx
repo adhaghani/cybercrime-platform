@@ -22,7 +22,8 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ProfilePictureUpload } from "@/components/upload/profile-picture-upload";
-
+import { STAFF_DEPARTMENT } from "@/lib/constant";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 const profileFormSchema = z.object({
   name: z
     .string()
@@ -277,10 +278,23 @@ export default function SettingsProfilePage() {
                   <FormItem>
                     <FormLabel>Department</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. FSKM" {...field} />
-                    </FormControl>
+                      <Select value={field.value} defaultValue={claims?.DEPARTMENT} onValueChange={field.onChange}>
+                        <SelectTrigger className='w-full'>
+                          <SelectValue placeholder="Select department" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {
+                            STAFF_DEPARTMENT.map((dept) => (
+                              <SelectItem key={dept} value={dept}>
+                                {dept}
+                              </SelectItem>
+                            ))
+                          }
+                        </SelectContent>
+                      </Select>
+                      </FormControl>
                     <FormMessage />
-                  </FormItem>
+                      </FormItem>
                 )}
               />
               <FormField

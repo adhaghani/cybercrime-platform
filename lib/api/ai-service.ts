@@ -1,9 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/**
- * AI Service for LM Studio Integration
- * Uses OpenAI-Compatible endpoints
- */
-
 import { prepareDataForAI, compactDate } from '../process';
 
 export interface AIGenerateRequest {
@@ -40,17 +35,15 @@ export class AIService {
 
   /**
    * Strip markdown code blocks from AI response
-   * Handles cases where AI wraps JSON in ```json ... ``` or ``` ... ```
    */
   private stripMarkdownCodeBlocks(content: string): string {
-    // Remove markdown code blocks: ```json ... ``` or ``` ... ```
+
     let cleaned = content.trim();
-    
-    // Check if starts with markdown code block
+
     if (cleaned.startsWith('```')) {
-      // Remove opening ```json or ``` with any following whitespace/newlines
+
       cleaned = cleaned.replace(/^```(?:json|JSON)?[\s\n\r]*/, '');
-      // Remove closing ``` with any preceding whitespace/newlines
+
       cleaned = cleaned.replace(/[\s\n\r]*```\s*$/, '');
     }
     

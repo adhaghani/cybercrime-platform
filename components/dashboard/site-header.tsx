@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/command"
 import { Kbd, KbdGroup } from "@/components/ui/kbd"
 import { NavUser } from "./nav-user"
+import { SystemStatusIndicator } from "./system-status-indicator"
 import {
   InputGroup,
   InputGroupAddon,
@@ -194,6 +195,7 @@ export function SiteHeader() {
           <SidebarIcon />
         </Button>
         <Separator orientation="vertical" className="mr-2 h-4" />
+        <SystemStatusIndicator showLabel={true} />
         <DynamicBreadcrumb />
         <div className="flex items-center gap-2 w-fit ml-auto">
         <NavUser user={user} />
@@ -211,6 +213,7 @@ export function SiteHeader() {
         </InputGroupAddon>
       </InputGroup>
         </div>
+        
         <ModeToggle/>
         </div>
 

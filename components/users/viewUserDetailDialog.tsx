@@ -79,7 +79,7 @@ export function ViewUserDetailDialog({ accountId, open, onOpenChange }: ViewUser
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl!">
         <DialogHeader>
           <DialogTitle>User Details</DialogTitle>
           <DialogDescription>

@@ -44,6 +44,7 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
   const hasManageAccess = hasAnyRole(['STAFF', 'ADMIN', 'SUPERVISOR' ,'SUPERADMIN']);
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [loading, setLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     const fetchAnnouncement = async () => {
@@ -78,7 +79,7 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
    if (loading) {
     return (
       <>
-        <div className="space-y-4">
+        <div className="space-y-4 max-w-3xl mx-auto">
           <Skeleton className="h-12 w-1/3 rounded-md" />
           <Skeleton className="w-full aspect-video rounded-md" />
           <Skeleton className="h-12 w-full rounded-md" />
@@ -99,7 +100,7 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-3xl mx-auto">
       <div className="flex justify-between items-center gap-4">
         <Button variant="ghost" size="sm" asChild>
           <Link href="/dashboard/announcement">
@@ -153,7 +154,12 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
         )}
       </div>
       {
-        announcement.PHOTO_PATH && (
+       imageError ? 
+       <>
+        <div className="aspect-video w-full grid place-items-center bg-muted rounded-lg border">
+        <p>no image available</p>
+        </div>
+       </> : announcement.PHOTO_PATH && (
           <div className="aspect-video w-full ">
             <Image
             width={500}
@@ -161,6 +167,7 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
               src={announcement.PHOTO_PATH}
               alt="Announcement Photo"
               className="w-full aspect-video object-cover rounded-lg"
+              onError={() => setImageError(true)}
             />
           </div>
         )
