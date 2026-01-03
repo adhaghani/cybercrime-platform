@@ -249,7 +249,6 @@ export default function GenerateReportPage() {
                         <SelectItem value="ALL REPORTS">All Reports</SelectItem>
                         <SelectItem value="CRIME">Crime Reports</SelectItem>
                         <SelectItem value="FACILITY">Facility Reports</SelectItem>
-                        <SelectItem value="USER">User Activity</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
