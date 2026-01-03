@@ -172,7 +172,7 @@ export const createColumns = ({
                 <Eye className="mr-2 h-4 w-4" />
                 View Details
               </DropdownMenuItem>
-              {facility.STATUS !== "RESOLVED" && (
+              {facility.STATUS !== "RESOLVED" && facility.STATUS !== "REJECTED" && (
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => onAssign(facility.REPORT_ID)}>

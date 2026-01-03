@@ -226,6 +226,7 @@ export class ReportRepository extends BaseRepository<Report> {
     if (crimeOrFacilityData) {
       if (report.getType() === 'CRIME') {
         // Use MERGE to handle duplicate inserts gracefully (idempotent operation)
+        // CREATE if data didn't exist or UPDATE if it did
         const crimeSql = `
           MERGE INTO CRIME c
           USING (SELECT :reportId as REPORT_ID FROM dual) src

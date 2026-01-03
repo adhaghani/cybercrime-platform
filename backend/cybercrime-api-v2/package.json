@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "nodemon --exec ts-node src/server.ts",
+    "seed" : "node helper/dataSeeder.js",
     "start": "node dist/server.js",
     "test": "jest",
     "test:watch": "jest --watch",
