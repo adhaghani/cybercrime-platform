@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { generateMetadata } from '@/lib/seo';
 import { Skeleton } from '@/components/ui/skeleton';
-
+import { toast } from 'sonner';
 interface MyTeamResponse {
   currentUser: Staff;
   supervisor: Staff | null;
@@ -38,6 +38,7 @@ export default function MyTeamPage() {
       setSupervisor(data.supervisor);
       setTeamMembers(data.teamMembers || []);
     } catch (error) {
+      toast.error("Failed to fetch team. Please try again.");
       console.error('Failed to fetch team:', error);
     } finally {
       setLoading(false);

@@ -6,15 +6,13 @@ import {
   ClipboardList, 
   CheckCircle2,
 } from "lucide-react";
-
 import { useState, useEffect } from "react";
-
 import { Report } from "@/lib/types";
 import { useAuth } from "@/lib/context/auth-provider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createColumns } from "@/components/staff/my-assignment/columns";
 import { DataTable } from "@/components/ui/data-table/data-table";
-
+import { toast } from "sonner";
 export default function MyAssignmentsPage() {
   const { claims } = useAuth();
   const [reports, setReports] = useState<Report[]>([]);
@@ -29,6 +27,7 @@ export default function MyAssignmentsPage() {
         const assignments = await assignmentsResponse.json();
         setReports(assignments.data);
       } catch (error) {
+        toast.error("Failed to fetch assigned reports. Please try again.");
         console.error('Error fetching assigned reports:', error);
       } finally {
         setLoading(false);

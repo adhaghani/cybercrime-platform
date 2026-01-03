@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/tooltip"
 import { generateMetadata } from "@/lib/seo";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 const ITEMS_PER_PAGE = 9;
 
 export default function UitmAuxiliaryPolicePage() {
@@ -43,6 +44,7 @@ export default function UitmAuxiliaryPolicePage() {
         setPoliceStations(data);
         console.log(data);
       } catch (error) {
+        toast.error('Failed to fetch police stations data');
         console.error('Error fetching police stations:', error);
       } finally {
         setLoading(false);

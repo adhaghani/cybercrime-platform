@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Bell, ArrowLeft, Save, Send } from "lucide-react";
+import { toast } from "sonner";
 import Link from "next/link";
 import { useState } from "react";
 import { AnnouncementPhotoUpload } from "@/components/upload/announcement-photo-upload";
@@ -96,10 +97,11 @@ export default function NewAnnouncementPage() {
         }),
       });
       if (!response.ok) throw new Error('Failed to create announcement');
+      toast.success('Announcement created successfully');
       router.push('/dashboard/announcement');
     } catch (error) {
       console.error('Failed to create announcement:', error);
-      alert('Failed to create announcement. Please try again.');
+      toast.error('Failed to create announcement. Please try again.');
     } finally {
       setIsLoading(false);
     }

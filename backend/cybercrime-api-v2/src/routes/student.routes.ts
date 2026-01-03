@@ -18,6 +18,9 @@ router.get('/search', studentController.search);
 // GET /api/v2/students/statistics - Get student statistics
 router.get('/statistics', studentController.getStatistics);
 
+// GET /api/v2/students/export - Export students as CSV
+router.get('/export', studentController.exportCSV);
+
 // GET /api/v2/students/program/:program - Get students by program
 router.get('/program/:program', studentController.getByProgram);
 

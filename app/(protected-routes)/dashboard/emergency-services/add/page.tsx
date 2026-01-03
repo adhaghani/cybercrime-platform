@@ -16,6 +16,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { UITM_CAMPUS } from "@/lib/constant";
 import { generateMetadata } from "@/lib/seo";
+import { toast } from "sonner";
 // UiTM States for campus selection
 const UITM_STATES = [
   "Selangor", "Kuala Lumpur", "Johor", "Kedah", "Kelantan", "Melaka", 
@@ -112,10 +113,11 @@ export default function AddEmergencyServicePage() {
       });
       
       if (!response.ok) throw new Error('Failed to save');
+      toast.success("UiTM police station added successfully");
       router.push("/dashboard/emergency-services/uitm-auxiliary-police");
     } catch (error) {
       console.error("Error saving UiTM police station:", error);
-      alert("Failed to save UiTM police station. Please try again.");
+      toast.error("Failed to save UiTM police station. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -140,10 +142,11 @@ export default function AddEmergencyServicePage() {
       });
       
       if (!response.ok) throw new Error('Failed to save');
+      toast.success("National emergency service added successfully");
       router.push("/dashboard/emergency-services/emergency-contacts");
     } catch (error) {
       console.error("Error saving national emergency service:", error);
-      alert("Failed to save national emergency service. Please try again.");
+      toast.error("Failed to save national emergency service. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

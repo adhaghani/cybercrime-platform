@@ -49,6 +49,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@/components/ui/alert";
+import { toast } from "sonner";
 
 interface ReportDetailProps {
   reportId: string;
@@ -183,10 +184,11 @@ export function ReportDetail({ reportId, showAdminActions = false, showAssignDia
       setIsUpdateDialogOpen(false);
       setUpdateActionTaken("");
       setUpdateFeedback("");
-
+      toast.success("Assignment updated successfully");
       // Refresh report data to show updated information
       await fetchReport();
     } catch (error) {
+      toast.error("Failed to update assignment. Please try again.");
       console.error("Failed to update assignment:", error);
     }
   };

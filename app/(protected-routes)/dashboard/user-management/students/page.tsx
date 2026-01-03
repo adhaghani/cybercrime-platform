@@ -21,7 +21,7 @@ import { ViewUserDetailDialog } from "@/components/users/viewUserDetailDialog";
 import { ViewStudentReportDialog } from "@/components/users/viewStudentReportDialog";
 import { DeleteUserDialog } from "@/components/users/deleteUserDialog";
 import { useAuth } from "@/lib/context/auth-provider";
-
+import { toast } from "sonner";
 export default function StudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,6 +75,7 @@ export default function StudentsPage() {
       const data = await response.json();
       setStudents(data.students);
     } catch (error) {
+      toast.error("Failed to refresh students. Please try again.");
       console.error('Error fetching students:', error);
     } finally {
       setLoading(false);
@@ -84,16 +85,18 @@ export default function StudentsPage() {
   const handleDownloadCSV = async () => {
     try {
       const response = await fetch('/api/students/export');
-      if (response.ok) {
-        const data = await response.blob();
-        const url = window.URL.createObjectURL(new Blob([data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', 'students.csv');
-        document.body.appendChild(link);
-        link.click();
-        link.parentNode?.removeChild(link);
+      if (!response.ok) {
+        throw new Error('Failed to export students data');
       }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'students.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Failed to download CSV:', error);
     }

@@ -14,7 +14,7 @@ import { ViewUserDetailDialog } from "@/components/users/viewUserDetailDialog";
 import { useAuth } from "@/lib/context/auth-provider";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { createColumns } from "@/components/all-user/columns";
-
+import { toast } from "sonner";
 
 
 
@@ -66,6 +66,7 @@ export default function AllUsersPage() {
       const data = await response.json();
       setUsers(data);
     } catch (error) {
+      toast.error("Failed to refresh users. Please try again.");
       console.error('Error fetching users:', error);
     } finally {
       setLoading(false);

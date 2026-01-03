@@ -311,4 +311,63 @@ export class StudentController {
       });
     }
   };
+
+  /**
+   * GET /api/v2/students/export
+   * Export students data as CSV
+   */
+  exportCSV = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const filters: StudentSearchFilters = {
+        program: req.query.program as string | undefined,
+        semester: req.query.semester ? parseInt(req.query.semester as string) : undefined,
+        year_of_study: req.query.year_of_study ? parseInt(req.query.year_of_study as string) : undefined
+      };
+      
+      const students = await this.studentService.getAll(filters);
+      
+      // CSV headers
+      const headers = [
+        'Student ID',
+        'Name',
+        'Email',
+        'Program',
+        'Year of Study',
+        'Semester',
+        'Phone Number',
+        'Created At',
+        'Updated At'
+      ];
+      
+      // CSV rows
+      const rows = students.map(s => {
+        const data = s.toJSON();
+        return [
+          data.STUDENT_ID || '',
+          data.NAME || '',
+          data.EMAIL || '',
+          data.PROGRAM || '',
+          data.YEAR_OF_STUDY || '',
+          data.SEMESTER || '',
+          data.CONTACT_NUMBER || '',
+          data.CREATED_AT || '',
+          data.UPDATED_AT || ''
+        ].map(field => `"${String(field).replace(/"/g, '""')}"`);
+      });
+      
+      // Combine headers and rows
+      const csv = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+      
+      // Set headers for CSV download
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename=students.csv');
+      res.status(200).send(csv);
+    } catch (error) {
+      logger.error('Export students CSV error:', error);
+      res.status(500).json({
+        error: 'Failed to export students data',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  };
 }

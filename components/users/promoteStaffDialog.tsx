@@ -60,6 +60,8 @@ export function PromoteStaffDialog({
           // Response wasn't JSON, get text instead
           const textError = await response.text();
           errorMessage = textError || errorMessage;
+          toast.error(errorMessage);
+          return;
         }
         throw new Error(errorMessage);
       }

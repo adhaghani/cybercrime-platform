@@ -37,6 +37,7 @@ import { useState, useEffect } from "react";
 import { Announcement } from "@/lib/types";
 import { generateMetadata } from "@/lib/seo";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 export default function AnnouncementDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -56,6 +57,7 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
       } catch (error) {
         console.error('Error fetching announcement:', error);
         setAnnouncement(null);
+        toast.error('Failed to fetch announcement data');
       } finally {
         setLoading(false);
       }
@@ -70,9 +72,11 @@ export default function AnnouncementDetailPage({ params }: { params: { id: strin
       });
       if (!response.ok) throw new Error('Failed to delete');
       router.push('/dashboard/announcement');
+      toast.success('Announcement deleted successfully');
     } catch (error) {
       console.error('Error deleting announcement:', error);
       alert('Failed to delete announcement');
+      toast.error('Failed to delete announcement. Please try again.');
     }
   };
 

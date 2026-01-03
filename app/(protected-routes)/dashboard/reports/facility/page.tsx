@@ -8,7 +8,7 @@ import { Facility } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { createColumns } from "@/components/report/facility/columns";
-
+import { toast } from "sonner";
 export default function FacilityReportsPage() {
   const [facilityReports, setFacilityReports] = useState<Facility[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,10 +26,12 @@ export default function FacilityReportsPage() {
         const reports = Array.isArray(data.data) ? data.data : [];
         setFacilityReports(reports);
       } else {
+        toast.error("Failed to fetch facility reports. Please try again.");
         console.error('Error fetching facility reports:', data.error || 'Unknown error');
         setFacilityReports([]);
       }
     } catch (error) {
+      toast.error("Failed to fetch facility reports. Please try again.");
       console.error('Failed to fetch facility reports:', error);
       setFacilityReports([]);
     } finally {

@@ -13,6 +13,7 @@ import { useAuth } from "@/lib/context/auth-provider";
 import ReportCard from "@/components/report/reportCard";
 import { generateMetadata } from "@/lib/seo";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 const ITEMS_PER_PAGE = 6;
 
 export default function MyCrimeReportsPage() {
@@ -33,6 +34,7 @@ export default function MyCrimeReportsPage() {
         const reportsArray = Array.isArray(data?.data) ? data.data : Array.isArray(data?.reports) ? data.reports : [];
         setReports(reportsArray);
       } catch (error) {
+        toast.error("Failed to fetch my reports. Please try again.");
         console.error('Error fetching my reports:', error);
       } finally {
         setLoading(false);

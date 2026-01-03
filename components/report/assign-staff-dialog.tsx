@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { Staff } from '@/lib/types';
-
 interface AssignStaffDialogProps {
   reportId: string;
   reportTitle: string;

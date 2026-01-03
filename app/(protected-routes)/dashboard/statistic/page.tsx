@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -11,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { useHasAnyRole } from '@/hooks/use-user-role';
+import { toast } from 'sonner';
 
 interface StatisticsData {
   reportTypes: Array<{ NAME: string; VALUE: number }>;
@@ -28,7 +30,6 @@ const StatisticsPage = () => {
 
   const hasAnyRole = useHasAnyRole();
   const isAdmin = hasAnyRole(['ADMIN', 'SUPERADMIN']);
-  const isSupervisor = hasAnyRole(['SUPERVISOR']);
 
 
   useEffect(() => {
@@ -68,6 +69,7 @@ const StatisticsPage = () => {
         console.log('Statistics data fetched:', result);
         console.log('Transformed data:', transformedData);
       } catch (err) {
+        toast.error("Failed to load statistics data. Please try again.");
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setLoading(false);

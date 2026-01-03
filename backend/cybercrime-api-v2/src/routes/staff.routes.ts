@@ -22,6 +22,9 @@ router.get('/statistics', staffController.getStatistics);
 // GET /api/v2/staff/departments - Get all departments
 router.get('/departments', staffController.getDepartments);
 
+// GET /api/v2/staff/export - Export staff as CSV
+router.get('/export', staffController.exportCSV);
+
 // GET /api/v2/staff/role/:role - Get staff by role
 router.get('/role/:role', staffController.getByRole);
 

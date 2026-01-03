@@ -16,7 +16,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { generateMetadata } from '@/lib/seo';
-
+import { toast } from 'sonner';
 interface Team {
   supervisor: Staff;
   members: Staff[];
@@ -53,6 +53,7 @@ export default function AllTeamsPage() {
       const data: TeamsResponse = await response.json();
       setTeams(data.teams || []);
     } catch (error) {
+      toast.error("Failed to fetch teams. Please try again.");
       console.error('Failed to fetch teams:', error);
     } finally {
       setLoading(false);

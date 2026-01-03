@@ -21,6 +21,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { toast } from "sonner";
 
 export default function AllCrimeReportsPage() {
 
@@ -51,6 +52,7 @@ export default function AllCrimeReportsPage() {
         const reportsArray = Array.isArray(data?.data) ? data.data : Array.isArray(data?.reports) ? data.reports : Array.isArray(data) ? data : [];
         setReports(reportsArray as Crime[]);
       } catch (error) {
+        toast.error("Failed to fetch crime reports. Please try again.");
         console.error('Error fetching crime reports:', error);
       } finally {
         setLoading(false);

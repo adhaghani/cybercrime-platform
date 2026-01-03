@@ -20,6 +20,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { toast } from "sonner";
 
 export default function AllReportsPage() {
   const [reports, setReports] = useState<Facility[]>([]);
@@ -40,6 +41,7 @@ export default function AllReportsPage() {
         const reportsArray = Array.isArray(data?.data) ? data.data : Array.isArray(data?.reports) ? data.reports : Array.isArray(data) ? data : [];
         setReports(reportsArray as Facility[]);
       } catch (error) {
+        toast.error("Failed to fetch facility reports. Please try again.");
         console.error('Error fetching facility reports:', error);
       } finally {
         setLoading(false);

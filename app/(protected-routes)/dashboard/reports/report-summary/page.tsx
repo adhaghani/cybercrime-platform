@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { createColumns } from "@/components/generated-report/columns";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 export default function AllGeneratedReportsPage() {
   const [reports, setReports] = useState<GeneratedReport[]>([]);
@@ -24,6 +25,7 @@ export default function AllGeneratedReportsPage() {
         const data = await response.json();
         setReports(data.data);
       } catch (error) {
+        toast.error("Failed to fetch generated reports. Please try again.");
         console.error('Error fetching generated reports:', error);
       } finally {
         setLoading(false);

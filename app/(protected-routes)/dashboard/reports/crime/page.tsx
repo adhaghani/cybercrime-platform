@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ShieldAlert } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { Crime } from "@/lib/types";
-import { useHasAnyRole } from "@/hooks/use-user-role";
 import { generateMetadata } from "@/lib/seo";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { createColumns } from "@/components/report/crime/columns";
@@ -13,8 +12,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function CrimeReportsPage() {
   const [crimeReports, setCrimeReports] = useState<Crime[]>([]);
   const [loading, setLoading] = useState(true);
-  const isSupervisorOrAdmin = useHasAnyRole()(["SUPERVISOR", "ADMIN", "SUPERADMIN"]);
-
   useEffect(() => {
     fetchReports();
   }, []);

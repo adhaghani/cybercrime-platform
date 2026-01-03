@@ -20,6 +20,7 @@ import { format } from "date-fns";
 import { GeneratedReport } from "@/lib/types";
 import { generateMetadata } from "@/lib/seo";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 export default function ReportSummaryDetailPage() {
   const params = useParams();
@@ -35,6 +36,7 @@ export default function ReportSummaryDetailPage() {
         const data = await response.json();
         setReport(data.data);
       } catch (error) {
+        toast.error ("Failed to fetch report. Please try again.");
         console.error('Error fetching report:', error);
       } finally {
         setLoading(false);

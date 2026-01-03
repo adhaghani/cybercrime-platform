@@ -27,7 +27,7 @@ import {
 import { ViewStaffAssignmentDialog } from "@/components/users/viewStaffAssignmentDialog";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { createColumns } from "@/components/administrator/columns";
-
+import { toast } from "sonner";
 
 
 export default function AdministratorPage() {
@@ -55,6 +55,7 @@ export default function AdministratorPage() {
         const data = await response.json();
         setAdministrators(data.staff);
       } catch (error) {
+        toast.error("Failed to fetch administrators. Please try again.");
         console.error('Error fetching administrators:', error);
       } finally {
         setLoading(false);

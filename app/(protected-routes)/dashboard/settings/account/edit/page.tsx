@@ -112,7 +112,7 @@ export default function SettingsProfilePage() {
         });
 
         if (!response.ok) throw new Error('Failed to update');
-
+        
         // Update local claims
         if (claims) {
           const updatedClaims = {

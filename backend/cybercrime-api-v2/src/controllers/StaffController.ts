@@ -326,4 +326,64 @@ export class StaffController {
       });
     }
   };
+
+  /**
+   * GET /api/v2/staff/export
+   * Export staff data as CSV
+   */
+  exportCSV = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const filters: StaffSearchFilters = {
+        role: req.query.role as Role | undefined,
+        department: req.query.department as string | undefined
+      };
+      
+      const staff = await this.staffService.getAll(filters);
+      
+      // CSV headers
+      const headers = [
+        'Staff ID',
+        'Name',
+        'Email',
+        'Phone Number',
+        'Role',
+        'Department',
+        'Position',
+        'Supervisor ID',
+        'Created At',
+        'Updated At'
+      ];
+      
+      // CSV rows
+      const rows = staff.map(s => {
+        const data = s.toJSON();
+        return [
+          data.STAFF_ID || '',
+          data.NAME || '',
+          data.EMAIL || '',
+          data.CONTACT_NUMBER || '',
+          data.ROLE || '',
+          data.DEPARTMENT || '',
+          data.POSITION || '',
+          data.SUPERVISOR_ID || '',
+          data.CREATED_AT || '',
+          data.UPDATED_AT || ''
+        ].map(field => `"${String(field).replace(/"/g, '""')}"`);
+      });
+      
+      // Combine headers and rows
+      const csv = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+      
+      // Set headers for CSV download
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename=staff_members.csv');
+      res.status(200).send(csv);
+    } catch (error) {
+      logger.error('Export staff CSV error:', error);
+      res.status(500).json({
+        error: 'Failed to export staff data',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  };
 }

@@ -15,6 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { EmergencyInfo } from "@/lib/types";
 import { generateMetadata } from "@/lib/seo";
+import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 const emergencyContactSchema = z.object({
@@ -72,6 +73,7 @@ export default function UpdateEmergencyContactPage() {
           email: data.EMAIL || '',
         });
       } catch (error) {
+        toast.error('Failed to fetch emergency contact data');
         console.error('Error fetching emergency contact:', error);
       }
     };
@@ -96,10 +98,11 @@ export default function UpdateEmergencyContactPage() {
       });
       
       if (!response.ok) throw new Error('Failed to update');
+      toast.success("Emergency contact updated successfully");
       router.push("/dashboard/emergency-services/emergency-contacts");
     } catch (error) {
       console.error("Error updating emergency contact:", error);
-      alert("Failed to update emergency contact. Please try again.");
+      toast.error("Failed to update emergency contact. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -305,9 +308,10 @@ export default function UpdateEmergencyContactPage() {
                         });
                         if (!response.ok) throw new Error('Failed to delete');
                         router.push("/dashboard/emergency-services/emergency-contacts");
+                        toast.success("Emergency contact deleted successfully");
                       } catch (error) {
                         console.error("Error deleting emergency contact:", error);
-                        alert("Failed to delete emergency contact. Please try again.");
+                        toast.error("Failed to delete emergency contact. Please try again.");
                       } finally {
                         setIsLoading(false);
                       }

@@ -21,6 +21,7 @@ import { aiService } from "@/lib/api/ai-service";
 import { format } from "date-fns";
 import { useAuth } from "@/lib/context/auth-provider";
 import { generateMetadata } from "@/lib/seo";
+import { toast } from "sonner";
 export default function GenerateReportPage() {
   // Form state
   const [title, setTitle] = useState("");
@@ -148,16 +149,20 @@ export default function GenerateReportPage() {
           const savedReport = await saveResponse.json();
           // Update with server-generated ID
           generatedReportData.GENERATE_ID = `gen-${savedReport.generate_id}`;
+          toast.success("Report generated and saved successfully");
         } else {
+          toast.error("Failed to save generated report to server.");
           console.warn('Failed to save report to server, but showing generated report');
         }
       } catch (saveError) {
+        toast.error("Error saving generated report to server.");
         console.error('Error saving report to server:', saveError);
         // Continue to show the report even if saving fails
       }
 
       setGeneratedReport(generatedReportData);
     } catch (err) {
+      toast.error("Failed to generate report. Please try again.");
       console.error("Report generation error:", err);
       setError(
         err instanceof Error 

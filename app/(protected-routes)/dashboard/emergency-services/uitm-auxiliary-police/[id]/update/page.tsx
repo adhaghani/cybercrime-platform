@@ -18,6 +18,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { UiTMAuxiliaryPolice } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UITM_CAMPUS } from "@/lib/constant";
+import {toast} from "sonner";
 const uitmPoliceSchema = z.object({
   campus: z.string().min(3, "Campus name must be at least 3 characters").max(100, "Campus name is too long"),
   state: z.string().min(2, "State is required").max(50, "State name is too long"),
@@ -66,6 +67,7 @@ export default function UpdateUitmPolicePage() {
           operatingHours: data.OPERATING_HOURS || '24 Hours',
         });
       } catch (error) {
+        toast.error('Failed to fetch police station data');
         console.error('Error fetching police station:', error);
       }
     };
@@ -91,10 +93,12 @@ export default function UpdateUitmPolicePage() {
       });
       
       if (!response.ok) throw new Error('Failed to update');
+      toast.success("Police station updated successfully");
       router.push("/dashboard/emergency-services/uitm-auxiliary-police");
     } catch (error) {
+
       console.error("Error updating police station:", error);
-      alert("Failed to update police station. Please try again.");
+      toast.error("Failed to update police station. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -313,10 +317,12 @@ export default function UpdateUitmPolicePage() {
                           method: 'DELETE',
                         });
                         if (!response.ok) throw new Error('Failed to delete');
+                        toast.success("Police station deleted successfully");
                         router.push("/dashboard/emergency-services/uitm-auxiliary-police");
                       } catch (error) {
                         console.error("Error deleting police station:", error);
                         alert("Failed to delete police station. Please try again.");
+                        toast.error("Failed to delete police station. Please try again.");
                       } finally {
                         setIsLoading(false);
                       }

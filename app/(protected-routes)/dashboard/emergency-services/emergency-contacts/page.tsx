@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/tooltip"
 import { generateMetadata } from "@/lib/seo";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 const ITEMS_PER_PAGE = 9;
 
@@ -45,6 +46,7 @@ export default function EmergencyContactsPage() {
         const data = await response.json();
         setContacts(data);
       } catch (error) {
+        toast.error('Failed to fetch emergency contacts data');
         console.error('Error fetching emergency contacts:', error);
       } finally {
         setLoading(false);

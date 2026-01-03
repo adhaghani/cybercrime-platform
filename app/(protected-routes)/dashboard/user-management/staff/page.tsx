@@ -20,7 +20,7 @@ import { useAuth } from "@/lib/context/auth-provider";
 import { useHasAnyRole } from "@/hooks/use-user-role";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { createColumns } from "@/components/staff/columns";
-
+import { toast } from "sonner";
 export default function StaffManagementPage() {
   const [staffMembers, setStaffMembers] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,6 +48,7 @@ export default function StaffManagementPage() {
         setStaffMembers(data.staff || []);
       }
     } catch (error) {
+      toast.error("Failed to fetch staff members. Please try again.");
       console.error('Failed to fetch staff:', error);
     } finally {
       setLoading(false);
@@ -57,16 +58,18 @@ export default function StaffManagementPage() {
   const handleDownloadCSV = async () => {
     try {
       const response = await fetch('/api/staff/export');
-      if (response.ok) {
-        const data = await response.blob();
-        const url = window.URL.createObjectURL(new Blob([data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', 'staff_members.csv');
-        document.body.appendChild(link);
-        link.click();
-        link.parentNode?.removeChild(link);
+      if (!response.ok) {
+        throw new Error('Failed to export staff data');
       }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'staff_members.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Failed to download CSV:', error);
     }

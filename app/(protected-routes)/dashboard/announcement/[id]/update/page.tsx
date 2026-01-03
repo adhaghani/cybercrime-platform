@@ -24,6 +24,7 @@ import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 const announcementSchema = z.object({
   title: z.string().min(1, "Title is required").max(200, "Title must be less than 200 characters"),
@@ -98,6 +99,7 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
         setPhotoPath(data.PHOTO_PATH || "");
       } catch (error) {
         console.error('Error fetching announcement:', error);
+        toast.error('Failed to fetch announcement data');
       } finally {
         setLoading(false);
       }
@@ -153,9 +155,10 @@ export default function UpdateAnnouncementPage({ params }: { params: { id: strin
       });
       if (!response.ok) throw new Error('Failed to update');
       router.push('/dashboard/announcement');
+      toast.success('Announcement updated successfully');
     } catch (error) {
       console.error('Error updating announcement:', error);
-      alert('Failed to update announcement');
+      toast.error('Failed to update announcement. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
