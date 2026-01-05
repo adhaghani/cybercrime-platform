@@ -69,9 +69,6 @@ export default function FaqPage() {
 				<Button asChild>
 					<Link href="/auth/login">Login</Link>
 				</Button>
-				<Button asChild variant="outline">
-					<Link href="/contact">Contact support</Link>
-				</Button>
 			</div>
 		</div>
 	);

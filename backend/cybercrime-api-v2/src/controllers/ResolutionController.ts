@@ -61,6 +61,7 @@ export class ResolutionController {
         REPORT_ID: Number(reportId),
         RESOLVED_BY: resolvedBy,
         RESOLUTION_TYPE: resolutionType,
+        EVIDENCE_PATH: evidencePath,
         RESOLUTION_SUMMARY: resolutionSummary
       };
 

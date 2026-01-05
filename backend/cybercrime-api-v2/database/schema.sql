@@ -235,7 +235,10 @@ CREATE TABLE PASSWORD_RESET_TOKENS (
     
     -- Indexes for performance
     CONSTRAINT idx_prt_email UNIQUE (EMAIL),
-    CONSTRAINT idx_prt_token UNIQUE (TOKEN_HASH)
+    CONSTRAINT idx_prt_token UNIQUE (TOKEN_HASH),
+    
+    -- Foreign key constraint with cascade delete
+    CONSTRAINT fk_password_reset_account FOREIGN KEY (EMAIL) REFERENCES ACCOUNT(EMAIL) ON DELETE CASCADE
 );
 
 -- ============================================================================

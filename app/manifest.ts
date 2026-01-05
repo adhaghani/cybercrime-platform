@@ -2,10 +2,10 @@ import { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "CyberSafe Platform",
-    short_name: "CyberSafe",
+    name: "CyberSecure Platform",
+    short_name: "CyberSecure",
     description:
-      "CyberSafe Platform - Empowering Cybercrime Reporting and Awareness",
+      "CyberSecure Platform - Empowering Cybercrime Reporting and Awareness",
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { BaseModel } from './base/BaseModel';
 import { ResolutionType } from '../types/enums';
 
@@ -7,6 +8,7 @@ export interface ResolutionData {
   RESOLVED_BY: number;
   RESOLUTION_TYPE: ResolutionType;
   RESOLUTION_NOTES?: string;
+  EVIDENCE_PATH?: string;
   RESOLVED_AT?: Date;
   CREATED_AT?: Date;
   RESOLVED_BY_NAME?: string;
@@ -36,6 +38,14 @@ export class Resolution extends BaseModel {
 
   getReportId(): number {
     return this.get<number>('REPORT_ID');
+  }
+
+  getEvidencePath(): string | any {
+    return this.get<string | any>('EVIDENCE_PATH');
+  }
+
+  setEvidencePath(path: string): void {
+    this.set('EVIDENCE_PATH', path);
   }
 
   getResolvedBy(): number {

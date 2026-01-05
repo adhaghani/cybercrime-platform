@@ -17,13 +17,13 @@ export default function GuidePage() {
             </div>
             <div>
               <h1 className="text-3xl font-bold tracking-tight">User Guide</h1>
-              <p className="text-muted-foreground">Complete manual for CyberSafe Platform</p>
+              <p className="text-muted-foreground">Complete manual for CyberSecure Platform</p>
             </div>
           </div>
             
           <Alert>
             <Info className="h-4 w-4" />
-            <AlertTitle>Welcome to the CyberSafe Platform</AlertTitle>
+            <AlertTitle>Welcome to the CyberSecure Platform</AlertTitle>
             <AlertDescription>
               This guide will help you navigate and use all features of the platform effectively. 
               Use the table of contents on the right to jump to specific sections.
@@ -36,7 +36,7 @@ export default function GuidePage() {
           <h2 className="text-2xl font-bold mb-4">Introduction</h2>
           <div className="prose prose-sm max-w-none">
             <p className="text-muted-foreground mb-4">
-              CyberSafe Platform is a comprehensive incident reporting and management system designed 
+              CyberSecure Platform is a comprehensive incident reporting and management system designed 
               for educational institutions. It enables students and staff to report crimes, facility issues, 
               and access emergency services quickly and efficiently.
             </p>
@@ -404,7 +404,7 @@ export default function GuidePage() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground mb-3">
-                  CyberSafe supports anonymous reporting for sensitive situations. When you choose to report 
+                  CyberSecure supports anonymous reporting for sensitive situations. When you choose to report 
                   anonymously:
                 </p>
                 <ul className="space-y-2 text-sm text-muted-foreground">
@@ -423,7 +423,7 @@ export default function GuidePage() {
         <section id="tracking-reports" className="mb-12 scroll-mt-20">
           <h2 className="text-2xl font-bold mb-4">Tracking Your Reports</h2>
           <p className="text-muted-foreground">
-            Transparency is a core feature of CyberSafe. Once submitted, your report is assigned a unique 
+            Transparency is a core feature of CyberSecure. Once submitted, your report is assigned a unique 
             Case ID. You can track progress by visiting the 'All Crime Reports' or 'All Facility Reports' 
             section. Here, you can see real-time updates as security personnel move your case from 'Pending' 
             to 'In Progress' to 'Resolved'.
@@ -704,7 +704,7 @@ export default function GuidePage() {
             <Card className="border-blue-200 bg-blue-50">
               <CardHeader>
                 <FileText className="size-6 text-blue-600 mb-2" />
-                <CardTitle className="text-lg text-blue-600">Use CyberSafe Reporting System</CardTitle>
+                <CardTitle className="text-lg text-blue-600">Use CyberSecure Reporting System</CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 text-sm text-muted-foreground">
@@ -1006,7 +1006,7 @@ export default function GuidePage() {
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>AI-Powered Insights</AlertTitle>
               <AlertDescription>
-                CyberSafe uses artificial intelligence to analyze patterns, generate insights, 
+                CyberSecure uses artificial intelligence to analyze patterns, generate insights, 
                 and provide recommendations for improving campus safety.
               </AlertDescription>
             </Alert>
@@ -1061,7 +1061,7 @@ export default function GuidePage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  CyberSafe implements role-based access control to ensure users only have access 
+                  CyberSecure implements role-based access control to ensure users only have access 
                   to features appropriate for their role:
                 </p>
                 
@@ -1190,7 +1190,7 @@ export default function GuidePage() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Yes! CyberSafe is fully responsive and works on all devices including smartphones 
+                  Yes! CyberSecure is fully responsive and works on all devices including smartphones 
                   and tablets. Access it through your mobile browser at the same URL.
                 </p>
               </CardContent>
@@ -1237,7 +1237,7 @@ export default function GuidePage() {
                       <li>• Check your email spam/junk folder</li>
                       <li>• Verify your email address in profile settings</li>
                       <li>• Check notification preferences</li>
-                      <li>• Whitelist CyberSafe emails in your email provider</li>
+                      <li>• Whitelist CyberSecure emails in your email provider</li>
                     </ul>
                   </div>
                   
@@ -1272,7 +1272,7 @@ export default function GuidePage() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground mb-3">
-                  CyberSafe works best on modern browsers. Recommended browsers:
+                  CyberSecure works best on modern browsers. Recommended browsers:
                 </p>
                 <ul className="space-y-1 text-sm text-muted-foreground">
                   <li>• Google Chrome (version 90+)</li>
@@ -1304,7 +1304,7 @@ export default function GuidePage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 text-sm text-muted-foreground">
-                  <p><strong>Email:</strong> support@cybersafe.uitm.edu.my</p>
+                  <p><strong>Email:</strong> support@CyberSecure.uitm.edu.my</p>
                   <p><strong>Response Time:</strong> Within 24-48 hours</p>
                   <p><strong>Available:</strong> Monday - Friday, 9 AM - 5 PM</p>
                 </div>
@@ -1396,7 +1396,7 @@ export default function GuidePage() {
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                CyberSafe takes data privacy seriously. Here's how we protect your information:
+                CyberSecure takes data privacy seriously. Here's how we protect your information:
               </p>
               
               <div className="space-y-3">
@@ -1441,7 +1441,7 @@ export default function GuidePage() {
         
         <div className="text-center py-8">
           <p className="text-muted-foreground mb-2">
-            Thank you for using CyberSafe Platform
+            Thank you for using CyberSecure Platform
           </p>
           <p className="text-sm text-muted-foreground">
             Together, we can create a safer campus for everyone

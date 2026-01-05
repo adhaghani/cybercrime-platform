@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { ResolutionType } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
+import Image from 'next/image';
+import { FileUploadTemplate } from '@/components/upload/file-upload-template';
 
 interface ResolveReportDialogProps {
   reportId: string;
@@ -27,11 +28,73 @@ export function ResolveReportDialog({
   onSuccess,
 }: ResolveReportDialogProps) {
   const [loading, setLoading] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('');
+  const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState({
     resolutionType: 'RESOLVED' as ResolutionType,
     resolutionSummary: '',
     evidencePath: '',
   });
+
+  const handleFileSelect = async (files: File[]) => {
+    if (files.length === 0) {
+      setUploadedFiles([]);
+      return;
+    }
+
+    const file = files[0];
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      setUploadedFiles([]);
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      setUploadedFiles([file]);
+
+      // Create FormData
+      const formDataToSend = new FormData();
+      const fileName = `evidence_${reportId}_${Date.now()}.jpg`;
+      formDataToSend.append('file', file, fileName);
+      formDataToSend.append('reportId', reportId);
+
+      // Upload to server
+      const response = await fetch('/api/upload/report-evidence', {
+        method: 'POST',
+        body: formDataToSend,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const data = await response.json();
+
+      // Update form with uploaded file path
+      setUploadedImageUrl(data.url || data.path);
+      setFormData((prev) => ({ ...prev, evidencePath: data.path }));
+
+      toast.success('Evidence photo uploaded successfully');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image. Please try again.');
+      setUploadedFiles([]);
+      setUploadedImageUrl('');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileRemove = () => {
+    setUploadedFiles([]);
+    setUploadedImageUrl('');
+    setFormData((prev) => ({ ...prev, evidencePath: '' }));
+    toast.success('Evidence photo removed');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +124,8 @@ export function ResolveReportDialog({
         resolutionSummary: '',
         evidencePath: '',
       });
+      setUploadedImageUrl('');
+      setUploadedFiles([]);
 
       onOpenChange(false);
       onSuccess?.();
@@ -126,18 +191,38 @@ export function ResolveReportDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="evidencePath">Evidence Path (Optional)</Label>
-              <Input
-                id="evidencePath"
-                value={formData.evidencePath}
-                onChange={(e) =>
-                  setFormData({ ...formData, evidencePath: e.target.value })
-                }
-                placeholder="/uploads/evidence/file.pdf"
+              <Label>Evidence Photo (Optional)</Label>
+              <FileUploadTemplate
+                accept="image/*"
+                maxSize={10 * 1024 * 1024}
+                multiple={false}
+                onFileSelect={handleFileSelect}
+                onFileRemove={handleFileRemove}
+                disabled={isUploading || loading}
+                files={uploadedFiles}
               />
               <p className="text-xs text-muted-foreground">
-                Path to supporting documents or evidence
+                Upload a photo showing the resolution/evidence of the action taken
               </p>
+
+              {/* Photo Preview */}
+              {uploadedImageUrl && (
+                <div className="mt-4 space-y-2">
+                  <Label>Preview</Label>
+                  <div className="relative w-full h-48 rounded-lg overflow-hidden bg-muted border border-input">
+                    <Image
+                      src={uploadedImageUrl}
+                      alt="Evidence photo"
+                      fill
+                      className="object-cover"
+                      sizes="100%"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Path: {formData.evidencePath}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 

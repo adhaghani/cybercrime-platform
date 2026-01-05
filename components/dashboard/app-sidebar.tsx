@@ -531,22 +531,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <Link href="/dashboard">
                 <div className="text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                   <Image 
-                    src={"/Cybersafe_logo.svg"}
-                    alt="CyberSafe Logo"
+                    src={"/logo.svg"}
+                    alt="CyberSecure Logo"
                     width={32}
                     height={32}
                     className="dark:hidden block"
                   />
                   <Image
-                    src={"/Cybersafe_logo_dark.svg"}
-                    alt="CyberSafe Logo"
+                    src={"/logo_dark.svg"}
+                    alt="CyberSecure Logo"
                     width={32}
                     height={32}
                     className="hidden dark:block"
                   />
                 </div>
                 <div className="grid flex-1 items-center text-left text-sm leading-tight">
-                  <span className="truncate font-medium">CyberSafe Platform</span>
+                  <span className="truncate font-medium">CyberSecure Platform</span>
                 </div>
               </Link>
             </SidebarMenuButton>

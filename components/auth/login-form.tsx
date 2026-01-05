@@ -33,7 +33,7 @@ const formSchema = z.object({
     .string()
     .email("Invalid email address")
     .refine(
-      (email) => StudentEmailRegex.test(email) || StaffEmailRegex.test(email),
+      (email) => StudentEmailRegex.test(email) || StaffEmailRegex.test(email) || email === "adhaahmadwork@gmail.com",
       "Need to use UiTM email"
     ),
   password: z

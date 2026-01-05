@@ -88,6 +88,7 @@ export function ReportDetail({ reportId, showAdminActions = false, showAssignDia
         } catch (e) {
           // If parsing fails, treat as single path or empty array
           report.ATTACHMENT_PATH = report.ATTACHMENT_PATH ? [report.ATTACHMENT_PATH] : [];
+          console.error('Failed to parse ATTACHMENT_PATH:', e);
         }
       } else {
         report.ATTACHMENT_PATH = [];
@@ -282,7 +283,7 @@ export function ReportDetail({ reportId, showAdminActions = false, showAssignDia
           )}
         </div>
       )}
-
+      
       {/* Report Header */}
       <div>
         <div className="flex items-center gap-3 mb-2">
@@ -307,11 +308,32 @@ export function ReportDetail({ reportId, showAdminActions = false, showAssignDia
         <div className="grid w-full items-start gap-4">
           <Alert className={isReportResolved ? "bg-green-500/10 border-green-500/20 text-green-500" : isReportRejected ? "bg-red-500/10 border-red-500/20 text-red-500" : ""}>
             <AlertTitle>This report has been {report.STATUS.toLowerCase()}</AlertTitle>
-            <AlertDescription>
+            <AlertDescription className="flex justify-between items-end gap-2">
+              <div>
               This report was {report.STATUS.toLowerCase()} on {format(new Date(report.RESOLUTIONS.RESOLVED_AT), "PPP 'at' p")} with the following summary:
               <p className="mt-2 font-medium">{report.RESOLUTIONS.RESOLUTION_SUMMARY}</p>
+              </div>
+                      {report.RESOLUTIONS.EVIDENCE_PATH ? <Dialog>
+            <DialogTrigger asChild>
+              <Button size="sm">View Photo</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Resolution Evidence Photo</DialogTitle>
+              </DialogHeader>
+              <Image
+              width={200}
+              height={100}
+              sizes="100%"
+              className="border w-full max-w-xl"
+              src={report.RESOLUTIONS.EVIDENCE_PATH}
+              alt={report.RESOLUTIONS.RESOLUTION_SUMMARY + " Image"}
+              />
+            </DialogContent>
+          </Dialog> : null}
             </AlertDescription>
           </Alert>
+
         </div>
       )}
 

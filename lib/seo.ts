@@ -20,9 +20,9 @@ export interface SEOConfig {
 }
 
 export const defaultSEO: SEOConfig = {
-  title: "CyberSafe Platform",
+  title: "CyberSecure Platform",
   description:
-    "CyberSafe Platform - Empowering Cybercrime Reporting and Awareness",
+    "CyberSecure Platform - Empowering Cybercrime Reporting and Awareness",
   keywords: [
     "nextjs",
     "typescript",
@@ -37,7 +37,7 @@ export const defaultSEO: SEOConfig = {
   image: "/logo_512.png",
   openGraph: {
     type: "website",
-    siteName: "CyberSafe Platform",
+    siteName: "CyberSecure Platform",
     locale: "en_US",
   },
   twitter: {

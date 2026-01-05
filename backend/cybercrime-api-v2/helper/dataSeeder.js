@@ -34,11 +34,10 @@ const announcementTypes = ['GENERAL', 'EMERGENCY', 'EVENT'];
 const announcementAudience = ['ALL', 'STUDENTS', 'STAFF'];
 const announcementPriority = ['LOW', 'MEDIUM', 'HIGH'];
 const reportCategories = ['CRIME', 'FACILITY', 'USER', 'ALL REPORTS'];
-const reportDataTypes = ['JSON', 'SUMMARY', 'DETAILED'];
-const resolutionTypes = ['RESOLVED', 'ESCALATED', 'DISMISSED', 'TRANSFERRED'];
+const reportDataTypes = [ 'SUMMARY', 'DETAILED'];
+const resolutionTypes = ['RESOLVED', 'ESCALATED', 'DISMISSED'];
 
 const passwordHash = bcrypt.hashSync('Password123!', 10);
-const runTag = Date.now().toString(36).slice(-6); // unique suffix per run to avoid email collisions
 const runNonce = Math.floor(Date.now() % 1e6); // numeric nonce for unique numeric IDs per run
 
 function parseArgs() {  
@@ -66,9 +65,11 @@ function randomPhone() {
 	return `+60-1${Math.floor(Math.random() * 9)}-${base}`;
 }
 
-function randomEmail(name, index) {
-	const slug = name.toLowerCase().replace(/[^a-z]/g, '');
-	return `${slug}.${runTag}.${index}@example.edu.my`;
+function randomEmail(ID,type) {
+	if(type === 'STAFF'){
+		return `${ID}@staff.uitm.edu.my`;
+	}
+	return `${ID}@student.uitm.edu.my`;
 }
 
 function randomSentence() {
@@ -120,9 +121,10 @@ async function seedStudents(connection, count) {
 	const students = [];
 	for (let i = 0; i < count; i += 1) {
 		const name = `Student ${i + 1}`;
+		const studentId = Number(`2${runNonce.toString().padStart(6, '0')}${i.toString().padStart(3, '0')}`);
 		const accountId = await insertAccount(connection, {
 			name,
-			email: randomEmail(name, i + 1),
+			email: randomEmail(studentId, "STUDENT"),
 			contact: randomPhone(),
 			avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`,
 			accountType: 'STUDENT'
@@ -131,7 +133,6 @@ async function seedStudents(connection, count) {
 		const program = pick(programs);
 		const semester = Math.floor(Math.random() * 6) + 1;
 		const year = Math.min(semester, 4);
-		const studentId = Number(`2${runNonce}${i.toString().padStart(3, '0')}`);
 
 		await connection.execute(
 			`UPDATE STUDENT
@@ -153,15 +154,15 @@ async function seedStaff(connection, count) {
 	const staff = [];
 	for (let i = 0; i < count; i += 1) {
 		const name = `Staff ${i + 1}`;
+		const uniqueStaffId = Number(`5${runNonce.toString().padStart(4, '0')}${i.toString().padStart(3, '0')}`);
 		const accountId = await insertAccount(connection, {
 			name,
-			email: randomEmail(name, i + 1),
+			email: randomEmail(uniqueStaffId, "STAFF"),
 			contact: randomPhone(),
 			avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`,
 			accountType: 'STAFF'
 		});
 		// Append runNonce to avoid uniqueness collisions across runs
-		const uniqueStaffId = Number(`5${runNonce}${i.toString().padStart(3, '0')}`);
 		const role = pick(roles);
 		const department = pick(departments);
 		const position = pick(positions);
@@ -337,7 +338,6 @@ async function seedResolutions(connection, count, reports, staff) {
 				resolvedBy: resolver.accountId,
 				resolutionType,
 				summary: 'Resolution documented with supporting notes and follow-up steps.',
-				evidencePath: '/uploads/evidence.txt',
 				resolvedAt,
 				id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
 			},

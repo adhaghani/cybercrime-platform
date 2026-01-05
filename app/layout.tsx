@@ -12,8 +12,8 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 export const metadata: Metadata = {
-  title: "CyberSafe Platform",
-  description: "CyberSafe Platform - Empowering Cybercrime Reporting and Awareness",
+  title: "CyberSecure Platform",
+  description: "CyberSecure Platform - Empowering Cybercrime Reporting and Awareness",
 };
 
 export default function RootLayout({
@@ -26,7 +26,7 @@ export default function RootLayout({
       <head>
         <StructuredData />
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/Cybersafe_logo.svg" type="image/svg+xml" />
+        <link rel="icon" href="/CyberSecure_logo.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/icon-250.png" />
         <meta
           name="viewport"

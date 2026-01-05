@@ -108,9 +108,11 @@ export class ResolutionRepository extends BaseRepository<Resolution> {
     const sql = `
       INSERT INTO ${this.tableName} (
         RESOLUTION_ID, REPORT_ID, RESOLVED_BY, RESOLUTION_TYPE, 
+        EVIDENCE_PATH,
         RESOLUTION_NOTES, RESOLVED_AT
       ) VALUES (
         resolution_seq.NEXTVAL, :reportId, :resolvedBy, :resolutionType,
+        :evidencePath,
         :resolutionNotes, SYSTIMESTAMP
       ) RETURNING RESOLUTION_ID INTO :id
     `;
@@ -119,6 +121,7 @@ export class ResolutionRepository extends BaseRepository<Resolution> {
       reportId: resolution.getReportId(),
       resolvedBy: resolution.getResolvedBy(),
       resolutionType: resolution.getResolutionType(),
+      evidencePath: resolution.getEvidencePath(),
       resolutionNotes: resolution.getResolutionNotes(),
       id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
     };
@@ -189,10 +192,10 @@ export class ResolutionRepository extends BaseRepository<Resolution> {
     const sql = `
       INSERT INTO ${this.tableName} (
         RESOLUTION_ID, REPORT_ID, RESOLVED_BY, RESOLUTION_TYPE, 
-        RESOLUTION_SUMMARY, RESOLVED_AT
+        RESOLUTION_SUMMARY, EVIDENCE_PATH, RESOLVED_AT
       ) VALUES (
         resolution_seq.NEXTVAL, :report_id, :resolved_by, :resolution_type,
-        :resolution_summary, SYSTIMESTAMP
+        :resolution_summary, :evidence_path, SYSTIMESTAMP
       ) RETURNING RESOLUTION_ID INTO :id
     `;
     
@@ -201,6 +204,7 @@ export class ResolutionRepository extends BaseRepository<Resolution> {
       resolved_by: data.RESOLVED_BY,
       resolution_type: data.RESOLUTION_TYPE,
       resolution_summary: data.RESOLUTION_SUMMARY,
+      evidence_path: data.EVIDENCE_PATH || null,
       id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
     };
 
@@ -214,7 +218,7 @@ export class ResolutionRepository extends BaseRepository<Resolution> {
   async findByReportId(reportId: number): Promise<any[]> {
     const sql = `
       SELECT res.RESOLUTION_ID, res.REPORT_ID, res.RESOLVED_BY, res.RESOLUTION_TYPE,
-             res.RESOLUTION_NOTES, res.RESOLVED_AT,
+             res.RESOLUTION_NOTES, res.RESOLUTION_SUMMARY, res.EVIDENCE_PATH, res.RESOLVED_AT,
              a.NAME as RESOLVED_BY_NAME
       FROM ${this.tableName} res
       JOIN ACCOUNT a ON res.RESOLVED_BY = a.ACCOUNT_ID

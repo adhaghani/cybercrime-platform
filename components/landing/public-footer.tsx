@@ -8,7 +8,7 @@ export function PublicFooter() {
       <div className="mx-auto w-full max-w-6xl px-4 py-10">
         <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
           <div className="space-y-2">
-            <div className="font-semibold tracking-tight">UiTM Cybercrime Platform</div>
+            <div className="font-semibold tracking-tight">Cybercrime Platform</div>
             <p className="text-sm text-muted-foreground max-w-prose">
               A campus reporting and response platform for crime and facility incidents.
             </p>
@@ -39,7 +39,7 @@ export function PublicFooter() {
         <Separator className="my-8" />
 
         <div className="flex flex-col gap-2 text-xs text-muted-foreground md:flex-row md:items-center md:justify-between">
-          <span>© {new Date().getFullYear()} UiTM. All rights reserved.</span>
+          <span>© {new Date().getFullYear()} CyberSecure Platform. All rights reserved.</span>
           <span>
             For emergencies, call <strong>999</strong>.
           </span>
