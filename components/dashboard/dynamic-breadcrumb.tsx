@@ -10,6 +10,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
+import { Badge } from "../ui/badge"
 import Link from "next/link"
 
 export function DynamicBreadcrumb() {
@@ -17,16 +18,9 @@ export function DynamicBreadcrumb() {
   
   const segments = pathname.split("/").filter((segment) => segment !== "")
 
-  // Function to check if a segment is likely an ID (data)
   const isId = (segment: string) => {
-    // UUID regex
     const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
-    // Simple numeric check
     const numericRegex = /^\d+$/
-    // Long alphanumeric strings might be IDs (e.g. mongo ids, or random hashes)
-    // Assuming IDs are usually longer than typical route names or contain mixed case/numbers in a way that looks like data
-    // For now, let's stick to UUIDs and pure numbers, and maybe very long strings without dashes?
-    // Route segments usually use dashes.
     const longAlphanumeric = /^[a-zA-Z0-9]{20,}$/
 
     return uuidRegex.test(segment) || numericRegex.test(segment) || longAlphanumeric.test(segment)
@@ -59,9 +53,11 @@ export function DynamicBreadcrumb() {
             <Fragment key={item.href}>
               <BreadcrumbItem>
                 {isLast ? (
-                  <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                  <BreadcrumbPage>
+                  <Badge variant={"outline"}>{item.label}</Badge></BreadcrumbPage>
                 ) : (
-                  <BreadcrumbLink asChild><Link href={item.href}>{item.label}</Link></BreadcrumbLink>
+                  <BreadcrumbLink asChild><Link href={item.href}>
+                    <Badge variant={"outline"}>{item.label}</Badge></Link></BreadcrumbLink>
                 )}
               </BreadcrumbItem>
               {!isLast && <BreadcrumbSeparator />}

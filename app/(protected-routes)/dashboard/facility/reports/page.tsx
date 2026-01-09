@@ -4,22 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Search, LayoutGrid, Table2, Eye } from "lucide-react";
+import { ArrowLeft, Search} from "lucide-react";
 import Link from "next/link";
-import StatusBadge from "@/components/ui/statusBadge";
-import FacilitySeverityBadge from "@/components/ui/facilitySeverityBadge";
 import { Facility, ReportStatus, SeverityLevel } from "@/lib/types";
 import ReportCard from "@/components/report/reportCard";
 import { generateMetadata } from "@/lib/seo";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { Skeleton } from "@/components/ui/loading";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { toast } from "sonner";
 
 export default function AllReportsPage() {
@@ -28,9 +19,8 @@ export default function AllReportsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<ReportStatus | "ALL">("ALL");
   const [severityFilter, setSeverityFilter] = useState<SeverityLevel | "ALL">("ALL");
-  const [viewMode, setViewMode] = useState<"card" | "table">("card");
   const [page, setPage] = useState(1);
-  const ITEMS_PER_PAGE = viewMode === "card" ? 6 : 10;
+  const ITEMS_PER_PAGE = 6;
   useEffect(() => {
     const fetchFacilityReports = async () => {
       try {
@@ -148,83 +138,12 @@ export default function AllReportsPage() {
             <SelectItem value="CRITICAL">Critical</SelectItem>
           </SelectContent>
         </Select>
-
-        {/* View Mode Toggle */}
-        <div className="flex gap-2">
-          <Button
-            variant={viewMode === "card" ? "default" : "outline"}
-            size="icon-sm"
-            onClick={() => setViewMode("card")}
-          >
-            <LayoutGrid className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={viewMode === "table" ? "default" : "outline"}
-            size="icon-sm"
-            onClick={() => setViewMode("table")}
-          >
-            <Table2 className="h-4 w-4" />
-          </Button>
-        </div>
       </div>
-
-      {/* Reports Grid/Table */}
-      {viewMode === "card" ? (
       <div className="grid gap-4 md:grid-cols-2">
         {paginatedReports.map((report) => (
           <ReportCard key={report.REPORT_ID} report={report} />
         ))}
       </div>
-      ) : (
-                <Card>
-          <CardHeader>
-            <CardTitle>Facility Reports ({filteredReports.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Severity</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedReports.map((report) => (
-                <TableRow key={report.REPORT_ID}>
-                  <TableCell className="font-medium">{report.TITLE}</TableCell>
-                  <TableCell>{report.LOCATION}</TableCell>
-                  <TableCell>{report.FACILITY_TYPE}</TableCell>
-                  <TableCell>
-                    <StatusBadge status={report.STATUS} />
-                  </TableCell>
-                  <TableCell>
-                    <FacilitySeverityBadge severityLevel={report.SEVERITY_LEVEL} />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end items-center gap-2">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="outline" size="icon-sm" asChild>
-                            <Link href={`/dashboard/facility/reports/${report.REPORT_ID}`}>
-                              <Eye className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>View Report</TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-             </CardContent>
-          </Card>
-      )}
 
       {filteredReports.length > 0 && totalPages > 1 && (
         <PaginationControls 

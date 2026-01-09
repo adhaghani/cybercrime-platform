@@ -144,7 +144,7 @@ export default function NewAnnouncementPage() {
               <CardContent>
                 <AnnouncementPhotoUpload
                   currentPhotoUrl={photoPath}
-                  onUploadComplete={(path) => setPhotoPath(path)}
+                  onUploadComplete={(path) => {console.log(path); setPhotoPath(path)}}
                   onRemove={() => setPhotoPath("")}
                   disabled={isLoading}
                 />

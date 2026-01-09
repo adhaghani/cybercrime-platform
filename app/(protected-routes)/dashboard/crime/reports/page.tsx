@@ -5,36 +5,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Search, MapPin, LayoutGrid, Table2, Eye } from "lucide-react";
+import { ArrowLeft, Search } from "lucide-react";
 import Link from "next/link";
 import { Crime, ReportStatus, CrimeCategory } from "@/lib/types";
-import { format } from "date-fns";
-import CrimeCategoryBadge from "@/components/ui/crimeCategoryBadge";
-import StatusBadge from "@/components/ui/statusBadge";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import ReportCard from "@/components/report/reportCard";
 import { generateMetadata } from "@/lib/seo";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { toast } from "sonner";
 
 export default function AllCrimeReportsPage() {
-
-
   const [reports, setReports] = useState<Crime[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<ReportStatus | "ALL">("ALL");
   const [categoryFilter, setCategoryFilter] = useState<CrimeCategory | "ALL">("ALL");
-  const [viewMode, setViewMode] = useState<"card" | "table">("card");
   const [page, setPage] = useState(1);
-
-  const ITEMS_PER_PAGE = viewMode === "card" ? 6 : 10;
+  const ITEMS_PER_PAGE = 6;
 
   generateMetadata({
     title: "All Crime Reports - Cybercrime Reporting Platform",
@@ -157,87 +143,12 @@ export default function AllCrimeReportsPage() {
             <SelectItem value="OTHER">Other</SelectItem>
           </SelectContent>
         </Select>
-                        <div className="flex gap-2">
-          <Button
-            variant={viewMode === "card" ? "default" : "outline"}
-            size="icon-sm"
-            onClick={() => setViewMode("card")}
-          >
-            <LayoutGrid className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={viewMode === "table" ? "default" : "outline"}
-            size="icon-sm"
-            onClick={() => setViewMode("table")}
-          >
-            <Table2 className="h-4 w-4" />
-          </Button>
-        </div>
       </div>
-
-      {viewMode === "card" ? (
         <div className="grid gap-4 md:grid-cols-2">
           {paginatedReports.map((report) => (
             <ReportCard key={report.REPORT_ID} report={report} />
           ))}
         </div>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>Crime Reports ({filteredReports.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-          <Table className="border">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedReports.map((report) => (
-                <TableRow key={report.REPORT_ID} className="hover:bg-accent/50">
-                  <TableCell className="font-medium">{report.TITLE}</TableCell>
-                  <TableCell>
-                    <span className="flex items-center gap-1 text-sm">
-                      <MapPin className="h-3 w-3" />
-                      {report.LOCATION}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <CrimeCategoryBadge category={report.CRIME_CATEGORY} />
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={report.STATUS} />
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {format(new Date(report.SUBMITTED_AT), "MMM d, yyyy")}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end items-center gap-2">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="outline" size="icon-sm" asChild>
-                            <Link href={`/dashboard/crime/reports/${report.REPORT_ID}`}>
-                              <Eye className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>View Report</TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          </CardContent>
-          </Card>
-      )}
 
       {filteredReports.length > 0 && totalPages > 1 && (
         <PaginationControls 

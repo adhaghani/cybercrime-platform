@@ -1,4 +1,3 @@
-
 import { Calendar, Pencil } from "lucide-react";
 import { Dialog, DialogHeader, DialogContent, DialogDescription, DialogTitle } from "../ui/dialog";
 import { Announcement } from "@/lib/types";
@@ -22,6 +21,7 @@ const AnnouncementDialog = ({announcement, open, onOpenChange} : AnnouncementCar
     const hasManageAccess = hasAnyRole(['STAFF','SUPERVISOR', 'ADMIN', 'SUPERADMIN']);
     
     const [imageError, setImageError] = useState<boolean>(false);
+    
   return (
     <Dialog open={open} onOpenChange={onOpenChange}> 
       <DialogContent className="max-w-2xl! w-full">
@@ -37,12 +37,9 @@ const AnnouncementDialog = ({announcement, open, onOpenChange} : AnnouncementCar
                   className="w-full h-full object-cover"
                 />
               </div>
-            ) : 
-            (<p className="text-sm border rounded-md bg-accent aspect-video grid place-items-center text-muted-foreground">
-                {imageError ? "Image not available" : "No photo uploaded"}
-              </p>
-              )
-            }
+            ) : (
+              null
+            )}
           <div className="flex items-start justify-between">
             <div className="space-y-2 flex-1">
               <DialogTitle className="text-2xl flex items-center gap-4">

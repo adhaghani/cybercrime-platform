@@ -77,7 +77,7 @@ export function AnnouncementPhotoUpload({
       const data = await response.json();
 
       // Update UI with new image
-      setUploadedPhotoUrl(data.url);
+      setUploadedPhotoUrl(data.path);
       onUploadComplete?.(data.path);
 
       toast.success("Photo uploaded successfully");

@@ -75,7 +75,7 @@ export function ProfilePictureUpload({
       const data = await response.json();
 
       // Update UI with new image
-      setUploadedImageUrl(data.url);
+      setUploadedImageUrl(data.path);
       onUploadComplete?.(data.path);
 
       toast.success("Profile picture updated successfully");
