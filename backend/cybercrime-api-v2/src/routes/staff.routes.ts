@@ -58,4 +58,10 @@ router.delete(
   staffController.delete
 );
 
+// GET /api/v2/staff/:id/workload - Get current workload of a staff member
+router.get(
+  '/:id/workload',
+  staffController.getStaffCurrentWorkload
+);
+
 export default router;

@@ -161,4 +161,156 @@ export class StaffRepository extends BaseRepository<Staff> {
     const result: any = await this.execute(sql, binds);
     return result.rows.map((row: any) => this.toModel(row));
   }
+
+  // ============================================================================
+// 6. STAFF CURRENT WORKLOAD WITH DATE-BASED URGENCY
+// ============================================================================
+
+/**
+ * Get current workload for all staff members with date-aware metrics
+ * Uses: JOIN, subquery in SELECT, WHERE with AND, date calculations
+ */
+async getStaffCurrentWorkload(accountId: number): Promise<any[]> {
+  const sql = `
+    SELECT 
+      s.ACCOUNT_ID,
+      a.NAME as STAFF_NAME,
+      s.ROLE,
+      s.DEPARTMENT,
+      -- Subquery: Count active assignments
+      (SELECT COUNT(*)
+       FROM REPORT_ASSIGNMENT ra
+       JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+       WHERE ra.ACCOUNT_ID = s.ACCOUNT_ID
+       AND r.STATUS IN ('PENDING', 'UNDER_INVESTIGATION')) as ACTIVE_CASES,
+      -- Subquery: Count cases with no action taken
+      (SELECT COUNT(*)
+       FROM REPORT_ASSIGNMENT ra
+       JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+       WHERE ra.ACCOUNT_ID = s.ACCOUNT_ID
+       AND r.STATUS IN ('PENDING', 'UNDER_INVESTIGATION')
+       AND ra.ACTION_TAKEN IS NULL) as NO_ACTION_CASES,
+      -- Subquery: Count overdue cases (>7 days old)
+      (SELECT COUNT(*)
+       FROM REPORT_ASSIGNMENT ra
+       JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+       WHERE ra.ACCOUNT_ID = s.ACCOUNT_ID
+       AND r.STATUS IN ('PENDING', 'UNDER_INVESTIGATION')
+       AND CAST(SYSDATE AS DATE) - CAST(r.SUBMITTED_AT AS DATE) > 7) as OVERDUE_CASES,
+      -- Subquery: Count urgent cases (>5 days old)
+      (SELECT COUNT(*)
+       FROM REPORT_ASSIGNMENT ra
+       JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+       WHERE ra.ACCOUNT_ID = s.ACCOUNT_ID
+       AND r.STATUS IN ('PENDING', 'UNDER_INVESTIGATION')
+       AND CAST(SYSDATE AS DATE) - CAST(r.SUBMITTED_AT AS DATE) > 5) as URGENT_CASES,
+      -- Subquery: Count recent assignments (last 48 hours)
+      (SELECT COUNT(*)
+       FROM REPORT_ASSIGNMENT ra
+       JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+       WHERE ra.ACCOUNT_ID = s.ACCOUNT_ID
+       AND r.STATUS IN ('PENDING', 'UNDER_INVESTIGATION')
+       AND CAST(SYSDATE AS DATE) - CAST(ra.ASSIGNED_AT AS DATE) <= 2) as RECENT_ASSIGNMENTS,
+      -- Subquery: Average age of all active cases
+      NVL((SELECT ROUND(AVG(CAST(SYSDATE AS DATE) - CAST(r.SUBMITTED_AT AS DATE)), 1)
+       FROM REPORT_ASSIGNMENT ra
+       JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+       WHERE ra.ACCOUNT_ID = s.ACCOUNT_ID
+       AND r.STATUS IN ('PENDING', 'UNDER_INVESTIGATION')), 0) as AVG_CASE_AGE_DAYS,
+      -- Subquery: Oldest pending case days
+      NVL((SELECT MAX(ROUND(CAST(SYSDATE AS DATE) - CAST(r.SUBMITTED_AT AS DATE), 1))
+       FROM REPORT_ASSIGNMENT ra
+       JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+       WHERE ra.ACCOUNT_ID = s.ACCOUNT_ID
+       AND r.STATUS IN ('PENDING', 'UNDER_INVESTIGATION')), 0) as OLDEST_CASE_DAYS,
+      -- Subquery: Average time since assignment
+      NVL((SELECT ROUND(AVG(CAST(SYSDATE AS DATE) - CAST(ra.ASSIGNED_AT AS DATE)), 1)
+       FROM REPORT_ASSIGNMENT ra
+       JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+       WHERE ra.ACCOUNT_ID = s.ACCOUNT_ID
+       AND r.STATUS IN ('PENDING', 'UNDER_INVESTIGATION')), 0) as AVG_DAYS_SINCE_ASSIGNMENT,
+      -- Subquery: Cases assigned but no action for >3 days
+      (SELECT COUNT(*)
+       FROM REPORT_ASSIGNMENT ra
+       JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+       WHERE ra.ACCOUNT_ID = s.ACCOUNT_ID
+       AND r.STATUS IN ('PENDING', 'UNDER_INVESTIGATION')
+       AND ra.ACTION_TAKEN IS NULL
+       AND CAST(SYSDATE AS DATE) - CAST(ra.ASSIGNED_AT AS DATE) > 3) as STALE_NO_ACTION_CASES,
+      -- Calculated: Workload pressure score (considers count + age + overdue)
+      (SELECT COUNT(*)
+       FROM REPORT_ASSIGNMENT ra
+       JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+       WHERE ra.ACCOUNT_ID = s.ACCOUNT_ID
+       AND r.STATUS IN ('PENDING', 'UNDER_INVESTIGATION')) * 10 +
+      NVL((SELECT SUM(
+         CASE 
+           WHEN CAST(SYSDATE AS DATE) - CAST(r.SUBMITTED_AT AS DATE) > 7 THEN 15
+           WHEN CAST(SYSDATE AS DATE) - CAST(r.SUBMITTED_AT AS DATE) > 5 THEN 10
+           WHEN CAST(SYSDATE AS DATE) - CAST(r.SUBMITTED_AT AS DATE) > 3 THEN 5
+           ELSE 2
+         END
+       )
+       FROM REPORT_ASSIGNMENT ra
+       JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+       WHERE ra.ACCOUNT_ID = s.ACCOUNT_ID
+       AND r.STATUS IN ('PENDING', 'UNDER_INVESTIGATION')), 0) as WORKLOAD_PRESSURE_SCORE,
+      -- Enhanced workload status (considers count, age, and overdue)
+      CASE 
+        WHEN (SELECT COUNT(*)
+              FROM REPORT_ASSIGNMENT ra
+              JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+              WHERE ra.ACCOUNT_ID = s.ACCOUNT_ID
+              AND r.STATUS IN ('PENDING', 'UNDER_INVESTIGATION')) >= 10 
+        THEN 'CRITICAL_OVERLOADED'
+        WHEN (SELECT COUNT(*)
+              FROM REPORT_ASSIGNMENT ra
+              JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+              WHERE ra.ACCOUNT_ID = s.ACCOUNT_ID
+              AND r.STATUS IN ('PENDING', 'UNDER_INVESTIGATION')
+              AND CAST(SYSDATE AS DATE) - CAST(r.SUBMITTED_AT AS DATE) > 7) >= 3
+        THEN 'CRITICAL_OVERDUE'
+        WHEN (SELECT COUNT(*)
+              FROM REPORT_ASSIGNMENT ra
+              JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+              WHERE ra.ACCOUNT_ID = s.ACCOUNT_ID
+              AND r.STATUS IN ('PENDING', 'UNDER_INVESTIGATION')) >= 8 
+        THEN 'OVERLOADED'
+        WHEN (SELECT COUNT(*)
+              FROM REPORT_ASSIGNMENT ra
+              JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+              WHERE ra.ACCOUNT_ID = s.ACCOUNT_ID
+              AND r.STATUS IN ('PENDING', 'UNDER_INVESTIGATION')) >= 5 
+             OR (SELECT COUNT(*)
+                 FROM REPORT_ASSIGNMENT ra
+                 JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+                 WHERE ra.ACCOUNT_ID = s.ACCOUNT_ID
+                 AND r.STATUS IN ('PENDING', 'UNDER_INVESTIGATION')
+                 AND CAST(SYSDATE AS DATE) - CAST(r.SUBMITTED_AT AS DATE) > 7) >= 2
+        THEN 'BUSY'
+        WHEN (SELECT COUNT(*)
+              FROM REPORT_ASSIGNMENT ra
+              JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+              WHERE ra.ACCOUNT_ID = s.ACCOUNT_ID
+              AND r.STATUS IN ('PENDING', 'UNDER_INVESTIGATION')) >= 2 
+        THEN 'MODERATE'
+        WHEN (SELECT COUNT(*)
+              FROM REPORT_ASSIGNMENT ra
+              JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+              WHERE ra.ACCOUNT_ID = s.ACCOUNT_ID
+              AND r.STATUS IN ('PENDING', 'UNDER_INVESTIGATION')) >= 1 
+        THEN 'LIGHT'
+        ELSE 'AVAILABLE'
+      END as WORKLOAD_STATUS
+    FROM STAFF s
+    JOIN ACCOUNT a ON s.ACCOUNT_ID = a.ACCOUNT_ID
+    WHERE a.ACCOUNT_TYPE = 'STAFF'
+    AND s.ACCOUNT_ID = :accountId
+    ORDER BY WORKLOAD_PRESSURE_SCORE DESC
+  `;
+  const bind = { accountId };
+  const result: any = await this.execute(sql, bind);
+  return result.rows;
 }
+}
+

@@ -16,6 +16,7 @@ import { ViewUserDetailDialog } from "@/components/users/viewUserDetailDialog";
 import { ViewStaffAssignmentDialog } from "@/components/users/viewStaffAssignmentDialog";
 import { PromoteStaffDialog } from "@/components/users/promoteStaffDialog";
 import { DeleteUserDialog } from "@/components/users/deleteUserDialog";
+import { StaffWorkloadDialog } from "@/components/staff/staff-workload-dialog";
 import { useAuth } from "@/lib/context/auth-provider";
 import { useHasAnyRole } from "@/hooks/use-user-role";
 import { DataTable } from "@/components/ui/data-table/data-table";
@@ -28,6 +29,7 @@ export default function StaffManagementPage() {
   const [openAssignmentsDialog, setOpenAssignmentsDialog] = useState(false);
   const [openPromoteDialog, setOpenPromoteDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [openWorkloadDialog, setOpenWorkloadDialog] = useState(false);
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const [selectedStaffName, setSelectedStaffName] = useState<string>("");
   const [selectedStaffEmail, setSelectedStaffEmail] = useState<string>("");
@@ -99,6 +101,11 @@ export default function StaffManagementPage() {
         setSelectedStaffName(name);
         setSelectedStaffEmail(email);
         setOpenDeleteDialog(true);
+      },
+      onViewWorkload: (accountId: string, name: string) => {
+        setSelectedStaffId(accountId);
+        setSelectedStaffName(name);
+        setOpenWorkloadDialog(true);
       },
       isAdmin,
       currentAccountId: ACCOUNT_ID,
@@ -220,6 +227,13 @@ export default function StaffManagementPage() {
         open={openDeleteDialog}
         onOpenChange={setOpenDeleteDialog}
         onSuccess={handleRefreshStaff}
-      />    </div>
+      />    
+      <StaffWorkloadDialog
+        staffId={selectedStaffId!}
+        staffName={selectedStaffName}
+        open={openWorkloadDialog}
+        onOpenChange={setOpenWorkloadDialog}
+      />
+      </div>
   );
 }

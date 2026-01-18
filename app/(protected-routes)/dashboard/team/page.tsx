@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/empty"
 import { generateMetadata } from '@/lib/seo';
 import { toast } from 'sonner';
+import Link from 'next/link';
 interface Team {
   supervisor: Staff;
   members: Staff[];
@@ -108,11 +109,21 @@ export default function AllTeamsPage() {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
+      <div className='flex justify-between flex-wrap items-center gap-2'> 
+
+   
       <div>
         <h1 className="text-3xl font-bold">All Teams</h1>
         <p className="text-muted-foreground">View all teams and their members organized by supervisor</p>
       </div>
-
+      <div>
+          <Button asChild>
+          <Link href="/dashboard/team/performance" >
+            View Team Performance
+            </Link>
+          </Button>
+      </div>
+         </div>
       {teams.length === 0 ? (
     <Empty className="border border-dashed">
       <EmptyHeader>

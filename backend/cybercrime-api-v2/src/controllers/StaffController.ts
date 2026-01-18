@@ -386,4 +386,24 @@ export class StaffController {
       });
     }
   };
+
+  getStaffCurrentWorkload = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        res.status(400).json({ error: 'Invalid account ID' });
+        return;
+      }
+      const workload = await this.staffService.getStaffCurrentWorkload(id);
+      res.status(200).json(workload);
+    } catch (error) {
+      logger.error('Get staff current workload error:', error);
+      res.status(500).json({
+        error: 'Failed to get staff current workload',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
 }
+

@@ -17,7 +17,7 @@ import {
 import { 
   Mail, Phone, MoreHorizontal, UserCheck, 
   Briefcase, Shield, UserX, ArrowUpDown, 
-  FileText
+  FileText, Flame
 } from "lucide-react";
 import { getInitials, getDepartmentColor } from "@/lib/utils/badge-helpers";
 
@@ -27,6 +27,7 @@ interface ColumnsConfig {
   onViewReports?: (accountId: string, name: string) => void;
   onPromote?: (accountId: string, name: string) => void;
   onDelete?: (accountId: string, name: string, email: string) => void;
+  onViewWorkload?: (accountId: string, name: string) => void;
   isAdmin: boolean;
   currentAccountId: string | null;
 }
@@ -37,6 +38,7 @@ export const createColumns = ({
   onViewReports,
   onPromote,
   onDelete,
+  onViewWorkload,
   isAdmin,
   currentAccountId,
 }: ColumnsConfig): ColumnDef<any>[] => [
@@ -177,6 +179,12 @@ export const createColumns = ({
                         <FileText className="mr-2 h-4 w-4" />
                         View Reports
                     </DropdownMenuItem>
+                )}
+                {onViewWorkload && (
+                <DropdownMenuItem onClick={() => onViewWorkload(member.ACCOUNT_ID, member.NAME)}>
+                  <Flame className="mr-2 h-4 w-4" />
+                  View Workload
+                </DropdownMenuItem>
                 )}
               {onViewAssignments && (<DropdownMenuItem onClick={() => onViewAssignments(member.ACCOUNT_ID, member.NAME)}>
                 <Briefcase className="mr-2 h-4 w-4" />

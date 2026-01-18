@@ -214,6 +214,25 @@ export class ReportController {
     }
   };
 
+
+  /**
+   * GET /api/v2/reports/unassigned-priority
+   * Get unassigned reports with priority scores
+   */
+  getUnassignedReportsWithPriority = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { type } = req.query;
+
+      const filters: any = {};
+      if (type) filters.type = type as 'CRIME' | 'FACILITY';
+
+      const reports = await this.reportService.getUnassignedReportsWithPriority(filters);
+      res.status(200).json({ success: true, data: reports });
+    } catch (error: any) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  };
+
   /**
    * POST /api/v2/reports
    * Create a new report
@@ -331,4 +350,7 @@ export class ReportController {
       res.status(400).json({ success: false, error: error.message });
     }
   };
+
+
 }
+

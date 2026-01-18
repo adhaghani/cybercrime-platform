@@ -189,6 +189,10 @@ const getNavMainByRole = (role: string | undefined) => {
           url: "/dashboard/reports/facility",
         },
         {
+          title: "Unassigned Reports",
+          url: "/dashboard/reports/unassigned-report",
+        },
+        {
           title: "My Assigned Reports",
           url: "/dashboard/reports/my-assignments",
         },
@@ -291,6 +295,10 @@ const getNavMainByRole = (role: string | undefined) => {
           url: "/dashboard/reports/facility",
         },
         {
+          title: "Unassigned Reports",
+          url: "/dashboard/reports/unassigned-report",
+        },
+        {
           title: "My Assigned Reports",
           url: "/dashboard/reports/my-assignments",
         },
@@ -390,6 +398,10 @@ const getNavMainByRole = (role: string | undefined) => {
         {
           title: "Facility Reports",
           url: "/dashboard/reports/facility",
+        },
+        {
+          title: "Unassigned Reports",
+          url: "/dashboard/reports/unassigned-report",
         },
         {
           title: "My Assigned Reports",

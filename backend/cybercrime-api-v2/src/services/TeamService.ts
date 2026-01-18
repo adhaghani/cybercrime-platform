@@ -142,4 +142,9 @@ export class TeamService {
 
     return stats;
   }
+
+  async getAllTeamPerformanceMetrics(): Promise<any[]> {
+    const result = await this.teamRepo.getAllTeamPerformanceMetrics();
+    return result;
+  }
 }

@@ -336,6 +336,23 @@ export class ReportRepository extends BaseRepository<Report> {
     byFacilitySeverity: Record<string, number>;
     overTime: Array<{ report_date: string; desktop: number; mobile: number }>;
     userGrowth: Array<{ month_name: string; desktop: number }>;
+    departmentEfficiency: Array<{ 
+      department: string; 
+      responseSpeed: number; 
+      actionRate: number; 
+      resolutionRate: number; 
+      workloadCapacity: number; 
+      efficiencyScore: number; 
+      sameDayAssignment: number; 
+    }>;
+    locationHotspots: Array<{
+      location: string;
+      critical: number;
+      high: number;
+      medium: number;
+      low: number;
+      total: number;
+    }>;
   }> {
     const sql = `
       SELECT 
@@ -362,7 +379,24 @@ export class ReportRepository extends BaseRepository<Report> {
       byCrimeCategory: {} as Record<string, number>,
       byFacilitySeverity: {} as Record<string, number>,
       overTime: [] as Array<{ report_date: string; desktop: number; mobile: number }>,
-      userGrowth: [] as Array<{ month_name: string; desktop: number }>
+      userGrowth: [] as Array<{ month_name: string; desktop: number }>,
+      departmentEfficiency: [] as Array<{ 
+        department: string; 
+        responseSpeed: number; 
+        actionRate: number; 
+        resolutionRate: number; 
+        workloadCapacity: number; 
+        efficiencyScore: number; 
+        sameDayAssignment: number; 
+      }>,
+      locationHotspots: [] as Array<{
+        location: string;
+        critical: number;
+        high: number;
+        medium: number;
+        low: number;
+        total: number;
+      }>
     };
 
     result.rows.forEach((row: any) => {
@@ -450,6 +484,190 @@ export class ReportRepository extends BaseRepository<Report> {
       }));
     } catch (err) {
       console.log('No user growth data found:', err);
+    }
+
+    // Get department efficiency metrics
+    const departmentEfficiencySql = `
+      SELECT 
+        s.DEPARTMENT as "department",
+        -- Response Speed: Inverse of avg hours to assignment (normalized to 0-100)
+        NVL(ROUND(100 - (
+          (SELECT AVG(CAST(ra.ASSIGNED_AT AS DATE) - CAST(r.SUBMITTED_AT AS DATE)) * 24
+           FROM REPORT_ASSIGNMENT ra
+           JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+           JOIN STAFF st ON ra.ACCOUNT_ID = st.ACCOUNT_ID
+           WHERE st.DEPARTMENT = s.DEPARTMENT
+           AND ra.ASSIGNED_AT = (SELECT MIN(ra2.ASSIGNED_AT) FROM REPORT_ASSIGNMENT ra2 WHERE ra2.REPORT_ID = r.REPORT_ID)
+          ) * 2
+        ), 2), 0) as "responseSpeed",
+        -- Action Rate: Percentage of cases with action taken
+        NVL(ROUND(
+          (SELECT COUNT(DISTINCT ra.REPORT_ID)
+           FROM REPORT_ASSIGNMENT ra
+           JOIN STAFF st ON ra.ACCOUNT_ID = st.ACCOUNT_ID
+           WHERE st.DEPARTMENT = s.DEPARTMENT
+           AND ra.ACTION_TAKEN IS NOT NULL) * 100.0 /
+          NULLIF((SELECT COUNT(DISTINCT ra.REPORT_ID)
+           FROM REPORT_ASSIGNMENT ra
+           JOIN STAFF st ON ra.ACCOUNT_ID = st.ACCOUNT_ID
+           WHERE st.DEPARTMENT = s.DEPARTMENT), 0)
+        , 2), 0) as "actionRate",
+        -- Resolution Rate: Percentage resolved
+        NVL(ROUND(
+          (SELECT COUNT(DISTINCT r.REPORT_ID)
+           FROM REPORT_ASSIGNMENT ra
+           JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+           JOIN STAFF st ON ra.ACCOUNT_ID = st.ACCOUNT_ID
+           WHERE st.DEPARTMENT = s.DEPARTMENT
+           AND r.STATUS = 'RESOLVED') * 100.0 /
+          NULLIF((SELECT COUNT(DISTINCT ra.REPORT_ID)
+           FROM REPORT_ASSIGNMENT ra
+           JOIN STAFF st ON ra.ACCOUNT_ID = st.ACCOUNT_ID
+           WHERE st.DEPARTMENT = s.DEPARTMENT), 0)
+        , 2), 0) as "resolutionRate",
+        -- Workload Capacity: Inverse of average active cases per staff (normalized)
+        NVL(ROUND(100 - (
+          (SELECT AVG(active_count) FROM (
+            SELECT COUNT(*) as active_count
+            FROM REPORT_ASSIGNMENT ra
+            JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+            JOIN STAFF st ON ra.ACCOUNT_ID = st.ACCOUNT_ID
+            WHERE st.DEPARTMENT = s.DEPARTMENT
+            AND r.STATUS IN ('PENDING', 'UNDER_INVESTIGATION')
+            GROUP BY st.ACCOUNT_ID
+          )) * 10
+        ), 2), 100) as "workloadCapacity",
+        -- Same Day Assignment Rate: % assigned within 24 hours
+        NVL(ROUND(
+          (SELECT COUNT(DISTINCT ra.REPORT_ID)
+           FROM REPORT_ASSIGNMENT ra
+           JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+           JOIN STAFF st ON ra.ACCOUNT_ID = st.ACCOUNT_ID
+           WHERE st.DEPARTMENT = s.DEPARTMENT
+           AND CAST(ra.ASSIGNED_AT AS DATE) - CAST(r.SUBMITTED_AT AS DATE) <= 1
+           AND ra.ASSIGNED_AT = (SELECT MIN(ra2.ASSIGNED_AT) FROM REPORT_ASSIGNMENT ra2 WHERE ra2.REPORT_ID = r.REPORT_ID)) * 100.0 /
+          NULLIF((SELECT COUNT(DISTINCT ra.REPORT_ID)
+           FROM REPORT_ASSIGNMENT ra
+           JOIN STAFF st ON ra.ACCOUNT_ID = st.ACCOUNT_ID
+           WHERE st.DEPARTMENT = s.DEPARTMENT), 0)
+        , 2), 0) as "sameDayAssignment",
+        -- Efficiency Score: Weighted combination
+        NVL(ROUND(
+          (
+            -- Response speed component (30%)
+            (100 - ((SELECT AVG(CAST(ra.ASSIGNED_AT AS DATE) - CAST(r.SUBMITTED_AT AS DATE)) * 24
+                     FROM REPORT_ASSIGNMENT ra
+                     JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+                     JOIN STAFF st ON ra.ACCOUNT_ID = st.ACCOUNT_ID
+                     WHERE st.DEPARTMENT = s.DEPARTMENT) * 2)) * 0.3 +
+            -- Action rate component (20%)
+            ((SELECT COUNT(DISTINCT ra.REPORT_ID)
+              FROM REPORT_ASSIGNMENT ra
+              JOIN STAFF st ON ra.ACCOUNT_ID = st.ACCOUNT_ID
+              WHERE st.DEPARTMENT = s.DEPARTMENT
+              AND ra.ACTION_TAKEN IS NOT NULL) * 100.0 /
+             NULLIF((SELECT COUNT(DISTINCT ra.REPORT_ID)
+              FROM REPORT_ASSIGNMENT ra
+              JOIN STAFF st ON ra.ACCOUNT_ID = st.ACCOUNT_ID
+              WHERE st.DEPARTMENT = s.DEPARTMENT), 0)) * 0.2 +
+            -- Resolution rate component (30%)
+            ((SELECT COUNT(DISTINCT r.REPORT_ID)
+              FROM REPORT_ASSIGNMENT ra
+              JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+              JOIN STAFF st ON ra.ACCOUNT_ID = st.ACCOUNT_ID
+              WHERE st.DEPARTMENT = s.DEPARTMENT
+              AND r.STATUS = 'RESOLVED') * 100.0 /
+             NULLIF((SELECT COUNT(DISTINCT ra.REPORT_ID)
+              FROM REPORT_ASSIGNMENT ra
+              JOIN STAFF st ON ra.ACCOUNT_ID = st.ACCOUNT_ID
+              WHERE st.DEPARTMENT = s.DEPARTMENT), 0)) * 0.3 +
+            -- Workload capacity component (20%)
+            (100 - ((SELECT AVG(active_count) FROM (
+              SELECT COUNT(*) as active_count
+              FROM REPORT_ASSIGNMENT ra
+              JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+              JOIN STAFF st ON ra.ACCOUNT_ID = st.ACCOUNT_ID
+              WHERE st.DEPARTMENT = s.DEPARTMENT
+              AND r.STATUS IN ('PENDING', 'UNDER_INVESTIGATION')
+              GROUP BY st.ACCOUNT_ID
+            )) * 10)) * 0.2
+          )
+        , 2), 0) as "efficiencyScore"
+      FROM STAFF s
+      WHERE EXISTS (
+        SELECT 1 FROM REPORT_ASSIGNMENT ra WHERE ra.ACCOUNT_ID = s.ACCOUNT_ID
+      )
+      GROUP BY s.DEPARTMENT
+      ORDER BY "efficiencyScore" DESC
+    `;
+
+    try {
+      const deptEfficiencyResult: any = await this.execute(departmentEfficiencySql);
+      stats.departmentEfficiency = deptEfficiencyResult.rows.map((row: any) => ({
+        department: row["department"],
+        responseSpeed: Math.max(0, Math.min(100, Number(row["responseSpeed"]))),
+        actionRate: Number(row["actionRate"]),
+        resolutionRate: Number(row["resolutionRate"]),
+        workloadCapacity: Math.max(0, Math.min(100, Number(row["workloadCapacity"]))),
+        efficiencyScore: Math.max(0, Math.min(100, Number(row["efficiencyScore"]))),
+        sameDayAssignment: Number(row["sameDayAssignment"])
+      }));
+    } catch (err) {
+      console.log('No department efficiency data found:', err);
+    }
+
+    // Get location hotspots by severity
+    const locationHotspotsSql = `
+      SELECT 
+        r.LOCATION as "location",
+        -- Subquery: Count critical severity reports
+        (SELECT COUNT(*)
+         FROM REPORT r2
+         LEFT JOIN CRIME c ON r2.REPORT_ID = c.REPORT_ID AND r2.TYPE = 'CRIME'
+         LEFT JOIN FACILITY f ON r2.REPORT_ID = f.REPORT_ID AND r2.TYPE = 'FACILITY'
+         WHERE r2.LOCATION = r.LOCATION
+         AND (c.INJURY_LEVEL = 'CRITICAL' OR f.SEVERITY_LEVEL = 'CRITICAL')) as "critical",
+        -- Subquery: Count high/severe reports
+        (SELECT COUNT(*)
+         FROM REPORT r3
+         LEFT JOIN CRIME c ON r3.REPORT_ID = c.REPORT_ID AND r3.TYPE = 'CRIME'
+         LEFT JOIN FACILITY f ON r3.REPORT_ID = f.REPORT_ID AND r3.TYPE = 'FACILITY'
+         WHERE r3.LOCATION = r.LOCATION
+         AND (c.INJURY_LEVEL = 'SEVERE' OR f.SEVERITY_LEVEL = 'HIGH')) as "high",
+        -- Subquery: Count medium/moderate reports
+        (SELECT COUNT(*)
+         FROM REPORT r4
+         LEFT JOIN CRIME c ON r4.REPORT_ID = c.REPORT_ID AND r4.TYPE = 'CRIME'
+         LEFT JOIN FACILITY f ON r4.REPORT_ID = f.REPORT_ID AND r4.TYPE = 'FACILITY'
+         WHERE r4.LOCATION = r.LOCATION
+         AND (c.INJURY_LEVEL = 'MODERATE' OR f.SEVERITY_LEVEL = 'MEDIUM')) as "medium",
+        -- Subquery: Count low/minor reports
+        (SELECT COUNT(*)
+         FROM REPORT r5
+         LEFT JOIN CRIME c ON r5.REPORT_ID = c.REPORT_ID AND r5.TYPE = 'CRIME'
+         LEFT JOIN FACILITY f ON r5.REPORT_ID = f.REPORT_ID AND r5.TYPE = 'FACILITY'
+         WHERE r5.LOCATION = r.LOCATION
+         AND (c.INJURY_LEVEL = 'MINOR' OR f.SEVERITY_LEVEL = 'LOW')) as "low",
+        COUNT(*) as "total"
+      FROM REPORT r
+      GROUP BY r.LOCATION
+      HAVING COUNT(*) >= 3
+      ORDER BY "critical" DESC, "total" DESC
+      FETCH FIRST 10 ROWS ONLY
+    `;
+
+    try {
+      const locationHotspotsResult: any = await this.execute(locationHotspotsSql);
+      stats.locationHotspots = locationHotspotsResult.rows.map((row: any) => ({
+        location: row["location"],
+        critical: Number(row["critical"]),
+        high: Number(row["high"]),
+        medium: Number(row["medium"]),
+        low: Number(row["low"]),
+        total: Number(row["total"])
+      }));
+    } catch (err) {
+      console.log('No location hotspots data found:', err);
     }
 
     return stats;
@@ -582,4 +800,106 @@ export class ReportRepository extends BaseRepository<Report> {
     const result: any = await this.execute(sql, binds);
     return result.rows;
   }
+
+  // SUBQUERY REPORTS
+  /**
+   * Find unassigned reports with calculated priority score
+   * Priority based on: waiting time, report type, crime severity/facility severity
+   */
+  async findUnassignedReportsWithPriority(filters?: {
+    type?: 'CRIME' | 'FACILITY';
+  }): Promise<any[]> {
+    const binds: any = {};
+    let typeCondition = '';
+    
+    if (filters?.type) {
+      typeCondition = 'AND r.TYPE = :type';
+      binds.type = filters.type;
+    }
+
+    const sql = `
+      SELECT 
+        r.REPORT_ID,
+        r.TITLE,
+        r.DESCRIPTION,
+        r.TYPE,
+        r.STATUS,
+        r.LOCATION,
+        r.SUBMITTED_AT,
+        a.NAME as SUBMITTER_NAME,
+        -- Subquery 1: Check if report is unassigned
+        (SELECT COUNT(*) 
+         FROM REPORT_ASSIGNMENT ra 
+         WHERE ra.REPORT_ID = r.REPORT_ID) as ASSIGNMENT_COUNT,
+        -- Subquery 2: Calculate waiting time in days
+        ROUND(CAST(SYSDATE AS DATE) - CAST(r.SUBMITTED_AT AS DATE), 2) as WAITING_DAYS,
+        -- Direct join: Get severity level (from CRIME or FACILITY)
+        CASE 
+          WHEN r.TYPE = 'CRIME' AND c.INJURY_LEVEL IS NOT NULL THEN 
+            CASE c.INJURY_LEVEL
+              WHEN 'CRITICAL' THEN 5
+              WHEN 'SEVERE' THEN 4
+              WHEN 'MODERATE' THEN 3
+              WHEN 'MINOR' THEN 2
+              ELSE 1
+            END
+          WHEN r.TYPE = 'FACILITY' AND f.SEVERITY_LEVEL IS NOT NULL THEN
+            CASE f.SEVERITY_LEVEL
+              WHEN 'CRITICAL' THEN 5
+              WHEN 'HIGH' THEN 4
+              WHEN 'MEDIUM' THEN 3
+              WHEN 'LOW' THEN 2
+              ELSE 1
+            END
+          ELSE 1
+        END as SEVERITY_SCORE,
+        -- Direct join: Calculate priority score (weighted formula)
+        (ROUND(CAST(SYSDATE AS DATE) - CAST(r.SUBMITTED_AT AS DATE), 2) * 2) + 
+        CASE 
+          WHEN r.TYPE = 'CRIME' AND c.INJURY_LEVEL IS NOT NULL THEN 
+            CASE c.INJURY_LEVEL
+              WHEN 'CRITICAL' THEN 50
+              WHEN 'SEVERE' THEN 40
+              WHEN 'MODERATE' THEN 30
+              WHEN 'MINOR' THEN 20
+              ELSE 10
+            END
+          WHEN r.TYPE = 'FACILITY' AND f.SEVERITY_LEVEL IS NOT NULL THEN
+            CASE f.SEVERITY_LEVEL
+              WHEN 'CRITICAL' THEN 50
+              WHEN 'HIGH' THEN 40
+              WHEN 'MEDIUM' THEN 30
+              WHEN 'LOW' THEN 20
+              ELSE 10
+            END
+          ELSE 10
+        END as PRIORITY_SCORE,
+        -- Subquery 5: Count available staff (not overloaded)
+        NVL((SELECT COUNT(DISTINCT s.ACCOUNT_ID)
+         FROM STAFF s
+         WHERE s.ACCOUNT_ID NOT IN (
+           SELECT ra.ACCOUNT_ID
+           FROM REPORT_ASSIGNMENT ra
+           JOIN REPORT rpt ON ra.REPORT_ID = rpt.REPORT_ID
+           WHERE rpt.STATUS IN ('PENDING', 'UNDER_INVESTIGATION')
+           GROUP BY ra.ACCOUNT_ID
+           HAVING COUNT(*) >= 5
+         )), 0) as AVAILABLE_STAFF_COUNT
+      FROM REPORT r
+      JOIN ACCOUNT a ON r.SUBMITTED_BY = a.ACCOUNT_ID
+      LEFT JOIN CRIME c ON r.REPORT_ID = c.REPORT_ID AND r.TYPE = 'CRIME'
+      LEFT JOIN FACILITY f ON r.REPORT_ID = f.REPORT_ID AND r.TYPE = 'FACILITY'
+      WHERE NOT EXISTS (
+        SELECT 1 FROM REPORT_ASSIGNMENT ra WHERE ra.REPORT_ID = r.REPORT_ID
+      )
+      AND r.STATUS = 'PENDING'
+      ${typeCondition}
+      ORDER BY PRIORITY_SCORE DESC, r.SUBMITTED_AT ASC
+    `;
+
+    const result: any = await this.execute(sql, binds);
+    return result.rows;
+  }
+
+
 }

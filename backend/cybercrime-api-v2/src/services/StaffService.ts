@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Staff } from '../models/Staff';
 import { StaffRepository } from '../repositories/StaffRepository';
 import { Logger } from '../utils/Logger';
@@ -285,6 +286,15 @@ export class StaffService {
       return Array.from(departments).sort();
     } catch (error) {
       logger.error('Error getting departments:', error);
+      throw error;
+    }
+  }
+
+  async getStaffCurrentWorkload(accountId: number): Promise<any[]> {
+    try {
+      return await this.staffRepo.getStaffCurrentWorkload(accountId);
+    } catch (error) {
+      logger.error('Error getting staff workload:', error);
       throw error;
     }
   }

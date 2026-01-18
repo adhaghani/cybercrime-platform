@@ -81,6 +81,12 @@ router.get('/type/:type', reportController.getReportsByType);
 router.get('/submitter/:submitterId', reportController.getReportsBySubmitter);
 
 /**
+ * GET /api/v2/reports/unassigned-priority
+ * Get unassigned reports with priority scores
+ */
+router.get('/unassigned-priority', authorize([Role.STAFF, Role.ADMIN, Role.SUPERADMIN]), reportController.getUnassignedReportsWithPriority);
+
+/**
  * GET /api/v2/reports/:id
  * Get a specific report by ID
  */
@@ -115,5 +121,7 @@ router.patch('/:id/status', authorize([Role.STAFF, Role.ADMIN, Role.SUPERADMIN])
  * Delete a report
  */
 router.delete('/:id', authorize([Role.ADMIN, Role.SUPERADMIN]), reportController.deleteReport);
+
+
 
 export default router;

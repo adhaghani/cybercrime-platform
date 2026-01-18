@@ -236,7 +236,7 @@ async function seedReports(connection, count, accounts, staff) {
 				status,
 				type,
 				attachment: '/uploads/sample.pdf',
-				submittedAt: randomDateWithin(40),
+				submittedAt: randomDateWithin(365),
 				updatedAt: new Date(),
 				id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
 			},
@@ -303,7 +303,7 @@ async function seedAssignments(connection, count, reports, staff) {
 			{
 				accountId: assignee.accountId,
 				reportId: report.reportId,
-				assignedAt: randomDateWithin(20),
+				assignedAt: randomDateWithin(365),
 				actionTaken: 'Initial review completed; stakeholder contacted.',
 				feedback: randomSentence(),
 				updatedAt: new Date(),
@@ -327,7 +327,7 @@ async function seedResolutions(connection, count, reports, staff) {
 		const report = chosenReports[i];
 		const resolver = pick(staff);
 		const resolutionType = pick(resolutionTypes);
-		const resolvedAt = randomDateWithin(15);
+		const resolvedAt = randomDateWithin(365);
 
 		const result = await connection.execute(
 			`INSERT INTO RESOLUTION (RESOLUTION_ID, REPORT_ID, RESOLVED_BY, RESOLUTION_TYPE, RESOLUTION_SUMMARY, EVIDENCE_PATH, RESOLVED_AT)
@@ -338,6 +338,7 @@ async function seedResolutions(connection, count, reports, staff) {
 				resolvedBy: resolver.accountId,
 				resolutionType,
 				summary: 'Resolution documented with supporting notes and follow-up steps.',
+				evidencePath: '/null.jpg',
 				resolvedAt,
 				id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
 			},
@@ -368,7 +369,7 @@ async function seedAnnouncements(connection, count, staff) {
 	const list = [];
 	for (let i = 0; i < count; i += 1) {
 		const creator = pick(staff);
-		const start = randomDateWithin(20);
+		const start = randomDateWithin(365);
 		const end = new Date(start.getTime() + (Math.floor(Math.random() * 7) + 3) * 24 * 60 * 60 * 1000);
 		const title = pick(['Campus Safety Update', 'Maintenance Notice', 'Emergency Drill', 'Service Interruption']);
 		const message = `${title} scheduled for campus community. Please review the details and follow guidance.`;
@@ -412,11 +413,11 @@ async function seedEmergencies(connection, count) {
 			`INSERT INTO EMERGENCY_INFO (EMERGENCY_ID, NAME, ADDRESS, PHONE, EMAIL, STATE, TYPE, HOTLINE)
 			 VALUES (emergency_seq.NEXTVAL, :name, :address, :phone, :email, :state, :type, :hotline)
 			 RETURNING EMERGENCY_ID INTO :id`,
-			{ name,address, phone, email, state, type, hotline, id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER } },
+			{ name, address, phone, email, state, type, hotline, id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER } },
 			{ autoCommit: false }
 		);
 
-		list.push({ id: result.outBinds.id[0] });
+		list.push({ id: result.outBinds.id[0], type: emergencyTypes[emergencyTypes.indexOf(type)] });
 	}
 
 	// Create auxiliary police entries for a subset of police emergency rows
@@ -483,7 +484,7 @@ async function seedGeneratedReports(connection, count, staff, reports) {
 	for (let i = 0; i < count; i += 1) {
 		const generator = pick(staff);
 		const days = Math.floor(Math.random() * 20) + 10;
-		const start = randomDateWithin(60);
+		const start = randomDateWithin(365);
 		const end = new Date(start.getTime() + days * 24 * 60 * 60 * 1000);
 		const category = pick(reportCategories);
 		const dataType = pick(reportDataTypes);
@@ -520,17 +521,27 @@ async function seedAll() {
 
 	const connection = await oracledb.getConnection(dbConfig);
 	try {
+		console.log('Seeding students...');
 		const students = await seedStudents(connection, config.students);
+		console.log('Seeding staff...');
 		const staff = await seedStaff(connection, config.staff);
+		console.log('Assigning supervisors...');
 		await assignSupervisors(connection, staff);
 		const accounts = [...students, ...staff];
 
+		console.log('Seeding reports...');
 		const reports = await seedReports(connection, config.reports, accounts, staff);
+		console.log('Seeding assignments...');
 		await seedAssignments(connection, config.reportAssignments, reports, staff);
+		console.log('Seeding resolutions...');
 		await seedResolutions(connection, config.resolutions, reports, staff);
+		console.log('Seeding announcements...');
 		await seedAnnouncements(connection, config.announcements, staff);
+		console.log('Seeding emergencies...');
 		await seedEmergencies(connection, config.emergencies);
+		console.log('Seeding UiTM Auxiliary Police...');
 		await seedUiTMAuxiliaryPolice(connection, config.UiTMAuxiliaryPolice);
+		console.log('Seeding generated reports...');
 		await seedGeneratedReports(connection, config.generatedReports, staff, reports);
 
 		await connection.commit();

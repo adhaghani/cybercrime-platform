@@ -456,4 +456,160 @@ export class TeamRepository extends BaseRepository<Team> {
 
     return teams;
   }
+
+  async getAllTeamPerformanceMetrics(): Promise<any[]> {
+    const sql = `
+      WITH TeamMembers AS (
+    -- Subquery 1: Get all team members including supervisors
+    SELECT 
+      COALESCE(s.SUPERVISOR_ID, s.ACCOUNT_ID) as TEAM_ID,
+      s.ACCOUNT_ID as MEMBER_ID,
+      a.NAME as MEMBER_NAME,
+      s.ROLE,
+      s.DEPARTMENT
+    FROM STAFF s
+    JOIN ACCOUNT a ON s.ACCOUNT_ID = a.ACCOUNT_ID
+    WHERE s.ROLE IN ('SUPERVISOR', 'STAFF', 'OFFICER')
+  ),
+  
+  TeamAssignments AS (
+    -- Subquery 2: Get all report assignments for team members
+    SELECT 
+      tm.TEAM_ID,
+      ra.REPORT_ID,
+      ra.ACCOUNT_ID,
+      ra.ASSIGNED_AT,
+      r.STATUS,
+      r.SUBMITTED_AT,
+      res.RESOLVED_AT,
+      -- Calculate resolution time in days
+      CASE 
+        WHEN res.RESOLVED_AT IS NOT NULL 
+        THEN ROUND((CAST(res.RESOLVED_AT AS DATE) - CAST(ra.ASSIGNED_AT AS DATE)), 2)
+        ELSE NULL
+      END as RESOLUTION_TIME_DAYS,
+      -- Calculate time to first action (days from report creation to assignment)
+      ROUND((CAST(ra.ASSIGNED_AT AS DATE) - CAST(r.SUBMITTED_AT AS DATE)), 2) as RESPONSE_TIME_DAYS
+    FROM TeamMembers tm
+    JOIN REPORT_ASSIGNMENT ra ON tm.MEMBER_ID = ra.ACCOUNT_ID
+    JOIN REPORT r ON ra.REPORT_ID = r.REPORT_ID
+    LEFT JOIN RESOLUTION res ON r.REPORT_ID = res.REPORT_ID
+  ),
+  
+  TeamStats AS (
+    -- Subquery 3: Calculate aggregate statistics per team
+    SELECT 
+      ta.TEAM_ID,
+      COUNT(DISTINCT ta.REPORT_ID) as TOTAL_CASES,
+      COUNT(DISTINCT CASE WHEN ta.STATUS = 'RESOLVED' THEN ta.REPORT_ID END) as RESOLVED_CASES,
+      COUNT(DISTINCT CASE WHEN ta.STATUS IN ('PENDING', 'IN_PROGRESS') THEN ta.REPORT_ID END) as ACTIVE_CASES,
+      AVG(ta.RESOLUTION_TIME_DAYS) as AVG_RESOLUTION_TIME,
+      AVG(ta.RESPONSE_TIME_DAYS) as AVG_RESPONSE_TIME,
+      MIN(ta.ASSIGNED_AT) as FIRST_ASSIGNMENT_DATE,
+      MAX(ta.ASSIGNED_AT) as LAST_ASSIGNMENT_DATE
+    FROM TeamAssignments ta
+    GROUP BY ta.TEAM_ID
+  ),
+  
+  SupervisorInfo AS (
+    -- Subquery 4: Get supervisor details for each team
+    SELECT 
+      s.ACCOUNT_ID as TEAM_ID,
+      a.NAME as SUPERVISOR_NAME,
+      s.DEPARTMENT,
+      s.POSITION,
+      a.EMAIL as SUPERVISOR_EMAIL,
+      COUNT(DISTINCT team_member.ACCOUNT_ID) as TEAM_SIZE
+    FROM STAFF s
+    JOIN ACCOUNT a ON s.ACCOUNT_ID = a.ACCOUNT_ID
+    LEFT JOIN STAFF team_member ON team_member.SUPERVISOR_ID = s.ACCOUNT_ID 
+      AND team_member.ACCOUNT_ID != s.ACCOUNT_ID
+    WHERE s.ROLE = 'SUPERVISOR'
+    GROUP BY s.ACCOUNT_ID, a.NAME, s.DEPARTMENT, s.POSITION, a.EMAIL
+  )
+  
+  -- Main query: Combine all subqueries and calculate final metrics
+  SELECT 
+    si.TEAM_ID,
+    si.SUPERVISOR_NAME,
+    si.DEPARTMENT,
+    si.POSITION,
+    si.SUPERVISOR_EMAIL,
+    si.TEAM_SIZE,
+    NVL(ts.TOTAL_CASES, 0) as TOTAL_CASES,
+    NVL(ts.RESOLVED_CASES, 0) as RESOLVED_CASES,
+    NVL(ts.ACTIVE_CASES, 0) as ACTIVE_CASES,
+    
+    -- Resolution efficiency (percentage)
+    CASE 
+      WHEN ts.TOTAL_CASES > 0 
+      THEN ROUND((ts.RESOLVED_CASES * 100.0 / ts.TOTAL_CASES), 2)
+      ELSE 0
+    END as RESOLUTION_RATE_PCT,
+    
+    -- Average resolution time
+    ROUND(NVL(ts.AVG_RESOLUTION_TIME, 0), 2) as AVG_RESOLUTION_DAYS,
+    
+    -- Average response time
+    ROUND(NVL(ts.AVG_RESPONSE_TIME, 0), 2) as AVG_RESPONSE_DAYS,
+    
+    -- Workload per member ratio
+    CASE 
+      WHEN si.TEAM_SIZE > 0 
+      THEN ROUND(NVL(ts.ACTIVE_CASES, 0) * 1.0 / si.TEAM_SIZE, 2)
+      ELSE 0
+    END as WORKLOAD_PER_MEMBER,
+    
+    -- Performance score (composite metric: 40% resolution rate + 30% speed + 30% workload balance)
+    -- Higher score = better performance
+    CASE 
+      WHEN ts.TOTAL_CASES > 0 THEN
+        ROUND(
+          (
+            -- Resolution efficiency component (0-40 points)
+            (ts.RESOLVED_CASES * 40.0 / ts.TOTAL_CASES) +
+            
+            -- Speed component (0-30 points, inverse of avg resolution time)
+            -- Assuming 7 days is target, scores decrease after that
+            (CASE 
+              WHEN ts.AVG_RESOLUTION_TIME <= 7 THEN 30
+              WHEN ts.AVG_RESOLUTION_TIME <= 14 THEN 20
+              WHEN ts.AVG_RESOLUTION_TIME <= 30 THEN 10
+              ELSE 5
+            END) +
+            
+            -- Workload balance component (0-30 points)
+            -- Lower workload per member = better (assuming 5 cases per member is ideal)
+            (CASE 
+              WHEN (NVL(ts.ACTIVE_CASES, 0) * 1.0 / NULLIF(si.TEAM_SIZE, 0)) <= 5 THEN 30
+              WHEN (NVL(ts.ACTIVE_CASES, 0) * 1.0 / NULLIF(si.TEAM_SIZE, 0)) <= 10 THEN 20
+              WHEN (NVL(ts.ACTIVE_CASES, 0) * 1.0 / NULLIF(si.TEAM_SIZE, 0)) <= 15 THEN 10
+              ELSE 5
+            END)
+          ), 2
+        )
+      ELSE 0
+    END as PERFORMANCE_SCORE,
+    
+    ts.FIRST_ASSIGNMENT_DATE,
+    ts.LAST_ASSIGNMENT_DATE,
+    
+    -- Team activity status
+    CASE 
+      WHEN ts.ACTIVE_CASES > 15 THEN 'OVERLOADED'
+      WHEN ts.ACTIVE_CASES > 10 THEN 'BUSY'
+      WHEN ts.ACTIVE_CASES > 5 THEN 'MODERATE'
+      WHEN ts.ACTIVE_CASES > 0 THEN 'LIGHT'
+      ELSE 'AVAILABLE'
+    END as TEAM_STATUS
+    
+  FROM SupervisorInfo si
+  LEFT JOIN TeamStats ts ON si.TEAM_ID = ts.TEAM_ID
+  ORDER BY PERFORMANCE_SCORE DESC, RESOLUTION_RATE_PCT DESC, si.SUPERVISOR_NAME
+`;
+
+    const result: any = await this.execute(sql);
+    return result.rows;
+  }
+
 }

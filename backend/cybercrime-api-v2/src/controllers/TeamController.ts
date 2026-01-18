@@ -134,4 +134,16 @@ export class TeamController {
       res.status(400).json({ success: false, error: error.message });
     }
   };
+
+  /** GET /api/v2/teams/performance-metrics/all
+   * Get performance metrics for all teams
+   */
+  getAllTeamPerformanceMetrics = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const metrics = await this.teamService.getAllTeamPerformanceMetrics();
+      res.status(200).json({ success: true, data: metrics });
+    } catch (error: any) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  }
 }

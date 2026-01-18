@@ -110,6 +110,12 @@ export class ReportService {
     return await this.reportRepo.update(id, updates);
   }
 
+  async getUnassignedReportsWithPriority(filters?: {
+    type?: 'CRIME' | 'FACILITY';
+  }): Promise<any[]> {
+    return await this.reportRepo.findUnassignedReportsWithPriority(filters);
+  }
+
   async updateReportStatus(id: number, status: ReportStatus): Promise<Report> {
     // Validate status
     if (!Object.values(ReportStatus).includes(status)) {

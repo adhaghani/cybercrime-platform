@@ -58,4 +58,9 @@ router.get('/:id/members', authorize([Role.STAFF, Role.ADMIN, Role.SUPERADMIN]),
  */
 router.get('/:id/statistics', authorize([Role.STAFF, Role.ADMIN, Role.SUPERADMIN]), teamController.getTeamStatistics);
 
+/** GET /api/v2/teams/performance-metrics/all
+ * Get performance metrics for all teams
+ */
+router.get('/performance-metrics/all', authorize([Role.ADMIN, Role.SUPERADMIN]), teamController.getAllTeamPerformanceMetrics);
+
 export default router;

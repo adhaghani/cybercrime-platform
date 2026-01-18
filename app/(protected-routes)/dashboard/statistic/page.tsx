@@ -8,6 +8,8 @@ import { ReportChartOverTime } from '@/components/statistics/reportChartOverTime
 import { ReportStatusPieChart } from '@/components/statistics/reportStatusPieChart';
 import { ReportTypePieChart } from '@/components/statistics/reportTypePieChart';
 import { UserGrowthLineChart } from '@/components/statistics/userGrowthLineChart';
+import { DepartmentAssignmentEfficiencyRadarChart } from '@/components/statistics/departmentAssignmentEfficiencyRadarChart';
+import { LocationHotspotBySeverityStackedChart } from '@/components/statistics/locationHotspotBySeverityStackedChart';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
@@ -21,6 +23,23 @@ interface StatisticsData {
   facilitySeverities: Array<{ NAME: string; VALUE: number }>;
   reportsOverTime: Array<{ REPORT_DATE: string; DESKTOP: number; MOBILE: number }>;
   userGrowth: Array<{ MONTH_NAME: string; DESKTOP: number }>;
+  departmentEfficiency: Array<{
+    department: string;
+    responseSpeed: number;
+    actionRate: number;
+    resolutionRate: number;
+    workloadCapacity: number;
+    efficiencyScore: number;
+    sameDayAssignment: number;
+  }>;
+  locationHotspots: Array<{
+    location: string;
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+    total: number;
+  }>;
 }
 
 const StatisticsPage = () => {
@@ -62,7 +81,9 @@ const StatisticsPage = () => {
           userGrowth: result.data?.userGrowth?.map((item: any) => ({
             MONTH_NAME: item.month_name,
             DESKTOP: Number(item.desktop)
-          })) || []
+          })) || [],
+          departmentEfficiency: result.data?.departmentEfficiency || [],
+          locationHotspots: result.data?.locationHotspots || []
         };
         
         setData(transformedData);
@@ -129,6 +150,11 @@ const StatisticsPage = () => {
         <CrimeReportCategoryPieChart data={data.crimeCategories} />
         <FacilitySeverityPieChart data={data.facilitySeverities} />
       </div>
+
+      
+      <DepartmentAssignmentEfficiencyRadarChart data={data.departmentEfficiency} />
+      
+      <LocationHotspotBySeverityStackedChart data={data.locationHotspots} />
     </div>
   );
 };
