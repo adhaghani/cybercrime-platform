@@ -35,7 +35,6 @@ interface StaffDashboardProps {
 export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps) {
   const allRecentReports = [...reports]
     .sort((a, b) => new Date(b.SUBMITTED_AT).getTime() - new Date(a.SUBMITTED_AT).getTime())
-    .filter((r) => r.TYPE === "CRIME")
     .slice(0, 5);
 
   const getStatusColor = (status: string) => {
@@ -47,8 +46,6 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
     }
   };
 
-  const facilityReport = reports.filter(r => r.TYPE === "FACILITY");
-
   return (
     <>
       {/* Staff/Admin Stats */}
@@ -59,7 +56,7 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalReports - facilityReport.length}</div>
+            <div className="text-2xl font-bold">{stats.totalReports}</div>
             <p className="text-xs text-muted-foreground">
               All campus reports
             </p>
@@ -72,7 +69,7 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-500">{stats.allPending - facilityReport.filter(r => r.STATUS === "PENDING").length}</div>
+            <div className="text-2xl font-bold text-yellow-500">{stats.allPending}</div>
             <p className="text-xs text-muted-foreground">
               Awaiting action
             </p>
@@ -85,7 +82,7 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-500">{stats.allInProgress - facilityReport.filter(r => r.STATUS === "IN_PROGRESS").length}</div>
+            <div className="text-2xl font-bold text-blue-500">{stats.allInProgress}</div>
             <p className="text-xs text-muted-foreground">
               Being handled
             </p>
@@ -98,7 +95,7 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
             <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-500">{stats.allResolved - facilityReport.filter(r => r.STATUS === "RESOLVED").length}</div>
+            <div className="text-2xl font-bold text-green-500">{stats.allResolved}</div>
             <p className="text-xs text-muted-foreground">
               {stats.totalReports > 0 ? Math.round((stats.allResolved / stats.totalReports) * 100) : 0}% resolution rate
             </p>
