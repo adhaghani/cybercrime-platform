@@ -139,16 +139,16 @@ const StatisticsPage = () => {
       <ReportChartOverTime data={data.reportsOverTime} />
       
       {/* Pie Charts Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <ReportTypePieChart data={data.reportTypes} />
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+        {/* <ReportTypePieChart data={data.reportTypes} /> */}
         <ReportStatusPieChart data={data.reportStatus} />
       </div>
       
       {isAdmin ? <UserGrowthLineChart data={data.userGrowth} /> : null}
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
         <CrimeReportCategoryPieChart data={data.crimeCategories} />
-        <FacilitySeverityPieChart data={data.facilitySeverities} />
+        {/* <FacilitySeverityPieChart data={data.facilitySeverities} /> */}
       </div>
 
       

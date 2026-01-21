@@ -12,20 +12,19 @@ import {
   MapPin,
 } from "lucide-react";
 import Link from "next/link";
-import { Crime, Facility } from "@/lib/types";
+import { Crime } from "@/lib/types";
 import { format } from "date-fns";
 import { useAuth } from "@/lib/context/auth-provider";
 
 interface StudentDashboardProps {
   stats: {
     totalCrime: number;
-    totalFacility: number;
     myReports: number;
     pendingReports: number;
     resolvedReports: number;
   };
   activeAnnouncementsCount: number;
-  reports: (Crime | Facility)[];
+  reports: (Crime)[];
 }
 
 export function StudentDashboard({ stats, reports }: StudentDashboardProps) {
@@ -33,7 +32,6 @@ export function StudentDashboard({ stats, reports }: StudentDashboardProps) {
   const currentUserId = claims?.ACCOUNT_ID || '';
   
   const crimeReports = reports.filter((r) => r.TYPE === "CRIME") as Crime[];
-  const facilityReports = reports.filter((r) => r.TYPE === "FACILITY") as Facility[];
   
   const myReports = reports.filter((r) => r.SUBMITTED_BY === currentUserId);
   const recentReports = [...myReports]
@@ -53,7 +51,7 @@ export function StudentDashboard({ stats, reports }: StudentDashboardProps) {
     <>
 
       {/* Main Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
         {/* Crime Reports Section */}
         <Card className="flex flex-col">
           <CardHeader>
@@ -84,41 +82,6 @@ export function StudentDashboard({ stats, reports }: StudentDashboardProps) {
               </Button>
               <Button asChild variant="outline" className="flex-1">
                 <Link href="/dashboard/crime">View All</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Facility Reports Section */}
-        <Card className="flex flex-col">
-          <CardHeader>
-            <div className="mb-2 h-12 w-12 rounded-lg bg-orange-500/10 flex items-center justify-center">
-              <Wrench className="h-6 w-6 text-orange-500" />
-            </div>
-            <CardTitle>Facility Reports</CardTitle>
-            <CardDescription>
-              Report facility issues and maintenance needs
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col justify-between space-y-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Total Reports</span>
-                <Badge variant="outline">{stats.totalFacility}</Badge>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">My Reports</span>
-                <Badge variant="outline">
-                  {facilityReports.filter(r => r.SUBMITTED_BY === currentUserId).length}
-                </Badge>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button asChild className="flex-1">
-                <Link href="/dashboard/facility/submit-report">Submit</Link>
-              </Button>
-              <Button asChild variant="outline" className="flex-1">
-                <Link href="/dashboard/facility">View All</Link>
               </Button>
             </div>
           </CardContent>
@@ -202,7 +165,7 @@ export function StudentDashboard({ stats, reports }: StudentDashboardProps) {
             ) : (
               <div className="text-center py-12 text-muted-foreground">
                 <p>No reports submitted yet.</p>
-                <p className="text-sm mt-2">Start by submitting a crime or facility report.</p>
+                <p className="text-sm mt-2">Start by submitting a crime report.</p>
               </div>
             )}
           </CardContent>
@@ -221,12 +184,12 @@ export function StudentDashboard({ stats, reports }: StudentDashboardProps) {
                 Report Crime Case
               </Link>
             </Button>
-            <Button asChild variant="outline" className="w-full justify-start">
+            {/* <Button asChild variant="outline" className="w-full justify-start">
               <Link href="/dashboard/facility/submit-report">
                 <Wrench className="h-4 w-4 mr-2" />
                 Report Facility Issue
               </Link>
-            </Button>
+            </Button> */}
             <Button asChild variant="outline" className="w-full justify-start">
               <Link href="/dashboard/emergency-services">
                 <Phone className="h-4 w-4 mr-2" />

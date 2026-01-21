@@ -20,7 +20,7 @@ import {
 interface ReportOverTimeData {
   REPORT_DATE: string;
   DESKTOP: number;
-  MOBILE: number;
+  // MOBILE: number;
 }
 
 interface ReportChartOverTimeProps {
@@ -35,10 +35,10 @@ const chartConfig = {
     label: "Crime",
     color: "var(--chart-2)",
   },
-  MOBILE: {
-    label: "Facility",
-    color: "var(--chart-1)",
-  },
+  // MOBILE: {
+  //   label: "Facility",
+  //   color: "var(--chart-1)",
+  // },
 } satisfies ChartConfig
 
 export function ReportChartOverTime({ data }: ReportChartOverTimeProps) {
@@ -65,13 +65,13 @@ export function ReportChartOverTime({ data }: ReportChartOverTimeProps) {
   const chartData = data.map(item => ({
     date: item.REPORT_DATE,
     DESKTOP: Number(item.DESKTOP),
-    MOBILE: Number(item.MOBILE)
+    // MOBILE: Number(item.MOBILE)
   }));
 
   const total = React.useMemo(
     () => ({
       DESKTOP: chartData.reduce((acc, curr) => acc + Number(curr.DESKTOP), 0),
-      MOBILE: chartData.reduce((acc, curr) => acc + Number(curr.MOBILE), 0),
+      // MOBILE: chartData.reduce((acc, curr) => acc + Number(curr.MOBILE), 0),
     }),
     [chartData]
   )
@@ -86,7 +86,7 @@ export function ReportChartOverTime({ data }: ReportChartOverTimeProps) {
           </CardDescription>
         </div>
         <div className="flex">
-          {["DESKTOP", "MOBILE"].map((key) => {
+          {["DESKTOP"].map((key) => {
             const chart = key as keyof typeof chartConfig
             return (
               <button

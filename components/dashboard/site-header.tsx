@@ -67,7 +67,7 @@ export function SiteHeader() {
         heading: "Reports",
         items: [
           { key: "crime-reports", label: "Crime Reports", href: "/dashboard/reports/crime" },
-          { key: "facility-reports", label: "Facility Reports", href: "/dashboard/reports/facility" },
+          // { key: "facility-reports", label: "Facility Reports", href: "/dashboard/reports/facility" },
           { key: "my-assigned", label: "My Assigned Report", href: "/dashboard/reports/my-assignments" },
         ]
       },
@@ -122,15 +122,15 @@ export function SiteHeader() {
             { key: "my-crime-reports", label: "My Crime Reports", href: "/dashboard/crime/my-reports" },
           ]
         },
-        {
-          key: "facility",
-          heading: "Facility",
-          items: [
-            { key: "all-facility-reports", label: "All Facility Reports", href: "/dashboard/facility/reports" },
-            { key: "submit-facility", label: "Submit Facility Report", href: "/dashboard/facility/submit-report" },
-            { key: "my-facility-reports", label: "My Facility Reports", href: "/dashboard/facility/my-reports" },
-          ]
-        }
+        // {
+        //   key: "facility",
+        //   heading: "Facility",
+        //   items: [
+        //     { key: "all-facility-reports", label: "All Facility Reports", href: "/dashboard/facility/reports" },
+        //     { key: "submit-facility", label: "Submit Facility Report", href: "/dashboard/facility/submit-report" },
+        //     { key: "my-facility-reports", label: "My Facility Reports", href: "/dashboard/facility/my-reports" },
+        //   ]
+        // }
       ];
     }
         else if (isAdmin) {

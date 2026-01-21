@@ -52,7 +52,7 @@ export default function UnassignedReportsPage() {
       }
       
       const data = await response.json();
-      setReports(data.data || []);
+      setReports(data.data.filter((report: UnassignedReport) => report.TYPE === 'CRIME') || [])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       setReports([]);
@@ -60,6 +60,10 @@ export default function UnassignedReportsPage() {
       setLoading(false);
     }
   };
+  
+  const filterCrime = () => {
+    setReports(reports.filter(report => report.TYPE === 'CRIME'));
+  }
 
   useEffect(() => {
     const type = selectedType === 'ALL' ? undefined : selectedType;
@@ -171,14 +175,14 @@ export default function UnassignedReportsPage() {
       <Tabs value={selectedType} onValueChange={(v) => setSelectedType(v as typeof selectedType)}>
         <TabsList>
           <TabsTrigger value="ALL">All Reports ({reports.length})</TabsTrigger>
-          <TabsTrigger value="CRIME">
+          {/* <TabsTrigger value="CRIME">
             <Shield className="h-4 w-4 mr-2" />
             Crime Reports
           </TabsTrigger>
           <TabsTrigger value="FACILITY">
             <Building2 className="h-4 w-4 mr-2" />
             Facility Reports
-          </TabsTrigger>
+          </TabsTrigger> */}
         </TabsList>
 
         <TabsContent value={selectedType} className="space-y-4">

@@ -25,7 +25,7 @@ import { toast } from "sonner";
 export default function GenerateReportPage() {
   // Form state
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState<GeneratedReportCategory>("ALL REPORTS");
+  const [category, setCategory] = useState<GeneratedReportCategory>("CRIME");
   const [dataType, setDataType] = useState<GeneratedReportDataType>("SUMMARY");
   const [dateRangeStart, setDateRangeStart] = useState("");
   const [dateRangeEnd, setDateRangeEnd] = useState("");
@@ -246,9 +246,9 @@ export default function GenerateReportPage() {
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="ALL REPORTS">All Reports</SelectItem>
+                        {/* <SelectItem value="ALL REPORTS">All Reports</SelectItem> */}
                         <SelectItem value="CRIME">Crime Reports</SelectItem>
-                        <SelectItem value="FACILITY">Facility Reports</SelectItem>
+                        {/* <SelectItem value="FACILITY">Facility Reports</SelectItem> */}
                       </SelectContent>
                     </Select>
                   </div>

@@ -17,19 +17,19 @@ import {
   Bell
 } from "lucide-react";
 import Link from "next/link";
-import { Crime, Facility } from "@/lib/types";
+import { Crime } from "@/lib/types";
 import { format } from "date-fns";
 interface StaffDashboardProps {
   stats: {
     totalCrime: number;
-    totalFacility: number;
+    // totalFacility: number;
     allPending: number;
     allInProgress: number;
     allResolved: number;
     totalReports: number;
   };
   isAdmin: boolean;
-  reports: (Crime | Facility)[];
+  reports: (Crime)[];
 }
 
 export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps) {
@@ -107,7 +107,7 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
       </div>
 
       {/* Main Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
         {/* Crime Reports Section */}
         <Card className="flex flex-col">
           <CardHeader>
@@ -139,7 +139,7 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
         </Card>
 
         {/* Facility Reports Section */}
-        <Card className="flex flex-col">
+        {/* <Card className="flex flex-col">
           <CardHeader>
             <div className="mb-2 h-12 w-12 rounded-lg bg-orange-500/10 flex items-center justify-center">
               <Wrench className="h-6 w-6 text-orange-500" />
@@ -166,7 +166,7 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
               <Link href="/dashboard/facility/reports">View All</Link>
             </Button>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Emergency Services Section */}
         <Card className="flex flex-col">
@@ -263,12 +263,12 @@ export function StaffDashboard({ stats, isAdmin, reports }: StaffDashboardProps)
                 All Crime Reports
               </Link>
             </Button>
-            <Button asChild variant="outline" className="w-full justify-start">
+            {/* <Button asChild variant="outline" className="w-full justify-start">
               <Link href="/dashboard/facility/reports">
                 <Wrench className="h-4 w-4 mr-2" />
                 All Facility Reports
               </Link>
-            </Button>
+            </Button> */}
             <Button asChild variant="outline" className="w-full justify-start">
               <Link href="/dashboard/announcement">
                 <Bell className="h-4 w-4 mr-2" />
