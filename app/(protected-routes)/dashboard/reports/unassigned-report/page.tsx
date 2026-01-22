@@ -297,8 +297,16 @@ export default function UnassignedReportsPage() {
                 </Card>
               ))}
             
-            {/* Pagination */}
-            {totalPages > 1 && (
+
+            </div>
+          </>
+            
+          )}
+        </TabsContent>
+      </Tabs>
+
+                  {/* Pagination */}
+            {totalPages > 1 && paginatedReports.length > 0 && (
               <div className="mt-6">
                 <PaginationControls
                   currentPage={page}
@@ -309,12 +317,6 @@ export default function UnassignedReportsPage() {
                 />
               </div>
             )}
-            </div>
-          </>
-            
-          )}
-        </TabsContent>
-      </Tabs>
 
       {/* Info Card */}
       <Card>

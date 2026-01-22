@@ -490,7 +490,7 @@ export class ReportRepository extends BaseRepository<Report> {
     const departmentEfficiencySql = `
       SELECT 
         s.DEPARTMENT as "department",
-        -- Response Speed: Inverse of avg hours to assignment (normalized to 0-100)
+        -- Response Speed: avg hours to assignment (normalized to 0-100)
         NVL(ROUND(100 - (
           (SELECT AVG(CAST(ra.ASSIGNED_AT AS DATE) - CAST(r.SUBMITTED_AT AS DATE)) * 24
            FROM REPORT_ASSIGNMENT ra
@@ -831,9 +831,8 @@ export class ReportRepository extends BaseRepository<Report> {
         (SELECT COUNT(*) 
          FROM REPORT_ASSIGNMENT ra 
          WHERE ra.REPORT_ID = r.REPORT_ID) as ASSIGNMENT_COUNT,
-        -- Subquery 2: Calculate waiting time in days
         ROUND(CAST(SYSDATE AS DATE) - CAST(r.SUBMITTED_AT AS DATE), 2) as WAITING_DAYS,
-        -- Direct join: Get severity level (from CRIME or FACILITY)
+        -- Calculate severity score
         CASE 
           WHEN r.TYPE = 'CRIME' AND c.INJURY_LEVEL IS NOT NULL THEN 
             CASE c.INJURY_LEVEL
@@ -853,7 +852,7 @@ export class ReportRepository extends BaseRepository<Report> {
             END
           ELSE 1
         END as SEVERITY_SCORE,
-        -- Direct join: Calculate priority score (weighted formula)
+        -- Calculate priority score (weighted formula)
         (ROUND(CAST(SYSDATE AS DATE) - CAST(r.SUBMITTED_AT AS DATE), 2) * 2) + 
         CASE 
           WHEN r.TYPE = 'CRIME' AND c.INJURY_LEVEL IS NOT NULL THEN 
@@ -874,7 +873,7 @@ export class ReportRepository extends BaseRepository<Report> {
             END
           ELSE 10
         END as PRIORITY_SCORE,
-        -- Subquery 5: Count available staff (not overloaded)
+        -- Count available staff (not overloaded)
         NVL((SELECT COUNT(DISTINCT s.ACCOUNT_ID)
          FROM STAFF s
          WHERE s.ACCOUNT_ID NOT IN (

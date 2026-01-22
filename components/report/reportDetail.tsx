@@ -111,6 +111,8 @@ export function ReportDetail({ reportId, showAdminActions = false, showAssignDia
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
   const [updateActionTaken, setUpdateActionTaken] = useState("");
   const [updateFeedback, setUpdateFeedback] = useState("");
+  const [imageError, setImageError] = useState(false);
+  const [ResolutionImageError, setResolutionImageError] = useState(false);
   
   // Get current user info for auto-fill
   const currentUserId = claims?.ACCOUNT_ID || "-";
@@ -321,14 +323,17 @@ export function ReportDetail({ reportId, showAdminActions = false, showAssignDia
               <DialogHeader>
                 <DialogTitle>Resolution Evidence Photo</DialogTitle>
               </DialogHeader>
-              <Image
+              {ResolutionImageError ? <>
+              <p>Failed to load image.</p>  
+              </> : <Image
               width={200}
               height={100}
               sizes="100%"
               className="border w-full max-w-xl"
               src={report.RESOLUTIONS.EVIDENCE_PATH}
               alt={report.RESOLUTIONS.RESOLUTION_SUMMARY + " Image"}
-              />
+              onError={() => setResolutionImageError(true)}
+              />}
             </DialogContent>
           </Dialog> : null}
             </AlertDescription>
@@ -375,7 +380,7 @@ export function ReportDetail({ reportId, showAdminActions = false, showAssignDia
             </CardContent>
           </Card>
 
-          {report.ATTACHMENT_PATH && report.ATTACHMENT_PATH.length > 0 && (
+          {imageError ? null : report.ATTACHMENT_PATH && report.ATTACHMENT_PATH.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle>Report Image Evidence</CardTitle>
@@ -391,6 +396,7 @@ export function ReportDetail({ reportId, showAdminActions = false, showAssignDia
                             alt={`Evidence ${index + 1}`}
                             fill
                             className="object-contain"
+                            onError={() => setImageError(true)}
                           />
                         </div>
                       </CarouselItem>
